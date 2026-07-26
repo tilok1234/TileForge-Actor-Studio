@@ -1,0 +1,19 @@
+node_modules/
+dist/
+.svelte-kit/
+src-tauri/target/
+src-tauri/gen/
+*.log
+.DS_Store
+
+# Local studio state and generated art are never source files.
+.studio/
+workspace/
+exports/
+
+# Local credentials and client-specific overrides.
+.env
+.env.*
+!.env.example
+.codex/config.local.toml
+.claude/settings.local.json

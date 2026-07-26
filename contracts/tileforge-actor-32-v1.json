@@ -1,0 +1,31 @@
+{
+  "$schema": "./tileforge-actor-contract.schema.json",
+  "id": "tileforge-actor-32-v1",
+  "version": 1,
+  "title": "TileForge 32px actor",
+  "sourceBoundary": "TileForge owns the world. Actor Studio consumes only a pinned reference pack and never edits TileForge.",
+  "frame": {
+    "width": 32,
+    "height": 32,
+    "actorHeightMin": 22,
+    "actorHeightMax": 30,
+    "footAnchor": [16, 28],
+    "hardAlpha": true
+  },
+  "art": {
+    "lightDirection": "north-west",
+    "outline": "selective shaded-side outline using the actor's own dark ramp",
+    "paletteMaxColors": 16,
+    "minimumGroundLumaDistance": 15
+  },
+  "animation": {
+    "directions": ["down", "right", "up", "left"],
+    "initialClip": "walk",
+    "framesPerDirection": 4,
+    "frameDurationMs": 300
+  },
+  "approval": {
+    "agentsMayApprove": false,
+    "immutableGenerations": true
+  }
+}
