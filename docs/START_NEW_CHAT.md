@@ -37,9 +37,10 @@ Hard boundaries:
 - Keep Codex, Claude, and Antigravity on the same client-neutral MCP contract.
 
 After orientation, verify the implemented M04 Turnaround behavior against the
-live code and checks. The user selected real Concept r4 and an immutable
-four-direction Turnaround r1 is awaiting the user-owned identity-consistency
-gate. Do not begin Walk Cycle work until that gate is explicit. Keep every repair
+live code and checks. The user selected real Concept r4, rejected the r1
+right-facing outline, and immutable Turnaround r2 is awaiting the user-owned
+identity-consistency gate. R1 is preserved; r2 changes only the right view. Do
+not begin Walk Cycle work until that gate is explicit. Keep every repair
 immutable, keep Pass/Fail/Not assessed separate from visual acceptance, and do
 not grant approval or publishing authority.
 

@@ -111,8 +111,8 @@ Implemented:
 
 ## M04 - Turnaround and Walk Cycle
 
-Status: in progress. Turnaround is implemented and awaiting the user's
-identity-consistency decision. Walk Cycle has not started.
+Status: in progress. Turnaround is implemented and immutable repair r2 is
+awaiting the user's identity-consistency decision. Walk Cycle has not started.
 
 Goal: move an accepted concept through consistent four-direction views and a
 four-frame walk cycle per direction.
@@ -137,13 +137,16 @@ Turnaround implemented:
   aggregate structural evidence;
 - structural validation is recomputed, not stored, and identity consistency
   remains Not assessed with user authority;
+- direction-specific feedback creates a new complete Turnaround revision while
+  preserving unaffected direction bytes; local r2 changes only the rejected
+  right-facing view and retains r1;
 - shared TypeScript and Rust compatibility/failure-path tests cover the
   document, exact-down invariant, malformed views, immutable reads, collisions,
   and partial-write cleanup.
 
 Pending after the human Turnaround gate:
 
-- explicit user acceptance of identity consistency;
+- explicit user acceptance of the latest r2 identity consistency;
 - four walk frames per direction at the contract's 300 ms default;
 - immutable Walk Cycle revisions and motion/readability review.
 

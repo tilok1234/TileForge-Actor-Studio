@@ -196,3 +196,21 @@ add-on is integrated.
 
 Reason: this permits real artwork without coupling the studio protocol to one
 client or creating incremental AI-service spend.
+
+## 2026-07-27 - Direction repairs preserve unaffected Turnaround bytes
+
+When the user rejects one direction, the repair still publishes a new complete
+atomic Turnaround revision. Unaffected direction PNGs are reused byte for byte,
+the rejected direction receives a new source and SHA-256 identity, and all
+earlier Turnarounds remain available for comparison.
+
+The first application is Mirelight Pilgrim r2: the user identified the r1 right
+outline as bleeding and accepted the left profile as the better reference. R2
+therefore replaces only the right view with a deterministic mirrored,
+foot-anchor-corrected copy of the left view. Down, up, and left retain their
+exact r1 hashes. The repair uses no AI service and does not imply user approval.
+
+Reason: a narrow correction should not introduce silent drift into directions
+the user did not reject. Publishing the complete repaired set atomically keeps
+the stage coherent while retaining a precise audit trail from feedback to
+changed bytes.

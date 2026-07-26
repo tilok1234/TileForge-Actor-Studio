@@ -123,21 +123,30 @@ guards validator compatibility.
 
 ## Current local review gate
 
-Ignored `.studio/` state currently contains the first real M04 Turnaround:
+Ignored `.studio/` state currently contains the first real M04 Turnaround and
+its first immutable direction repair:
 
 - session: `mirelight-pilgrim-20260726212353-df9dd645`
 - user-selected Concept:
   `concept-r0004-20260726221830-633afb02`
-- immutable Turnaround:
+- preserved original Turnaround:
   `turnaround-r0001-20260726224205-a558350a`
+- current review Turnaround:
+  `turnaround-r0002-20260726225909-696334cf`
+- repair scope: the user rejected the r1 right-facing outline/edge bleed; r2
+  replaces only `right.png` with a deterministic mirrored and re-anchored copy
+  of the user-accepted-good left profile
+- byte preservation: r2 down, up, and left SHA-256 identities exactly match r1;
+  r1 remains unchanged
 - structural evidence: 24 Pass / 0 Fail / 4 Not assessed, with one ground-luma
   result pending per direction
 - identity consistency: Not assessed, user authority
 
-The built-in ImageGen sources and local preparation evidence are preserved
-under `.studio/generated-source/` and did not use an API key or incremental
-AI-service billing. Do not begin Walk Cycle work until the user explicitly
-accepts identity consistency or asks for a new immutable Turnaround revision.
+The built-in ImageGen sources and deterministic repair evidence are preserved
+under `.studio/generated-source/`. The r2 repair used no AI service, API key, or
+incremental billing. Do not begin Walk Cycle work until the user explicitly
+accepts r2 identity consistency or asks for another immutable Turnaround
+revision.
 
 ## Verification evidence
 
@@ -162,17 +171,20 @@ The M04 Turnaround slice was verified on Windows with Node 24.15.0, npm
   Concept r4 selection receipt and Turnaround r1, displayed all four views,
   reported 24 Pass / 0 Fail / 4 Not assessed, and kept identity consistency
   Not assessed and user-only
+- Local r2 repair evidence — the rejected r1 right view was replaced in a new
+  atomic Turnaround; down, up, and left hashes remain exact; validation reports
+  6 Pass / 0 Fail / 1 Not assessed per direction and 24 / 0 / 4 in aggregate
 
 Re-run checks relevant to any new change. For the HTTP smoke test, start
 `npm run mcp:http` in a separate terminal first.
 
 ## Recommended next milestone
 
-The next action is the user-owned Turnaround identity gate. If the user accepts
-the current down/right/up/left set, continue M04 with an immutable four-frame
-walk cycle per direction at 300 ms. If the user requests changes, create a new
-Turnaround revision; never overwrite r1. Do not treat 24 green structural
-checks as identity acceptance.
+The next action is the user-owned Turnaround r2 identity gate. If the user
+accepts the current down/right/up/left set, continue M04 with an immutable
+four-frame walk cycle per direction at 300 ms. If the user requests changes,
+create another Turnaround revision; never overwrite r1 or r2. Do not treat 24
+green structural checks as identity acceptance.
 
 Any future AI integration must be included in the user's existing
 subscriptions. Do not enable pay-as-you-go APIs, purchased credits,
