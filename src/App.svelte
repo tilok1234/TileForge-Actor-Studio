@@ -1,11 +1,16 @@
 <script lang="ts">
   import { invoke, isTauri } from "@tauri-apps/api/core";
-  import { onMount } from "svelte";
+  import { onDestroy, onMount } from "svelte";
   import {
     ACTOR_BRIEF_LIMITS,
     actorBriefError,
     parseActorBrief,
   } from "./lib/studio/brief";
+  import {
+    CONCEPT_PNG_MAX_BYTES,
+    parseConceptCandidate,
+    type ConceptCandidate,
+  } from "./lib/studio/candidate";
   import { BOUNDARY_RULES, TILEFORGE_ACTOR_CONTRACT } from "./lib/studio/contract";
   import { compileActorPrompt } from "./lib/studio/prompt";
   import { parseStudioSession } from "./lib/studio/session";
@@ -39,12 +44,38 @@
   let workspaceRoot = "";
   let saving = false;
   let restoring = true;
+  let candidates: ConceptCandidate[] = [];
+  let selectedCandidate: ConceptCandidate | null = null;
+  let candidatePngUrl = "";
+  let candidateMessage = "Import a 32 × 32 PNG to create the first immutable candidate.";
+  let candidateError = "";
+  let importingCandidate = false;
+  let previewZoom: 1 | 8 | 16 = 8;
 
   $: compiledPrompt = compileActorPrompt(brief);
 
   onMount(() => {
     void restoreLatestSession();
   });
+
+  onDestroy(() => {
+    revokeCandidateUrl();
+  });
+
+  function revokeCandidateUrl() {
+    if (candidatePngUrl) {
+      URL.revokeObjectURL(candidatePngUrl);
+      candidatePngUrl = "";
+    }
+  }
+
+  function clearCandidates() {
+    revokeCandidateUrl();
+    candidates = [];
+    selectedCandidate = null;
+    candidateError = "";
+    candidateMessage = "Import a 32 × 32 PNG to create the first immutable candidate.";
+  }
 
   function showSession(saved: StudioSession) {
     session = saved;
@@ -68,7 +99,9 @@
       workspaceRoot = result.workspaceRoot;
       const latest = result.sessions[0];
       if (latest) {
-        showSession(parseStudioSession(latest));
+        const restoredSession = parseStudioSession(latest);
+        showSession(restoredSession);
+        await refreshCandidates(restoredSession.id);
         sessionMessage = "Reopened the latest durable session.";
       } else {
         sessionMessage = "No saved sessions yet.";
@@ -103,6 +136,7 @@
         await invoke("create_sprite_session", { brief: validatedBrief }),
       );
       showSession(saved);
+      clearCandidates();
       workspaceRoot ||= ".studio";
       sessionMessage = "Saved locally. MCP clients can read this session.";
     } catch (error) {
@@ -110,6 +144,95 @@
       sessionMessage = "The session was not saved.";
     } finally {
       saving = false;
+    }
+  }
+
+  async function refreshCandidates(sessionId: string, preferredId?: string) {
+    candidateError = "";
+    try {
+      const result = await invoke<unknown[]>("list_concept_candidates", {
+        sessionId,
+      });
+      candidates = result.map(parseConceptCandidate);
+      const preferred =
+        candidates.find((candidate) => candidate.id === preferredId) ??
+        candidates[0] ??
+        null;
+      if (preferred) {
+        await loadCandidate(preferred);
+        candidateMessage = `${candidates.length} immutable candidate${candidates.length === 1 ? "" : "s"} saved.`;
+      } else {
+        clearCandidates();
+      }
+    } catch (error) {
+      candidateError = actorBriefError(error);
+      candidateMessage = "Candidates could not be loaded.";
+    }
+  }
+
+  async function loadCandidate(candidate: ConceptCandidate) {
+    if (!session || !isTauri()) {
+      return;
+    }
+    candidateError = "";
+    try {
+      const payload = await invoke<{ candidate: unknown; pngBytes: number[] }>(
+        "get_concept_candidate",
+        {
+          sessionId: session.id,
+          candidateId: candidate.id,
+        },
+      );
+      const loaded = parseConceptCandidate(payload.candidate);
+      const bytes = new Uint8Array(payload.pngBytes);
+      revokeCandidateUrl();
+      candidatePngUrl = URL.createObjectURL(
+        new Blob([bytes.buffer], { type: loaded.mimeType }),
+      );
+      selectedCandidate = loaded;
+    } catch (error) {
+      candidateError = actorBriefError(error);
+    }
+  }
+
+  async function importCandidate(event: Event) {
+    const input = event.currentTarget as HTMLInputElement;
+    const file = input.files?.[0];
+    input.value = "";
+    if (!file || !session) {
+      return;
+    }
+    candidateError = "";
+    if (!isTauri()) {
+      candidateError = "Open the desktop app to import a durable candidate.";
+      return;
+    }
+    if (file.size > CONCEPT_PNG_MAX_BYTES) {
+      candidateError = "PNG file exceeds the 1 MiB intake limit.";
+      return;
+    }
+
+    importingCandidate = true;
+    candidateMessage = "Validating and preserving original PNG bytes…";
+    try {
+      const saved = parseConceptCandidate(
+        await invoke("import_concept_candidate", {
+          sessionId: session.id,
+          pngBytes: Array.from(new Uint8Array(await file.arrayBuffer())),
+          provenance: {
+            source: "imported",
+            originalFilename: file.name,
+          },
+        }),
+      );
+      await refreshCandidates(session.id, saved.id);
+      candidateMessage =
+        "Structural intake passed. Visual judgment is not assessed; candidate remains unreviewed.";
+    } catch (error) {
+      candidateError = actorBriefError(error);
+      candidateMessage = "Candidate was rejected without creating a partial revision.";
+    } finally {
+      importingCandidate = false;
     }
   }
 </script>
@@ -206,6 +329,26 @@
             <small>Saved under {workspaceRoot}</small>
           {/if}
         </section>
+
+        <section class="candidate-intake" aria-label="Concept candidate intake">
+          <div>
+            <p class="eyebrow">Concept intake</p>
+            <strong>Immutable PNG import</strong>
+          </div>
+          <label class="secondary-action" class:disabled={importingCandidate}>
+            <span>{importingCandidate ? "Importing…" : "Import 32 × 32 PNG"}</span>
+            <input
+              accept="image/png,.png"
+              disabled={importingCandidate}
+              onchange={importCandidate}
+              type="file"
+            />
+          </label>
+          <small>Original bytes and provenance are preserved. Import never approves art.</small>
+          <p class="candidate-message" class:error={Boolean(candidateError)} role={candidateError ? "alert" : "status"}>
+            {candidateError || candidateMessage}
+          </p>
+        </section>
       {/if}
 
       <p class="session-message" class:error={Boolean(sessionError)} role={sessionError ? "alert" : "status"}>
@@ -242,31 +385,58 @@
           <h2>{activeStage === 0 ? "Concept preview" : stages[activeStage].label}</h2>
         </div>
         <div class="zoom-control" aria-label="Preview zoom">
-          <button>1×</button>
-          <button class="active">8×</button>
-          <button>16×</button>
+          <button class:active={previewZoom === 1} onclick={() => (previewZoom = 1)}>1×</button>
+          <button class:active={previewZoom === 8} onclick={() => (previewZoom = 8)}>8×</button>
+          <button class:active={previewZoom === 16} onclick={() => (previewZoom = 16)}>16×</button>
         </div>
       </div>
 
       <div class="preview-stage">
-        <div class="canvas-frame">
-          <div class="pixel-grid">
-            <div class="sprite-placeholder" aria-label="Waiting for generated actor">
-              <div class="sprite-head"></div>
-              <div class="sprite-cloak"></div>
-              <div class="sprite-lantern"></div>
-              <div class="sprite-feet"></div>
-            </div>
-            <span class="anchor-line horizontal"></span>
-            <span class="anchor-line vertical"></span>
-            <span class="anchor-point" title="Foot anchor"></span>
+        {#if selectedCandidate && candidatePngUrl}
+          <div class="candidate-canvas" style={`--candidate-size: ${32 * previewZoom}px`}>
+            <img
+              alt={`Concept candidate revision ${selectedCandidate.revision}`}
+              height={32 * previewZoom}
+              src={candidatePngUrl}
+              width={32 * previewZoom}
+            />
           </div>
-        </div>
+        {:else}
+          <div class="canvas-frame">
+            <div class="pixel-grid">
+              <div class="sprite-placeholder" aria-label="Waiting for generated actor">
+                <div class="sprite-head"></div>
+                <div class="sprite-cloak"></div>
+                <div class="sprite-lantern"></div>
+                <div class="sprite-feet"></div>
+              </div>
+              <span class="anchor-line horizontal"></span>
+              <span class="anchor-line vertical"></span>
+              <span class="anchor-point" title="Foot anchor"></span>
+            </div>
+          </div>
+        {/if}
         <p class="preview-note">
-          {session
-            ? "Concept slot ready. Generation will create immutable candidates here."
-            : "Begin a concept to create the first immutable candidate."}
+          {selectedCandidate
+            ? `Candidate r${selectedCandidate.revision} · structural intake passed · visual judgment not assessed`
+            : session
+              ? "Concept slot ready. Import creates immutable, unreviewed candidates here."
+              : "Begin a concept to create the first immutable candidate."}
         </p>
+        {#if candidates.length > 0}
+          <div class="candidate-strip" aria-label="Immutable Concept candidates">
+            {#each candidates as candidate}
+              <button
+                class:selected={selectedCandidate?.id === candidate.id}
+                onclick={() => loadCandidate(candidate)}
+                title={candidate.id}
+              >
+                <strong>r{candidate.revision}</strong>
+                <span>{candidate.provenance.source}</span>
+              </button>
+            {/each}
+          </div>
+        {/if}
       </div>
 
       <div class="world-strip">

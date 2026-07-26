@@ -76,6 +76,9 @@ this project so every client observes the same gateway behavior.
 - `create_sprite_session`
 - `list_sprite_sessions`
 - `get_sprite_session`
+- `import_concept_candidate`
+- `list_concept_candidates`
+- `get_concept_candidate`
 
 The gateway also exposes:
 
@@ -84,10 +87,17 @@ The gateway also exposes:
 
 No tool can approve final art.
 
+`import_concept_candidate` accepts PNG bytes with imported or generated
+provenance. Generated provenance must name its provider, but Actor Studio does
+not integrate or select a provider in M02. Successful intake records structural
+evidence and `unreviewed` status; it never implies visual acceptance.
+
 ## Shared desktop state
 
 MCP session tools and the Tauri desktop use the same local workspace:
 `.studio/sessions` by default, or `TFAS_WORKSPACE` when redirected. Session
 directories are published atomically and are never overwritten. A session
 created from the desktop can therefore be listed and read through MCP without a
-conversion or copy step.
+conversion or copy step. Candidate directories use the same rule and preserve
+the exact original `source.png`; either adapter can list and read a candidate
+created by the other.

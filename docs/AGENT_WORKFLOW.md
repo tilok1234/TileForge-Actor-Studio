@@ -49,12 +49,17 @@ revision and preserve the evidence trail.
 1. Call `get_studio_contract`.
 2. Call `compile_actor_prompt` with the creative brief.
 3. Call `create_sprite_session` once the user wants persistent local work.
-4. Work within that session and create immutable candidates.
-5. Run validators and present their evidence.
-6. Ask the user for visual approval at the defined gates.
+4. Call `import_concept_candidate` to publish each new PNG as an immutable
+   revision.
+5. Use `list_concept_candidates` and `get_concept_candidate` to compare saved
+   evidence.
+6. Run validators and present their evidence.
+7. Ask the user for visual approval at the defined gates.
 
-The MCP tools currently implement steps 1–3 plus session reads. Candidate,
-validation, and export tools will be added as their studio layers are built.
+The MCP tools currently implement steps 1–5. M02 candidate intake proves PNG
+structure, exact dimensions, and the presence of transparency; it does not
+perform the M03 validator suite or visual acceptance. Validation and export
+tools will be added as their studio layers are built.
 
 ## Validation language
 
@@ -69,7 +74,8 @@ Use these distinct outcomes:
 ## Local state
 
 Sessions live in `.studio/sessions` by default. Set `TFAS_WORKSPACE` to redirect
-local state. The desktop and MCP gateway read the same immutable session
-documents; creating a session publishes a complete directory atomically rather
-than exposing a partial record. `.studio/` and generated exports are ignored by
-Git.
+local state. The desktop and MCP gateway read the same immutable session and
+candidate documents; creating either publishes a complete directory atomically
+rather than exposing a partial record. Original candidate PNG bytes are
+rehash-verified on read and never overwritten. `.studio/` and generated exports
+are ignored by Git.

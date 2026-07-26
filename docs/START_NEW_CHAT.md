@@ -36,11 +36,12 @@ Hard boundaries:
 - Never overwrite generated candidates; create immutable revisions.
 - Keep Codex, Claude, and Antigravity on the same client-neutral MCP contract.
 
-After orientation, verify the completed M01 durable-session behavior against
-the live code and checks, then continue from M02: Immutable Concept Candidates
-in docs/ROADMAP.md. Keep provider adapters outside the studio core, preserve
-every candidate as an immutable revision, and do not select a paid provider or
-grant approval/publishing authority without my explicit direction.
+After orientation, verify the completed M02 immutable-candidate behavior
+against the live code and checks, then continue from M03: Contract Validation
+in docs/ROADMAP.md. Build deterministic evidence on top of the preserved
+original PNG revision, keep Pass/Fail/Not assessed distinct from human visual
+acceptance, and do not select a paid provider or grant approval/publishing
+authority without my explicit direction.
 
 Make reasonable implementation decisions within that scope and keep moving.
 Do not stop at a plan unless a choice would materially expand the product or

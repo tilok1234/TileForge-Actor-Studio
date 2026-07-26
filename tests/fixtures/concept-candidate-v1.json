@@ -1,0 +1,26 @@
+{
+  "schemaVersion": 1,
+  "id": "concept-r0001-20260726213000-rustdesk",
+  "revision": 1,
+  "sessionId": "mirelight-pilgrim-20260726210140-rustdesk",
+  "stage": "concept",
+  "direction": "down",
+  "contractId": "tileforge-actor-32-v1",
+  "sourceFile": "source.png",
+  "mimeType": "image/png",
+  "sha256": "0123456789abcdef0123456789abcdef0123456789abcdef0123456789abcdef",
+  "byteLength": 128,
+  "width": 32,
+  "height": 32,
+  "createdAt": "2026-07-26T21:30:00.000Z",
+  "provenance": {
+    "source": "imported",
+    "originalFilename": "mirelight-pilgrim.png"
+  },
+  "intakeValidation": {
+    "fileType": "pass",
+    "dimensions": "pass",
+    "alphaChannel": "pass"
+  },
+  "reviewStatus": "unreviewed"
+}

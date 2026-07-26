@@ -42,7 +42,7 @@ Implemented:
 
 ## M02 - Immutable Concept Candidates
 
-Status: next.
+Status: complete.
 
 Goal: accept one generated or imported down-facing concept while remaining
 provider-neutral.
@@ -56,7 +56,25 @@ Acceptance criteria:
 - candidate creation cannot imply approval;
 - malformed dimensions, alpha, or file types fail safely.
 
+Implemented:
+
+- provider-neutral local PNG intake is exposed through desktop and MCP
+  adapters; no generation provider is selected or integrated;
+- each candidate is atomically published under its own never-overwritten
+  revision directory with a versioned document and original `source.png`;
+- provenance, byte length, decoded dimensions, SHA-256 identity, and
+  `unreviewed` status are shared compatibility fields;
+- reads rehash the original bytes and fail if stored evidence no longer
+  matches;
+- the UI restores, lists, switches, and previews revisions at 1x, 8x, and 16x;
+- malformed PNG data, non-32 x 32 images, fully opaque images, missing provider
+  provenance, identity collisions, and partial writes fail safely;
+- TypeScript and Rust use the same candidate fixture and exercise byte
+  preservation, compatibility, and failure cleanup.
+
 ## M03 - Contract Validation
+
+Status: next.
 
 Goal: measure structural rules before asking for visual judgment.
 

@@ -6,8 +6,11 @@ import { textPayload } from "./result.js";
 const expectedTools = [
   "compile_actor_prompt",
   "create_sprite_session",
+  "get_concept_candidate",
   "get_sprite_session",
   "get_studio_contract",
+  "import_concept_candidate",
+  "list_concept_candidates",
   "list_sprite_sessions",
 ];
 

@@ -3,9 +3,10 @@
 A narrow desktop workflow for creating **32 px TileForge mobs and NPCs with AI**.
 The artist supplies the identity; the studio supplies the boundaries.
 
-Current status: **M01 durable Brief to Concept complete; M02 immutable concept
-candidates is next.** The desktop and MCP gateway now share durable local
-sessions, but the studio does not generate art yet.
+Current status: **M02 immutable Concept candidates complete; M03 contract
+validation is next.** The desktop and MCP gateway share durable local sessions
+and never-overwritten concept PNG revisions. No image-generation provider is
+selected or integrated.
 
 The initial workflow has six deliberate stages:
 
@@ -82,7 +83,9 @@ npm run check
 npm run build
 npm run test:mcp
 npm run test:mcp:stdio
+cargo fmt --manifest-path src-tauri/Cargo.toml --check
 cargo check --manifest-path src-tauri/Cargo.toml
+cargo test --manifest-path src-tauri/Cargo.toml
 npm audit --audit-level=moderate
 ```
 
@@ -98,7 +101,8 @@ For the HTTP transport smoke test, run `npm run mcp:http` in one terminal and
 - `.studio/` — ignored local sessions and generated artifacts
 - `docs/` — architecture and agent workflow
 
-The completed M01 milestone establishes the shell, contract, prompt compiler,
-MCP surface, and one atomic `.studio` session protocol shared by the desktop
-and MCP adapters. The desktop reopens the latest session and still displays
-placeholder art. Immutable concept candidates are the next milestone.
+The completed M02 milestone extends the shared `.studio` protocol with
+immutable candidate documents and original PNG bytes. The desktop restores,
+lists, compares, and zooms saved revisions, while MCP exposes equivalent
+import/list/read operations. Intake evidence is structural only; deterministic
+contract validation and human visual approval remain later, separate gates.

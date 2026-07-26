@@ -68,21 +68,24 @@ runtime dependency or write generated assets back into them.
 | UI session | Creates an atomic durable session and advances to Concept |
 | Session restore | Reopens the newest valid local session on desktop startup |
 | Saved identity | Shows session id, revision, contract id, and saved workspace |
-| Preview | CSS placeholder actor, foot anchor, zoom controls, and scene/theme mock |
+| Candidate intake | Imports a local 32 x 32 transparent PNG as a new immutable Concept revision |
+| Candidate restore | Reopens, lists, and reads saved candidates through either adapter |
+| Candidate comparison | Switches revisions and previews them at 1x, 8x, and 16x |
+| Candidate evidence | Shows provenance, SHA-256 identity, and structural-intake status without implying visual acceptance |
 | Contract | JSON Schema, versioned JSON instance, and TypeScript representation |
 | Approval | Human-only approval boundary shown in UI, contract, prompt, and MCP |
 | MCP | Stdio and localhost Streamable HTTP transports |
-| MCP tools | Contract read, prompt compile, session create/list/get |
-| Shared storage | Tauri and MCP adapters use one atomic `.studio/sessions` protocol |
-| Compatibility | Shared session fixture plus TypeScript and Rust failure-path tests |
+| MCP tools | Contract read, prompt compile, session create/list/get, and candidate import/list/get |
+| Shared storage | Tauri and MCP adapters use one atomic `.studio/sessions` and immutable candidate protocol |
+| Compatibility | Shared session/candidate fixtures plus TypeScript and Rust failure-path tests |
 | Agent guidance | `AGENTS.md`, `CLAUDE.md`, `GEMINI.md`, project rules, and skill |
 | App icon | Generated Tauri desktop/mobile icon set from `src-tauri/icons/icon.svg` |
 
 ## Not implemented yet
 
-- Generated candidate images are not accepted or stored yet.
 - No image-generation provider is selected or integrated.
-- No deterministic sprite validators exist yet.
+- M02 intake checks PNG decoding, dimensions, and transparency; the full M03
+  deterministic validator suite does not exist yet.
 - No pinned TileForge reference pack exists yet.
 - Turnaround, animation, world-test, and export stages are visual shells.
 - No approved-candidate promotion or publishing operation exists.
@@ -99,41 +102,44 @@ and verification evidence.
 - `src-tauri/` contains the native shell and durable session commands.
 - `contracts/` is the versioned machine-readable art/world contract.
 - `mcp/` exposes the domain over MCP and uses the shared filesystem protocol.
-- `.studio/` is the ignored local workspace for sessions and future candidates.
+- `.studio/` is the ignored local workspace for sessions and immutable candidates.
 
 The shared boundary is documented in `docs/DECISIONS.md`: both thin adapters
-use the same session document, identity rules, brief limits, directory layout,
-and atomic publish behavior. `tests/fixtures/session-v1.json` guards
-cross-language compatibility.
+use the same session and candidate documents, identity rules, brief limits,
+directory layout, hash checks, and atomic publish behavior.
+`tests/fixtures/session-v1.json` and
+`tests/fixtures/concept-candidate-v1.json` guard cross-language compatibility.
 
 ## Verification evidence
 
-M01 was verified on Windows with Node 24.15.0, npm 11.12.1, and Rust 1.95:
+M02 was verified on Windows with Node 24.15.0, npm 11.12.1, and Rust 1.95:
 
 - `npm run check` — 0 errors and 0 warnings
 - `npm run build` — production bundle built
-- `npm run test:mcp` — five tools, locked approval contract, shared document
-  compatibility, validation, and atomic failure cleanup passed
+- `npm run test:mcp` — eight tools, locked approval contract, shared
+  session/candidate compatibility, validation, byte preservation, and atomic
+  failure cleanup passed
 - `npm run test:mcp:stdio` — real stdio transport passed
 - `npm run test:mcp:http` — real localhost HTTP transport passed while server ran
 - `cargo fmt --manifest-path src-tauri/Cargo.toml --check` — passed
 - `cargo check --manifest-path src-tauri/Cargo.toml` — passed
-- `cargo test --manifest-path src-tauri/Cargo.toml` — three persistence tests
-  passed
+- `cargo test --manifest-path src-tauri/Cargo.toml` — seven session/candidate
+  persistence and failure-path tests passed
 - `npm audit --audit-level=moderate` — 0 vulnerabilities
-- Native desktop QA — Begin concept published a durable session; the MCP
-  adapter read the same document; a cold app restart restored the exact
-  session id, revision, contract id, and Concept stage
+- Native desktop QA — the app restored a shared session and two unreviewed
+  candidates created through the MCP adapter; revision switching and 1x, 8x,
+  and 16x previews remained available without exposing approval controls
 
 Re-run checks relevant to any new change. For the HTTP smoke test, start
 `npm run mcp:http` in a separate terminal first.
 
 ## Recommended next milestone
 
-Implement **M02: immutable Concept candidates** from `docs/ROADMAP.md`.
-Keep provider adapters outside the studio core, never overwrite candidate
-bytes, and preserve explicit user approval as a later gate. Provider selection
-or any paid/external generation requires the user's authority.
+Implement **M03: Contract Validation** from `docs/ROADMAP.md`. Build
+deterministic evidence on top of immutable M02 candidates, keep structural
+results distinct from human visual acceptance, and do not add an
+approval/publishing capability. Provider selection or any paid/external
+generation still requires the user's authority.
 
 ## Handoff discipline
 

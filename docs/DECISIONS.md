@@ -81,3 +81,41 @@ Reason: requiring the desktop to connect to a separately running MCP server
 would weaken standalone operation and packaging. Thin adapters over one local
 protocol keep the store shared, local-first, and client-neutral while
 compatibility tests make cross-language drift visible.
+
+## 2026-07-26 - Immutable original PNG candidate protocol
+
+Concept candidates extend the shared filesystem protocol without introducing a
+generation provider:
+
+```text
+.studio/
+  sessions/
+    <session-id>/
+      session.json
+      candidates/
+        <candidate-id>/
+          candidate.json
+          source.png
+```
+
+Each candidate has a versioned document, immutable id and revision, session and
+contract identity, stage and direction, source provenance, byte length,
+decoded dimensions, SHA-256 digest, intake evidence, and an `unreviewed`
+review status. The source kind may be `imported` or `generated`; generated
+provenance requires a provider name, but no provider adapter is part of M02.
+
+Creation uses a hidden same-parent temporary directory followed by a rename.
+Existing candidate identities are collisions, never replacement targets.
+Readers rehash `source.png` before returning it. TypeScript and Rust adapters
+share `tests/fixtures/concept-candidate-v1.json` so either can create or read
+the same record.
+
+M02 intake only establishes that the file is a decodable PNG, exactly 32 x 32,
+within the local size limit, and contains transparency. It records structural
+intake passes while keeping `reviewStatus` equal to `unreviewed` and visual
+judgment equal to Not assessed. Hard-alpha, palette, actor bounds, foot anchor,
+luma separation, and clipping are M03 validators.
+
+Reason: retaining exact source bytes and evidence makes revisions comparable
+and auditable across desktop and MCP clients. Separating intake from visual
+acceptance prevents successful parsing from becoming accidental approval.
