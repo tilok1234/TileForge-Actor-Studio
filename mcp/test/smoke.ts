@@ -12,6 +12,7 @@ const expectedTools = [
   "import_concept_candidate",
   "list_concept_candidates",
   "list_sprite_sessions",
+  "validate_concept_candidate",
 ];
 
 const [clientTransport, serverTransport] = InMemoryTransport.createLinkedPair();

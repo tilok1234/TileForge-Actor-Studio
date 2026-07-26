@@ -74,7 +74,7 @@ Implemented:
 
 ## M03 - Contract Validation
 
-Status: next.
+Status: complete.
 
 Goal: measure structural rules before asking for visual judgment.
 
@@ -90,7 +90,28 @@ Initial validators:
 
 Reports must distinguish Pass, Fail, Not assessed, and human visual acceptance.
 
+Implemented:
+
+- one versioned, candidate-hash-bound report schema is shared by desktop and
+  MCP adapters;
+- decoded PNG pixels, rather than candidate metadata, drive canvas, hard-alpha,
+  visible-height, foot-anchor, visible-palette, and frame-edge measurements;
+- independent rules continue running after another rule fails, preserving the
+  full repair list;
+- ground-luma separation reports Not assessed until a pinned ground reference
+  exists;
+- every report includes a separate user-owned visual-judgment field that
+  remains Not assessed and cannot encode approval;
+- validation is read-only, deterministic, local, and does not modify candidate
+  bytes or directories;
+- TypeScript and Rust use the same report fixture and exercise passing,
+  multi-failure, decoded-dimension, immutability, and approval-boundary cases;
+- the desktop displays per-rule evidence and Pass/Fail/Not assessed totals and
+  can re-run the local validator for the selected immutable revision.
+
 ## M04 - Turnaround and Walk Cycle
+
+Status: next; requires a real user-selected Concept candidate.
 
 Goal: move an accepted concept through consistent four-direction views and a
 four-frame walk cycle per direction.

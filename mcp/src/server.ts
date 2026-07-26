@@ -7,6 +7,7 @@ import {
 } from "../../src/lib/studio/candidate.js";
 import { TILEFORGE_ACTOR_CONTRACT } from "../../src/lib/studio/contract.js";
 import { compileActorPrompt } from "../../src/lib/studio/prompt.js";
+import { validateConceptCandidatePng } from "../../src/lib/studio/validate-candidate.js";
 import {
   createConceptCandidate,
   getConceptCandidatePayload,
@@ -240,6 +241,35 @@ export function createActorStudioServer(
         candidate: payload.candidate,
         pngBase64: Buffer.from(payload.pngBytes).toString("base64"),
       });
+    },
+  );
+
+  server.registerTool(
+    "validate_concept_candidate",
+    {
+      title: "Validate concept candidate",
+      description:
+        "Measure the local structural contract against one immutable candidate. Pass or Fail evidence is not visual approval; only the user can accept final art.",
+      inputSchema: {
+        sessionId: z.string().min(3).max(96),
+        candidateId: z.string().min(3).max(96),
+      },
+      annotations: {
+        readOnlyHint: true,
+        destructiveHint: false,
+        idempotentHint: true,
+        openWorldHint: false,
+      },
+    },
+    async ({ sessionId, candidateId }) => {
+      const payload = await getConceptCandidatePayload(
+        sessionId,
+        candidateId,
+        storageRoot,
+      );
+      return textResult(
+        validateConceptCandidatePng(payload.candidate, payload.pngBytes),
+      );
     },
   );
 

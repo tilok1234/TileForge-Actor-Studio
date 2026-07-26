@@ -119,3 +119,40 @@ luma separation, and clipping are M03 validators.
 Reason: retaining exact source bytes and evidence makes revisions comparable
 and auditable across desktop and MCP clients. Separating intake from visual
 acceptance prevents successful parsing from becoming accidental approval.
+
+## 2026-07-26 - Recomputed structural validation reports
+
+M03 validation is a read-only deterministic projection of an immutable
+candidate PNG, not mutable candidate state. Both adapters return the same
+versioned report shape:
+
+- validator, candidate, candidate SHA-256, and contract identities;
+- seven canonically ordered rule results with Pass, Fail, or Not assessed;
+- Pass, Fail, and Not assessed totals derived from those results;
+- a separate visual-judgment record fixed to Not assessed with user authority.
+
+Canvas dimensions, hard alpha, visible actor height, exact foot-anchor contact,
+visible RGB palette count, and frame-edge contact are measured from decoded
+pixels. Ground-luma separation reports Not assessed until a pinned ground
+reference exists. A failure does not suppress later measurements.
+
+Reports are recomputed and are not written into candidate directories. The
+desktop and MCP adapters therefore cannot mutate the evidence they validate or
+silently turn structural success into approval.
+
+Reason: immutable input makes deterministic reports reproducible. Avoiding a
+stored mutable status removes stale-report and accidental-promotion paths while
+the candidate SHA-256 keeps every report tied to exact source bytes.
+
+## 2026-07-26 - No incremental AI-service spend
+
+Actor Studio may only use AI capabilities covered by the user's existing
+subscriptions. Do not enable pay-as-you-go APIs, purchased credits,
+usage-metered billing, or paid add-ons. If a provider's billing boundary is
+unclear, stop before connecting it and ask the user.
+
+Local deterministic operations, including M03 validation, require no external
+AI provider and incur no additional service cost.
+
+Reason: the studio must remain predictable to operate and must never create an
+unexpected bill while moving work between supported AI clients.

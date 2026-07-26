@@ -1,0 +1,68 @@
+{
+  "schemaVersion": 1,
+  "validatorId": "tileforge-actor-32-structural-v1",
+  "candidateId": "concept-r0001-20260726213000-rustdesk",
+  "candidateSha256": "0123456789abcdef0123456789abcdef0123456789abcdef0123456789abcdef",
+  "contractId": "tileforge-actor-32-v1",
+  "results": [
+    {
+      "id": "canvas_dimensions",
+      "status": "pass",
+      "expected": "32 x 32 px",
+      "observed": "32 x 32 px",
+      "message": "Decoded canvas matches the contract."
+    },
+    {
+      "id": "hard_alpha",
+      "status": "pass",
+      "expected": "Only alpha 0 or 255",
+      "observed": "0 pixels with alpha from 1 to 254",
+      "message": "All pixels use hard alpha."
+    },
+    {
+      "id": "actor_height",
+      "status": "pass",
+      "expected": "22-30 px",
+      "observed": "24 px",
+      "message": "Visible actor height is within the contract range."
+    },
+    {
+      "id": "foot_anchor",
+      "status": "pass",
+      "expected": "Visible pixel at (16, 28)",
+      "observed": "Contact",
+      "message": "The actor contacts the contract foot anchor."
+    },
+    {
+      "id": "palette_max_colors",
+      "status": "pass",
+      "expected": "16 visible RGB colors or fewer",
+      "observed": "2 visible RGB colors",
+      "message": "Visible palette is within the contract maximum."
+    },
+    {
+      "id": "ground_luma_separation",
+      "status": "not_assessed",
+      "expected": "At least 15 luma from pinned ground",
+      "observed": null,
+      "message": "A pinned ground reference is required before this rule can be measured."
+    },
+    {
+      "id": "frame_edge_clipping",
+      "status": "pass",
+      "expected": "No visible pixels on the frame edge",
+      "observed": "No edge contact",
+      "message": "No visible pixel touches the frame edge."
+    }
+  ],
+  "summary": {
+    "pass": 6,
+    "fail": 0,
+    "notAssessed": 1
+  },
+  "visualJudgment": {
+    "status": "not_assessed",
+    "authority": "user",
+    "message": "Only the user can make the visual-acceptance decision."
+  }
+}

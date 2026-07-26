@@ -72,20 +72,22 @@ runtime dependency or write generated assets back into them.
 | Candidate restore | Reopens, lists, and reads saved candidates through either adapter |
 | Candidate comparison | Switches revisions and previews them at 1x, 8x, and 16x |
 | Candidate evidence | Shows provenance, SHA-256 identity, and structural-intake status without implying visual acceptance |
+| Contract validation | Measures six PNG rules locally and reports ground luma as Not assessed pending a pinned reference |
+| Validation UI | Shows Pass, Fail, and Not assessed totals plus per-rule evidence for the selected revision |
 | Contract | JSON Schema, versioned JSON instance, and TypeScript representation |
 | Approval | Human-only approval boundary shown in UI, contract, prompt, and MCP |
 | MCP | Stdio and localhost Streamable HTTP transports |
-| MCP tools | Contract read, prompt compile, session create/list/get, and candidate import/list/get |
+| MCP tools | Contract read, prompt compile, session create/list/get, candidate import/list/get, and read-only validation |
 | Shared storage | Tauri and MCP adapters use one atomic `.studio/sessions` and immutable candidate protocol |
-| Compatibility | Shared session/candidate fixtures plus TypeScript and Rust failure-path tests |
+| Compatibility | Shared session, candidate, and validation-report fixtures plus TypeScript and Rust failure-path tests |
 | Agent guidance | `AGENTS.md`, `CLAUDE.md`, `GEMINI.md`, project rules, and skill |
 | App icon | Generated Tauri desktop/mobile icon set from `src-tauri/icons/icon.svg` |
 
 ## Not implemented yet
 
 - No image-generation provider is selected or integrated.
-- M02 intake checks PNG decoding, dimensions, and transparency; the full M03
-  deterministic validator suite does not exist yet.
+- Ground-luma validation remains Not assessed until a pinned ground reference
+  exists.
 - No pinned TileForge reference pack exists yet.
 - Turnaround, animation, world-test, and export stages are visual shells.
 - No approved-candidate promotion or publishing operation exists.
@@ -106,40 +108,46 @@ and verification evidence.
 
 The shared boundary is documented in `docs/DECISIONS.md`: both thin adapters
 use the same session and candidate documents, identity rules, brief limits,
-directory layout, hash checks, and atomic publish behavior.
+directory layout, hash checks, atomic publish behavior, and recomputed
+candidate-hash-bound validation report.
 `tests/fixtures/session-v1.json` and
-`tests/fixtures/concept-candidate-v1.json` guard cross-language compatibility.
+`tests/fixtures/concept-candidate-v1.json` guard storage compatibility;
+`tests/fixtures/validation-report-v1.json` guards validator compatibility.
 
 ## Verification evidence
 
-M02 was verified on Windows with Node 24.15.0, npm 11.12.1, and Rust 1.95:
+M03 was verified on Windows with Node 24.15.0, npm 11.12.1, and Rust 1.95:
 
 - `npm run check` — 0 errors and 0 warnings
 - `npm run build` — production bundle built
-- `npm run test:mcp` — eight tools, locked approval contract, shared
-  session/candidate compatibility, validation, byte preservation, and atomic
-  failure cleanup passed
+- `npm run test:mcp` — nine tools, locked approval contract, shared
+  session/candidate/report compatibility, independent rule failures, immutable
+  validation reads, and atomic failure cleanup passed
 - `npm run test:mcp:stdio` — real stdio transport passed
 - `npm run test:mcp:http` — real localhost HTTP transport passed while server ran
 - `cargo fmt --manifest-path src-tauri/Cargo.toml --check` — passed
 - `cargo check --manifest-path src-tauri/Cargo.toml` — passed
-- `cargo test --manifest-path src-tauri/Cargo.toml` — seven session/candidate
-  persistence and failure-path tests passed
+- `cargo test --manifest-path src-tauri/Cargo.toml` — nine
+  session/candidate/validation compatibility and failure-path tests passed
 - `npm audit --audit-level=moderate` — 0 vulnerabilities
-- Native desktop QA — the app restored a shared session and two unreviewed
-  candidates created through the MCP adapter; revision switching and 1x, 8x,
-  and 16x previews remained available without exposing approval controls
+- Native desktop QA — the app restored two shared unreviewed candidates,
+  displayed 6 Pass / 0 Fail / 1 Not assessed for each exact revision, switched
+  candidate-bound evidence, and re-ran validation while keeping visual judgment
+  Not assessed and user-only
 
 Re-run checks relevant to any new change. For the HTTP smoke test, start
 `npm run mcp:http` in a separate terminal first.
 
 ## Recommended next milestone
 
-Implement **M03: Contract Validation** from `docs/ROADMAP.md`. Build
-deterministic evidence on top of immutable M02 candidates, keep structural
-results distinct from human visual acceptance, and do not add an
-approval/publishing capability. Provider selection or any paid/external
-generation still requires the user's authority.
+M04 is next, but it requires a real user-selected Concept candidate before
+Turnaround work begins. Do not treat the synthetic `.studio/` QA candidates or
+an all-green structural report as that selection. Preserve immutable revisions
+and the human approval boundary throughout Turnaround and Walk Cycle work.
+
+Any future AI integration must be included in the user's existing
+subscriptions. Do not enable pay-as-you-go APIs, purchased credits,
+usage-metered billing, or paid add-ons.
 
 ## Handoff discipline
 

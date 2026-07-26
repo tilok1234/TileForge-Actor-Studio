@@ -3,10 +3,11 @@
 A narrow desktop workflow for creating **32 px TileForge mobs and NPCs with AI**.
 The artist supplies the identity; the studio supplies the boundaries.
 
-Current status: **M02 immutable Concept candidates complete; M03 contract
-validation is next.** The desktop and MCP gateway share durable local sessions
-and never-overwritten concept PNG revisions. No image-generation provider is
-selected or integrated.
+Current status: **M03 Contract Validation complete; M04 Turnaround and Walk
+Cycle requires a real user-selected Concept candidate.** The desktop and MCP
+gateway share durable local sessions, never-overwritten PNG revisions, and one
+local deterministic validation report contract. No image-generation provider
+is selected or integrated.
 
 The initial workflow has six deliberate stages:
 
@@ -104,5 +105,11 @@ For the HTTP transport smoke test, run `npm run mcp:http` in one terminal and
 The completed M02 milestone extends the shared `.studio` protocol with
 immutable candidate documents and original PNG bytes. The desktop restores,
 lists, compares, and zooms saved revisions, while MCP exposes equivalent
-import/list/read operations. Intake evidence is structural only; deterministic
-contract validation and human visual approval remain later, separate gates.
+import/list/read operations. M03 adds candidate-hash-bound pixel measurements
+for canvas, alpha, height, anchor, palette, and clipping. Ground contrast and
+human visual judgment remain explicitly Not assessed until their required
+human/reference inputs exist.
+
+Future AI integrations may use only capabilities already covered by the user's
+subscriptions. Pay-as-you-go APIs, purchased credits, usage billing, and paid
+add-ons are out of bounds.

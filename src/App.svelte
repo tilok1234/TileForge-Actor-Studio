@@ -15,6 +15,11 @@
   import { compileActorPrompt } from "./lib/studio/prompt";
   import { parseStudioSession } from "./lib/studio/session";
   import type { ActorBrief, StudioSession } from "./lib/studio/types";
+  import {
+    parseValidationReport,
+    type ValidationReport,
+    type ValidationRuleResult,
+  } from "./lib/studio/validation";
 
   const stages = [
     { key: "brief", label: "Brief" },
@@ -27,6 +32,15 @@
 
   const scenes = ["Scale lineup", "Forest clearing", "Crownhold", "Tidewater"];
   const themes = ["Forest", "Autumn", "Dusk", "Winter"];
+  const validationLabels: Record<ValidationRuleResult["id"], string> = {
+    canvas_dimensions: "Canvas",
+    hard_alpha: "Hard alpha",
+    actor_height: "Actor height",
+    foot_anchor: "Foot anchor",
+    palette_max_colors: "Palette",
+    ground_luma_separation: "Ground contrast",
+    frame_edge_clipping: "Frame edge",
+  };
 
   let brief: ActorBrief = {
     name: "Mirelight Pilgrim",
@@ -51,6 +65,9 @@
   let candidateError = "";
   let importingCandidate = false;
   let previewZoom: 1 | 8 | 16 = 8;
+  let validationReport: ValidationReport | null = null;
+  let validationError = "";
+  let validating = false;
 
   $: compiledPrompt = compileActorPrompt(brief);
 
@@ -73,6 +90,8 @@
     revokeCandidateUrl();
     candidates = [];
     selectedCandidate = null;
+    validationReport = null;
+    validationError = "";
     candidateError = "";
     candidateMessage = "Import a 32 × 32 PNG to create the first immutable candidate.";
   }
@@ -175,6 +194,8 @@
       return;
     }
     candidateError = "";
+    validationReport = null;
+    validationError = "";
     try {
       const payload = await invoke<{ candidate: unknown; pngBytes: number[] }>(
         "get_concept_candidate",
@@ -190,8 +211,37 @@
         new Blob([bytes.buffer], { type: loaded.mimeType }),
       );
       selectedCandidate = loaded;
+      await validateCandidate(loaded);
     } catch (error) {
       candidateError = actorBriefError(error);
+    }
+  }
+
+  async function validateCandidate(candidate: ConceptCandidate) {
+    if (!session || !isTauri()) {
+      return;
+    }
+    validating = true;
+    validationError = "";
+    try {
+      const report = parseValidationReport(
+        await invoke("validate_concept_candidate", {
+          sessionId: session.id,
+          candidateId: candidate.id,
+        }),
+      );
+      if (
+        report.candidateId !== candidate.id ||
+        report.candidateSha256 !== candidate.sha256
+      ) {
+        throw new Error("Validation report identity does not match the candidate.");
+      }
+      validationReport = report;
+    } catch (error) {
+      validationReport = null;
+      validationError = actorBriefError(error);
+    } finally {
+      validating = false;
     }
   }
 
@@ -493,6 +543,59 @@
           </div>
         {/each}
       </div>
+
+      <section class="validation-card" aria-label="Structural validation report">
+        <div class="validation-heading">
+          <div>
+            <p class="eyebrow">Local evidence</p>
+            <strong>Contract validation</strong>
+          </div>
+          {#if selectedCandidate}
+            <button
+              aria-label="Run structural validation again"
+              disabled={validating}
+              onclick={() => selectedCandidate && validateCandidate(selectedCandidate)}
+            >
+              {validating ? "Running…" : "Re-run"}
+            </button>
+          {/if}
+        </div>
+
+        {#if !selectedCandidate}
+          <p class="validation-empty">Select or import a candidate to measure its structure.</p>
+        {:else if validating && !validationReport}
+          <p class="validation-empty">Measuring immutable PNG pixels locally…</p>
+        {:else if validationError}
+          <p class="validation-error" role="alert">{validationError}</p>
+        {:else if validationReport}
+          <div class="validation-summary" aria-label="Validation totals">
+            <span class="pass">{validationReport.summary.pass} pass</span>
+            <span class:quiet={validationReport.summary.fail === 0} class="fail">
+              {validationReport.summary.fail} fail
+            </span>
+            <span class="not-assessed">
+              {validationReport.summary.notAssessed} not assessed
+            </span>
+          </div>
+          <div class="validation-results">
+            {#each validationReport.results as result}
+              <div class:pass={result.status === "pass"} class:fail={result.status === "fail"} class:not-assessed={result.status === "not_assessed"} class="validation-result">
+                <span class="validation-mark" aria-label={result.status}>
+                  {result.status === "pass" ? "✓" : result.status === "fail" ? "!" : "—"}
+                </span>
+                <div>
+                  <strong>{validationLabels[result.id]}</strong>
+                  <span>{result.observed ?? "Pinned ground reference unavailable"}</span>
+                </div>
+              </div>
+            {/each}
+          </div>
+          <div class="visual-judgment">
+            <span>Visual judgment</span>
+            <strong>Not assessed — user only</strong>
+          </div>
+        {/if}
+      </section>
 
       <div class="approval-card">
         <p class="eyebrow">Approval boundary</p>

@@ -79,6 +79,7 @@ this project so every client observes the same gateway behavior.
 - `import_concept_candidate`
 - `list_concept_candidates`
 - `get_concept_candidate`
+- `validate_concept_candidate`
 
 The gateway also exposes:
 
@@ -92,6 +93,12 @@ provenance. Generated provenance must name its provider, but Actor Studio does
 not integrate or select a provider in M02. Successful intake records structural
 evidence and `unreviewed` status; it never implies visual acceptance.
 
+`validate_concept_candidate` is read-only and local. It returns seven ordered
+contract results plus Pass/Fail/Not assessed totals tied to the candidate
+SHA-256. Ground luma is Not assessed until a pinned ground reference exists.
+The report's visual judgment is also Not assessed and user-owned; no MCP tool
+can change that state.
+
 ## Shared desktop state
 
 MCP session tools and the Tauri desktop use the same local workspace:
@@ -101,3 +108,6 @@ created from the desktop can therefore be listed and read through MCP without a
 conversion or copy step. Candidate directories use the same rule and preserve
 the exact original `source.png`; either adapter can list and read a candidate
 created by the other.
+
+Do not configure an AI provider that incurs incremental charges. Any future AI
+connection must be covered by the user's existing subscriptions.

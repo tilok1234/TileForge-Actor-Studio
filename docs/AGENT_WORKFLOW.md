@@ -53,13 +53,16 @@ revision and preserve the evidence trail.
    revision.
 5. Use `list_concept_candidates` and `get_concept_candidate` to compare saved
    evidence.
-6. Run validators and present their evidence.
+6. Call `validate_concept_candidate` and present every Pass, Fail, and Not
+   assessed result without converting it into visual acceptance.
 7. Ask the user for visual approval at the defined gates.
 
-The MCP tools currently implement steps 1–5. M02 candidate intake proves PNG
-structure, exact dimensions, and the presence of transparency; it does not
-perform the M03 validator suite or visual acceptance. Validation and export
-tools will be added as their studio layers are built.
+The MCP tools currently implement steps 1–6. M02 candidate intake proves PNG
+structure, exact dimensions, and the presence of transparency. M03 validation
+then measures the immutable decoded pixels. Ground luma remains Not assessed
+until a pinned ground reference exists; visual acceptance remains a user-only
+decision. Turnaround and export tools will be added as their studio layers are
+built.
 
 ## Validation language
 
@@ -79,3 +82,9 @@ candidate documents; creating either publishes a complete directory atomically
 rather than exposing a partial record. Original candidate PNG bytes are
 rehash-verified on read and never overwritten. `.studio/` and generated exports
 are ignored by Git.
+
+## Cost boundary
+
+Use only AI capabilities covered by the user's existing subscriptions. Do not
+connect pay-as-you-go APIs, buy credits, enable usage billing, or add paid
+features. Local contract validation does not require an AI service.

@@ -36,12 +36,15 @@ Hard boundaries:
 - Never overwrite generated candidates; create immutable revisions.
 - Keep Codex, Claude, and Antigravity on the same client-neutral MCP contract.
 
-After orientation, verify the completed M02 immutable-candidate behavior
-against the live code and checks, then continue from M03: Contract Validation
-in docs/ROADMAP.md. Build deterministic evidence on top of the preserved
-original PNG revision, keep Pass/Fail/Not assessed distinct from human visual
-acceptance, and do not select a paid provider or grant approval/publishing
-authority without my explicit direction.
+After orientation, verify the completed M03 validation behavior against the
+live code and checks. M04: Turnaround and Walk Cycle is next, but do not begin
+it until I select a real Concept candidate; the synthetic `.studio/` QA
+candidates and structural passes are not approval. Keep every repair
+immutable, keep Pass/Fail/Not assessed separate from visual acceptance, and do
+not grant approval or publishing authority.
+
+Do not use any AI service that adds cost beyond my existing subscriptions. No
+pay-as-you-go APIs, purchased credits, usage billing, or paid add-ons.
 
 Make reasonable implementation decisions within that scope and keep moving.
 Do not stop at a plan unless a choice would materially expand the product or

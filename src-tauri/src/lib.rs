@@ -2,6 +2,7 @@ use chrono::{SecondsFormat, Utc};
 use serde::{Deserialize, Serialize};
 use sha2::{Digest, Sha256};
 use std::{
+    collections::HashSet,
     env, fs,
     io::Cursor,
     path::{Path, PathBuf},
@@ -13,6 +14,16 @@ const SESSION_ID_MAX_LENGTH: usize = 96;
 const SESSION_SLUG_MAX_LENGTH: usize = 64;
 const CANDIDATE_ID_MAX_LENGTH: usize = 96;
 const CONCEPT_PNG_MAX_BYTES: usize = 1_048_576;
+const VALIDATION_REPORT_VERSION: u32 = 1;
+const STRUCTURAL_VALIDATOR_ID: &str = "tileforge-actor-32-structural-v1";
+const FRAME_WIDTH: u32 = 32;
+const FRAME_HEIGHT: u32 = 32;
+const ACTOR_HEIGHT_MIN: u32 = 22;
+const ACTOR_HEIGHT_MAX: u32 = 30;
+const FOOT_ANCHOR_X: u32 = 16;
+const FOOT_ANCHOR_Y: u32 = 28;
+const PALETTE_MAX_COLORS: usize = 16;
+const MINIMUM_GROUND_LUMA_DISTANCE: u32 = 15;
 
 #[derive(Debug, Clone, Serialize, Deserialize)]
 #[serde(rename_all = "lowercase")]
@@ -102,6 +113,78 @@ struct ConceptCandidate {
 struct ConceptCandidatePayload {
     candidate: ConceptCandidate,
     png_bytes: Vec<u8>,
+}
+
+#[derive(Debug, Clone, Copy, PartialEq, Eq, Serialize, Deserialize)]
+#[serde(rename_all = "snake_case")]
+enum ValidationStatus {
+    Pass,
+    Fail,
+    NotAssessed,
+}
+
+#[derive(Debug, Clone, Copy, PartialEq, Eq, Serialize, Deserialize)]
+#[serde(rename_all = "snake_case")]
+enum ValidationRuleId {
+    CanvasDimensions,
+    HardAlpha,
+    ActorHeight,
+    FootAnchor,
+    PaletteMaxColors,
+    GroundLumaSeparation,
+    FrameEdgeClipping,
+}
+
+#[derive(Debug, Clone, PartialEq, Eq, Serialize, Deserialize)]
+#[serde(rename_all = "camelCase", deny_unknown_fields)]
+struct ValidationRuleResult {
+    id: ValidationRuleId,
+    status: ValidationStatus,
+    expected: String,
+    observed: Option<String>,
+    message: String,
+}
+
+#[derive(Debug, Clone, PartialEq, Eq, Serialize, Deserialize)]
+#[serde(rename_all = "camelCase", deny_unknown_fields)]
+struct ValidationSummary {
+    pass: u32,
+    fail: u32,
+    not_assessed: u32,
+}
+
+#[derive(Debug, Clone, Copy, PartialEq, Eq, Serialize, Deserialize)]
+#[serde(rename_all = "snake_case")]
+enum VisualJudgmentStatus {
+    NotAssessed,
+}
+
+#[derive(Debug, Clone, PartialEq, Eq, Serialize, Deserialize)]
+#[serde(rename_all = "camelCase", deny_unknown_fields)]
+struct VisualJudgment {
+    status: VisualJudgmentStatus,
+    authority: String,
+    message: String,
+}
+
+#[derive(Debug, Clone, PartialEq, Eq, Serialize, Deserialize)]
+#[serde(rename_all = "camelCase", deny_unknown_fields)]
+struct ValidationReport {
+    schema_version: u32,
+    validator_id: String,
+    candidate_id: String,
+    candidate_sha256: String,
+    contract_id: String,
+    results: Vec<ValidationRuleResult>,
+    summary: ValidationSummary,
+    visual_judgment: VisualJudgment,
+}
+
+#[derive(Debug)]
+struct DecodedPng {
+    width: u32,
+    height: u32,
+    pixels: Vec<[u8; 4]>,
 }
 
 fn workspace_root() -> PathBuf {
@@ -430,7 +513,7 @@ fn list_candidates_at(root: &Path, session_id: &str) -> Result<Vec<ConceptCandid
     Ok(candidates)
 }
 
-fn validate_concept_png(png_bytes: &[u8]) -> Result<(u32, u32, String), String> {
+fn decode_png_rgba(png_bytes: &[u8]) -> Result<DecodedPng, String> {
     if png_bytes.is_empty() {
         return Err("PNG file is empty.".to_owned());
     }
@@ -446,27 +529,53 @@ fn validate_concept_png(png_bytes: &[u8]) -> Result<(u32, u32, String), String> 
     if reader.info().animation_control.is_some() {
         return Err("Animated PNG files are not supported for Concept intake.".to_owned());
     }
-    if reader.info().width != 32 || reader.info().height != 32 {
-        return Err("Concept PNG must be exactly 32 x 32 pixels.".to_owned());
-    }
-
     let mut decoded = vec![0; reader.output_buffer_size()];
     let output = reader
         .next_frame(&mut decoded)
         .map_err(|_| "File is not a valid PNG.".to_owned())?;
     let decoded = &decoded[..output.buffer_size()];
-    let has_transparency = match output.color_type {
-        png::ColorType::Rgba => decoded.chunks_exact(4).any(|pixel| pixel[3] < 255),
-        png::ColorType::GrayscaleAlpha => decoded.chunks_exact(2).any(|pixel| pixel[1] < 255),
-        _ => false,
+    let pixels = match output.color_type {
+        png::ColorType::Grayscale => decoded
+            .iter()
+            .map(|gray| [*gray, *gray, *gray, 255])
+            .collect(),
+        png::ColorType::GrayscaleAlpha => decoded
+            .chunks_exact(2)
+            .map(|pixel| [pixel[0], pixel[0], pixel[0], pixel[1]])
+            .collect(),
+        png::ColorType::Rgb => decoded
+            .chunks_exact(3)
+            .map(|pixel| [pixel[0], pixel[1], pixel[2], 255])
+            .collect(),
+        png::ColorType::Rgba => decoded
+            .chunks_exact(4)
+            .map(|pixel| [pixel[0], pixel[1], pixel[2], pixel[3]])
+            .collect(),
+        png::ColorType::Indexed => {
+            return Err("File is not a valid expanded PNG.".to_owned());
+        }
     };
+
+    Ok(DecodedPng {
+        width: output.width,
+        height: output.height,
+        pixels,
+    })
+}
+
+fn validate_concept_png(png_bytes: &[u8]) -> Result<(u32, u32, String), String> {
+    let decoded = decode_png_rgba(png_bytes)?;
+    if decoded.width != FRAME_WIDTH || decoded.height != FRAME_HEIGHT {
+        return Err("Concept PNG must be exactly 32 x 32 pixels.".to_owned());
+    }
+    let has_transparency = decoded.pixels.iter().any(|pixel| pixel[3] < 255);
     if !has_transparency {
         return Err("Concept PNG must contain an alpha channel with transparency.".to_owned());
     }
 
     Ok((
-        output.width,
-        output.height,
+        decoded.width,
+        decoded.height,
         format!("{:x}", Sha256::digest(png_bytes)),
     ))
 }
@@ -576,6 +685,318 @@ fn read_candidate_payload(
     })
 }
 
+fn validation_rule(
+    id: ValidationRuleId,
+    status: ValidationStatus,
+    expected: impl Into<String>,
+    observed: Option<String>,
+    message: impl Into<String>,
+) -> ValidationRuleResult {
+    ValidationRuleResult {
+        id,
+        status,
+        expected: expected.into(),
+        observed,
+        message: message.into(),
+    }
+}
+
+fn pixel_label(count: usize) -> String {
+    format!("{count} pixel{}", if count == 1 { "" } else { "s" })
+}
+
+fn validate_structural_report(report: ValidationReport) -> Result<ValidationReport, String> {
+    if report.schema_version != VALIDATION_REPORT_VERSION
+        || report.validator_id != STRUCTURAL_VALIDATOR_ID
+    {
+        return Err("Unsupported validation report version.".to_owned());
+    }
+    validate_candidate_id(&report.candidate_id)?;
+    if report.candidate_sha256.len() != 64
+        || !report
+            .candidate_sha256
+            .chars()
+            .all(|character| character.is_ascii_hexdigit() && !character.is_ascii_uppercase())
+    {
+        return Err("Validation candidate SHA-256 is invalid.".to_owned());
+    }
+    if report.contract_id != CONTRACT_ID {
+        return Err("Validation contract id is incompatible.".to_owned());
+    }
+
+    let rule_order = [
+        ValidationRuleId::CanvasDimensions,
+        ValidationRuleId::HardAlpha,
+        ValidationRuleId::ActorHeight,
+        ValidationRuleId::FootAnchor,
+        ValidationRuleId::PaletteMaxColors,
+        ValidationRuleId::GroundLumaSeparation,
+        ValidationRuleId::FrameEdgeClipping,
+    ];
+    if report.results.len() != rule_order.len()
+        || report
+            .results
+            .iter()
+            .zip(rule_order)
+            .any(|(result, expected)| result.id != expected)
+    {
+        return Err("Validation rules must use the canonical order.".to_owned());
+    }
+    if report.results.iter().any(|result| {
+        result.expected.is_empty()
+            || result.message.is_empty()
+            || result.observed.as_ref().is_some_and(String::is_empty)
+    }) {
+        return Err("Validation evidence cannot be empty.".to_owned());
+    }
+
+    let mut counted = ValidationSummary {
+        pass: 0,
+        fail: 0,
+        not_assessed: 0,
+    };
+    for result in &report.results {
+        match result.status {
+            ValidationStatus::Pass => counted.pass += 1,
+            ValidationStatus::Fail => counted.fail += 1,
+            ValidationStatus::NotAssessed => counted.not_assessed += 1,
+        }
+    }
+    if counted != report.summary {
+        return Err("Validation summary does not match its rule results.".to_owned());
+    }
+    if report.visual_judgment.authority != "user"
+        || report.visual_judgment.message.is_empty()
+        || report.visual_judgment.status != VisualJudgmentStatus::NotAssessed
+    {
+        return Err("Validation report crossed the human approval boundary.".to_owned());
+    }
+    Ok(report)
+}
+
+fn validate_candidate_png(
+    candidate: &ConceptCandidate,
+    png_bytes: &[u8],
+) -> Result<ValidationReport, String> {
+    let candidate = validate_candidate(candidate.clone())?;
+    if png_bytes.len() != candidate.byte_length
+        || format!("{:x}", Sha256::digest(png_bytes)) != candidate.sha256
+    {
+        return Err("Candidate source bytes no longer match immutable provenance.".to_owned());
+    }
+    let decoded = decode_png_rgba(png_bytes)
+        .map_err(|_| "Candidate source is not a valid PNG.".to_owned())?;
+
+    let mut visible_colors = HashSet::<[u8; 3]>::new();
+    let mut edge_sides = [false; 4];
+    let mut edge_pixel_count = 0usize;
+    let mut semi_transparent_pixel_count = 0usize;
+    let mut visible_pixel_count = 0usize;
+    let mut min_y = decoded.height;
+    let mut max_y = 0u32;
+    let mut foot_anchor_contact = false;
+
+    for (index, pixel) in decoded.pixels.iter().enumerate() {
+        let x = index as u32 % decoded.width;
+        let y = index as u32 / decoded.width;
+        let alpha = pixel[3];
+
+        if (1..=254).contains(&alpha) {
+            semi_transparent_pixel_count += 1;
+        }
+        if alpha == 0 {
+            continue;
+        }
+
+        visible_pixel_count += 1;
+        visible_colors.insert([pixel[0], pixel[1], pixel[2]]);
+        min_y = min_y.min(y);
+        max_y = max_y.max(y);
+        if x == FOOT_ANCHOR_X && y == FOOT_ANCHOR_Y {
+            foot_anchor_contact = true;
+        }
+        if x == 0 || y == 0 || x == decoded.width - 1 || y == decoded.height - 1 {
+            edge_pixel_count += 1;
+            if y == 0 {
+                edge_sides[0] = true;
+            }
+            if x == decoded.width - 1 {
+                edge_sides[1] = true;
+            }
+            if y == decoded.height - 1 {
+                edge_sides[2] = true;
+            }
+            if x == 0 {
+                edge_sides[3] = true;
+            }
+        }
+    }
+
+    let actor_height = if visible_pixel_count == 0 {
+        0
+    } else {
+        max_y - min_y + 1
+    };
+    let dimensions_pass = decoded.width == FRAME_WIDTH && decoded.height == FRAME_HEIGHT;
+    let hard_alpha_pass = semi_transparent_pixel_count == 0;
+    let actor_height_pass = (ACTOR_HEIGHT_MIN..=ACTOR_HEIGHT_MAX).contains(&actor_height);
+    let palette_pass = visible_colors.len() <= PALETTE_MAX_COLORS;
+    let edge_pass = edge_pixel_count == 0;
+    let edge_observed = if edge_pass {
+        "No edge contact".to_owned()
+    } else {
+        let names = ["top", "right", "bottom", "left"]
+            .into_iter()
+            .zip(edge_sides)
+            .filter_map(|(name, contacted)| contacted.then_some(name))
+            .collect::<Vec<_>>()
+            .join(", ");
+        format!("{} on {names}", pixel_label(edge_pixel_count))
+    };
+
+    let results = vec![
+        validation_rule(
+            ValidationRuleId::CanvasDimensions,
+            if dimensions_pass {
+                ValidationStatus::Pass
+            } else {
+                ValidationStatus::Fail
+            },
+            format!("{FRAME_WIDTH} x {FRAME_HEIGHT} px"),
+            Some(format!("{} x {} px", decoded.width, decoded.height)),
+            if dimensions_pass {
+                "Decoded canvas matches the contract."
+            } else {
+                "Decoded canvas dimensions do not match the contract."
+            },
+        ),
+        validation_rule(
+            ValidationRuleId::HardAlpha,
+            if hard_alpha_pass {
+                ValidationStatus::Pass
+            } else {
+                ValidationStatus::Fail
+            },
+            "Only alpha 0 or 255",
+            Some(format!(
+                "{} with alpha from 1 to 254",
+                pixel_label(semi_transparent_pixel_count)
+            )),
+            if hard_alpha_pass {
+                "All pixels use hard alpha."
+            } else {
+                "Semi-transparent pixels violate the hard-alpha contract."
+            },
+        ),
+        validation_rule(
+            ValidationRuleId::ActorHeight,
+            if actor_height_pass {
+                ValidationStatus::Pass
+            } else {
+                ValidationStatus::Fail
+            },
+            format!("{ACTOR_HEIGHT_MIN}-{ACTOR_HEIGHT_MAX} px"),
+            Some(format!("{actor_height} px")),
+            if actor_height_pass {
+                "Visible actor height is within the contract range."
+            } else {
+                "Visible actor height is outside the contract range."
+            },
+        ),
+        validation_rule(
+            ValidationRuleId::FootAnchor,
+            if foot_anchor_contact {
+                ValidationStatus::Pass
+            } else {
+                ValidationStatus::Fail
+            },
+            format!("Visible pixel at ({FOOT_ANCHOR_X}, {FOOT_ANCHOR_Y})"),
+            Some(
+                if foot_anchor_contact {
+                    "Contact"
+                } else {
+                    "No contact"
+                }
+                .to_owned(),
+            ),
+            if foot_anchor_contact {
+                "The actor contacts the contract foot anchor."
+            } else {
+                "The contract foot anchor is transparent."
+            },
+        ),
+        validation_rule(
+            ValidationRuleId::PaletteMaxColors,
+            if palette_pass {
+                ValidationStatus::Pass
+            } else {
+                ValidationStatus::Fail
+            },
+            format!("{PALETTE_MAX_COLORS} visible RGB colors or fewer"),
+            Some(format!(
+                "{} visible RGB color{}",
+                visible_colors.len(),
+                if visible_colors.len() == 1 { "" } else { "s" }
+            )),
+            if palette_pass {
+                "Visible palette is within the contract maximum."
+            } else {
+                "Visible palette exceeds the contract maximum."
+            },
+        ),
+        validation_rule(
+            ValidationRuleId::GroundLumaSeparation,
+            ValidationStatus::NotAssessed,
+            format!("At least {MINIMUM_GROUND_LUMA_DISTANCE} luma from pinned ground"),
+            None,
+            "A pinned ground reference is required before this rule can be measured.",
+        ),
+        validation_rule(
+            ValidationRuleId::FrameEdgeClipping,
+            if edge_pass {
+                ValidationStatus::Pass
+            } else {
+                ValidationStatus::Fail
+            },
+            "No visible pixels on the frame edge",
+            Some(edge_observed),
+            if edge_pass {
+                "No visible pixel touches the frame edge."
+            } else {
+                "Visible edge contact indicates possible clipping."
+            },
+        ),
+    ];
+
+    let mut summary = ValidationSummary {
+        pass: 0,
+        fail: 0,
+        not_assessed: 0,
+    };
+    for result in &results {
+        match result.status {
+            ValidationStatus::Pass => summary.pass += 1,
+            ValidationStatus::Fail => summary.fail += 1,
+            ValidationStatus::NotAssessed => summary.not_assessed += 1,
+        }
+    }
+
+    validate_structural_report(ValidationReport {
+        schema_version: VALIDATION_REPORT_VERSION,
+        validator_id: STRUCTURAL_VALIDATOR_ID.to_owned(),
+        candidate_id: candidate.id,
+        candidate_sha256: candidate.sha256,
+        contract_id: candidate.contract_id,
+        results,
+        summary,
+        visual_judgment: VisualJudgment {
+            status: VisualJudgmentStatus::NotAssessed,
+            authority: "user".to_owned(),
+            message: "Only the user can make the visual-acceptance decision.".to_owned(),
+        },
+    })
+}
+
 #[tauri::command]
 fn studio_status() -> serde_json::Value {
     serde_json::json!({
@@ -672,6 +1093,15 @@ fn get_concept_candidate(
     read_candidate_payload(&workspace_root(), &session_id, &candidate_id)
 }
 
+#[tauri::command]
+fn validate_concept_candidate(
+    session_id: String,
+    candidate_id: String,
+) -> Result<ValidationReport, String> {
+    let payload = read_candidate_payload(&workspace_root(), &session_id, &candidate_id)?;
+    validate_candidate_png(&payload.candidate, &payload.png_bytes)
+}
+
 #[cfg_attr(mobile, tauri::mobile_entry_point)]
 pub fn run() {
     tauri::Builder::default()
@@ -682,7 +1112,8 @@ pub fn run() {
             list_sprite_sessions,
             import_concept_candidate,
             list_concept_candidates,
-            get_concept_candidate
+            get_concept_candidate,
+            validate_concept_candidate
         ])
         .run(tauri::generate_context!())
         .expect("error while running TileForge Actor Studio");
@@ -721,6 +1152,50 @@ mod tests {
         if !pixels.is_empty() {
             let center = ((height / 2 * width + width / 2) * 4) as usize;
             pixels[center..center + 4].copy_from_slice(&[104, 198, 178, 255]);
+        }
+
+        let mut bytes = Vec::new();
+        {
+            let mut encoder = png::Encoder::new(&mut bytes, width, height);
+            encoder.set_color(png::ColorType::Rgba);
+            encoder.set_depth(png::BitDepth::Eight);
+            encoder
+                .write_header()
+                .unwrap()
+                .write_image_data(&pixels)
+                .unwrap();
+        }
+        bytes
+    }
+
+    fn validation_png(failing: bool, width: u32, height: u32) -> Vec<u8> {
+        let mut pixels = vec![0; (width * height * 4) as usize];
+        let first_y = if failing { 12 } else { 5 };
+        let mut color_index = 0u8;
+
+        for y in first_y..=28.min(height.saturating_sub(1)) {
+            for x in 10..=21.min(width.saturating_sub(1)) {
+                let index = ((y * width + x) * 4) as usize;
+                let color = if failing {
+                    let color = color_index % 20;
+                    color_index = color_index.wrapping_add(1);
+                    [color * 11, 40 + color * 7, 220 - color * 9, 255]
+                } else if y % 2 == 0 {
+                    [104, 198, 178, 255]
+                } else {
+                    [42, 74, 55, 255]
+                };
+                pixels[index..index + 4].copy_from_slice(&color);
+            }
+        }
+
+        if failing {
+            pixels[((12 * width + 10) * 4 + 3) as usize] = 128;
+            pixels[((28 * width + 16) * 4 + 3) as usize] = 0;
+            let edge = (20 * width * 4) as usize;
+            pixels[edge..edge + 4].copy_from_slice(&[42, 74, 55, 255]);
+            let bottom_edge = ((31 * width + 15) * 4) as usize;
+            pixels[bottom_edge..bottom_edge + 4].copy_from_slice(&[42, 74, 55, 255]);
         }
 
         let mut bytes = Vec::new();
@@ -906,6 +1381,129 @@ mod tests {
                 .map(|entry| entry.unwrap().file_name())
                 .collect();
         assert_eq!(entries, vec![std::ffi::OsString::from(first.id)]);
+        fs::remove_dir_all(root).unwrap();
+    }
+
+    #[test]
+    fn structural_validation_matches_shared_fixture_and_decoded_dimensions() {
+        let root = test_root("validation-fixture");
+        let session = create_session_at(
+            &root,
+            brief(),
+            "2026-07-26T22:00:00.000Z",
+            "validatr",
+            "session",
+        )
+        .unwrap();
+        let bytes = validation_png(false, 32, 32);
+        let candidate = create_concept_candidate_at(
+            &root,
+            &session.id,
+            &bytes,
+            provenance(CandidateSource::Imported),
+            "2026-07-26T22:01:00.000Z",
+            "passing1",
+            "candidate",
+            None,
+        )
+        .unwrap();
+        let payload = read_candidate_payload(&root, &session.id, &candidate.id).unwrap();
+        let report = validate_candidate_png(&payload.candidate, &payload.png_bytes).unwrap();
+        let fixture: ValidationReport = serde_json::from_str(include_str!(
+            "../../tests/fixtures/validation-report-v1.json"
+        ))
+        .unwrap();
+        let fixture = validate_structural_report(fixture).unwrap();
+
+        assert_eq!(report.results, fixture.results);
+        assert_eq!(report.summary, fixture.summary);
+        assert_eq!(report.visual_judgment, fixture.visual_judgment);
+        assert_eq!(
+            fs::read_dir(
+                root.join("sessions")
+                    .join(&session.id)
+                    .join("candidates")
+                    .join(&candidate.id)
+            )
+            .unwrap()
+            .count(),
+            2
+        );
+
+        let narrow_bytes = validation_png(false, 31, 32);
+        let mut narrow_candidate = candidate;
+        narrow_candidate.sha256 = format!("{:x}", Sha256::digest(&narrow_bytes));
+        narrow_candidate.byte_length = narrow_bytes.len();
+        let narrow_report = validate_candidate_png(&narrow_candidate, &narrow_bytes).unwrap();
+        assert_eq!(
+            narrow_report.results[0].status,
+            ValidationStatus::Fail,
+            "validator trusted candidate metadata instead of decoded dimensions"
+        );
+        fs::remove_dir_all(root).unwrap();
+    }
+
+    #[test]
+    fn structural_validation_reports_independent_failures() {
+        let root = test_root("validation-failures");
+        let session = create_session_at(
+            &root,
+            brief(),
+            "2026-07-26T22:00:00.000Z",
+            "failures",
+            "session",
+        )
+        .unwrap();
+        let bytes = validation_png(true, 32, 32);
+        let candidate = create_concept_candidate_at(
+            &root,
+            &session.id,
+            &bytes,
+            provenance(CandidateSource::Imported),
+            "2026-07-26T22:02:00.000Z",
+            "failing1",
+            "candidate",
+            None,
+        )
+        .unwrap();
+        let report = validate_candidate_png(&candidate, &bytes).unwrap();
+        let failed_rules = report
+            .results
+            .iter()
+            .filter(|result| result.status == ValidationStatus::Fail)
+            .map(|result| result.id)
+            .collect::<Vec<_>>();
+
+        assert_eq!(
+            failed_rules,
+            vec![
+                ValidationRuleId::HardAlpha,
+                ValidationRuleId::ActorHeight,
+                ValidationRuleId::FootAnchor,
+                ValidationRuleId::PaletteMaxColors,
+                ValidationRuleId::FrameEdgeClipping,
+            ]
+        );
+        assert_eq!(
+            report.summary,
+            ValidationSummary {
+                pass: 1,
+                fail: 5,
+                not_assessed: 1,
+            }
+        );
+        assert_eq!(
+            report
+                .results
+                .iter()
+                .find(|result| result.id == ValidationRuleId::FrameEdgeClipping)
+                .and_then(|result| result.observed.as_deref()),
+            Some("2 pixels on bottom, left")
+        );
+        assert_eq!(
+            report.visual_judgment.status,
+            VisualJudgmentStatus::NotAssessed
+        );
         fs::remove_dir_all(root).unwrap();
     }
 }
