@@ -7,7 +7,7 @@
     "dev": "vite",
     "build": "vite build",
     "check": "svelte-check --tsconfig ./tsconfig.json",
-    "test:mcp": "tsx mcp/test/smoke.ts",
+    "test:mcp": "tsx mcp/test/smoke.ts && tsx mcp/test/session-compatibility.ts",
     "test:mcp:http": "tsx mcp/test/http-smoke.ts",
     "test:mcp:stdio": "tsx mcp/test/stdio-smoke.ts",
     "tauri": "tauri",

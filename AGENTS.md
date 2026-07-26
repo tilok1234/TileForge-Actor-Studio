@@ -1,6 +1,6 @@
 # Agent Guide
 
-Read `docs/AGENT_WORKFLOW.md` and
+Read `HANDOFF.md`, `docs/AGENT_WORKFLOW.md`, `docs/ROADMAP.md`, and
 `contracts/tileforge-actor-32-v1.json` before doing sprite work.
 
 ## Mission
@@ -29,6 +29,8 @@ creative brief to an approved four-direction walk-cycle export.
 - Keep the human approval boundary visible in both the UI and tool descriptions.
 - Run `npm run check`, `npm run build`, `npm run test:mcp`, and the relevant
   Rust check before claiming a milestone is complete.
+- Keep `HANDOFF.md`, `docs/ROADMAP.md`, and `docs/DECISIONS.md` synchronized
+  with implemented behavior.
 
 ## Change discipline
 

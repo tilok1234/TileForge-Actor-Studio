@@ -69,4 +69,7 @@ Use these distinct outcomes:
 ## Local state
 
 Sessions live in `.studio/sessions` by default. Set `TFAS_WORKSPACE` to redirect
-local state. `.studio/` and generated exports are ignored by Git.
+local state. The desktop and MCP gateway read the same immutable session
+documents; creating a session publishes a complete directory atomically rather
+than exposing a partial record. `.studio/` and generated exports are ignored by
+Git.

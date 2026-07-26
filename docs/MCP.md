@@ -83,3 +83,11 @@ The gateway also exposes:
 - prompt: `design_tileforge_actor`
 
 No tool can approve final art.
+
+## Shared desktop state
+
+MCP session tools and the Tauri desktop use the same local workspace:
+`.studio/sessions` by default, or `TFAS_WORKSPACE` when redirected. Session
+directories are published atomically and are never overwritten. A session
+created from the desktop can therefore be listed and read through MCP without a
+conversion or copy step.

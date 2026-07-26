@@ -3,6 +3,10 @@
 A narrow desktop workflow for creating **32 px TileForge mobs and NPCs with AI**.
 The artist supplies the identity; the studio supplies the boundaries.
 
+Current status: **M01 durable Brief to Concept complete; M02 immutable concept
+candidates is next.** The desktop and MCP gateway now share durable local
+sessions, but the studio does not generate art yet.
+
 The initial workflow has six deliberate stages:
 
 1. Brief
@@ -16,6 +20,16 @@ This repository is a clean-room successor to a larger experimental animation
 editor. It does not modify or depend on that editor. TileForge is also treated
 as a read-only visual reference: Actor Studio may consume a future pinned
 reference pack, but it never writes into the TileForge repository.
+
+## Documentation
+
+- [HANDOFF.md](HANDOFF.md) — verified continuation point and implementation truth
+- [docs/ROADMAP.md](docs/ROADMAP.md) — milestone sequence and acceptance criteria
+- [docs/ARCHITECTURE.md](docs/ARCHITECTURE.md) — system boundaries and layers
+- [docs/DECISIONS.md](docs/DECISIONS.md) — durable design decisions and open ADR
+- [docs/AGENT_WORKFLOW.md](docs/AGENT_WORKFLOW.md) — authority and approval flow
+- [docs/MCP.md](docs/MCP.md) — Codex, Claude Code, and Antigravity setup
+- [docs/START_NEW_CHAT.md](docs/START_NEW_CHAT.md) — copy-paste continuation prompt
 
 ## What version 1 is
 
@@ -67,8 +81,13 @@ connect to that same endpoint. See [docs/MCP.md](docs/MCP.md).
 npm run check
 npm run build
 npm run test:mcp
+npm run test:mcp:stdio
 cargo check --manifest-path src-tauri/Cargo.toml
+npm audit --audit-level=moderate
 ```
+
+For the HTTP transport smoke test, run `npm run mcp:http` in one terminal and
+`npm run test:mcp:http` in another.
 
 ## Architecture
 
@@ -79,6 +98,7 @@ cargo check --manifest-path src-tauri/Cargo.toml
 - `.studio/` — ignored local sessions and generated artifacts
 - `docs/` — architecture and agent workflow
 
-The current milestone establishes the shell, contract, prompt compiler, local
-session format, and MCP surface. Image generation, validators, reference-pack
-ingestion, and export assembly are the next implementation layers.
+The completed M01 milestone establishes the shell, contract, prompt compiler,
+MCP surface, and one atomic `.studio` session protocol shared by the desktop
+and MCP adapters. The desktop reopens the latest session and still displays
+placeholder art. Immutable concept candidates are the next milestone.

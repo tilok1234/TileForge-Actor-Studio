@@ -1,14 +1,9 @@
 import { McpServer } from "@modelcontextprotocol/sdk/server/mcp.js";
 import * as z from "zod/v4";
+import { actorBriefInputSchema } from "../../src/lib/studio/brief.js";
 import { TILEFORGE_ACTOR_CONTRACT } from "../../src/lib/studio/contract.js";
 import { compileActorPrompt } from "../../src/lib/studio/prompt.js";
 import { createSession, getSession, listSessions, workspaceRoot } from "./storage.js";
-
-const briefSchema = {
-  name: z.string().trim().min(1).max(80),
-  kind: z.enum(["mob", "npc"]),
-  description: z.string().trim().min(1).max(2_000),
-};
 
 function textResult(value: unknown) {
   return {
@@ -21,7 +16,14 @@ function textResult(value: unknown) {
   };
 }
 
-export function createActorStudioServer(): McpServer {
+interface ActorStudioServerOptions {
+  workspaceRoot?: string;
+}
+
+export function createActorStudioServer(
+  options: ActorStudioServerOptions = {},
+): McpServer {
+  const storageRoot = options.workspaceRoot ?? workspaceRoot;
   const server = new McpServer({
     name: "tileforge-actor-studio",
     version: "0.1.0",
@@ -69,7 +71,7 @@ export function createActorStudioServer(): McpServer {
       title: "Compile actor prompt",
       description:
         "Combine a creative actor brief with the locked TileForge constraints. This does not generate or modify art.",
-      inputSchema: briefSchema,
+      inputSchema: actorBriefInputSchema,
       annotations: {
         readOnlyHint: true,
         destructiveHint: false,
@@ -90,7 +92,7 @@ export function createActorStudioServer(): McpServer {
       title: "Create sprite session",
       description:
         "Create a versioned local workspace for one mob or NPC. Final art approval remains unavailable to agents.",
-      inputSchema: briefSchema,
+      inputSchema: actorBriefInputSchema,
       annotations: {
         readOnlyHint: false,
         destructiveHint: false,
@@ -98,7 +100,7 @@ export function createActorStudioServer(): McpServer {
         openWorldHint: false,
       },
     },
-    async (brief) => textResult(await createSession(brief)),
+    async (brief) => textResult(await createSession(brief, { root: storageRoot })),
   );
 
   server.registerTool(
@@ -116,8 +118,8 @@ export function createActorStudioServer(): McpServer {
     },
     async () =>
       textResult({
-        workspaceRoot,
-        sessions: await listSessions(),
+        workspaceRoot: storageRoot,
+        sessions: await listSessions(storageRoot),
       }),
   );
 
@@ -136,7 +138,7 @@ export function createActorStudioServer(): McpServer {
         openWorldHint: false,
       },
     },
-    async ({ sessionId }) => textResult(await getSession(sessionId)),
+    async ({ sessionId }) => textResult(await getSession(sessionId, storageRoot)),
   );
 
   server.registerPrompt(
@@ -145,7 +147,7 @@ export function createActorStudioServer(): McpServer {
       title: "Design TileForge actor",
       description:
         "Start an actor-design conversation using the same locked contract as the desktop studio.",
-      argsSchema: briefSchema,
+      argsSchema: actorBriefInputSchema,
     },
     async (brief) => ({
       messages: [
