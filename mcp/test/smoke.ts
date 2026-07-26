@@ -7,16 +7,20 @@ const expectedTools = [
   "compile_actor_prompt",
   "create_sprite_session",
   "create_turnaround_candidate",
+  "create_walk_cycle_candidate",
   "get_concept_candidate",
   "get_sprite_session",
   "get_studio_contract",
   "get_turnaround_candidate",
+  "get_walk_cycle_candidate",
   "import_concept_candidate",
   "list_concept_candidates",
   "list_sprite_sessions",
   "list_turnaround_candidates",
+  "list_walk_cycle_candidates",
   "validate_concept_candidate",
   "validate_turnaround_candidate",
+  "validate_walk_cycle_candidate",
 ];
 
 const [clientTransport, serverTransport] = InMemoryTransport.createLinkedPair();

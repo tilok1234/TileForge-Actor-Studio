@@ -63,15 +63,26 @@ revision and preserve the evidence trail.
    revisions.
 9. Ask the user to accept or reject identity consistency across the four views.
 10. Do not begin Walk Cycle work until that Turnaround gate is explicit.
+11. After the user explicitly accepts a Turnaround, call
+    `create_walk_cycle_candidate` with four frames per canonical direction.
+    Frame 0 must be the exact accepted Turnaround PNG.
+12. Use `list_walk_cycle_candidates`, `get_walk_cycle_candidate`, and
+    `validate_walk_cycle_candidate` to compare and measure immutable animation
+    revisions.
+13. Ask the user to accept or reject motion and readability.
+14. Do not begin World Test work until that Walk Cycle gate is explicit.
 
-The MCP tools currently implement steps 1–8. M02 candidate intake proves PNG
+The MCP tools currently implement steps 1–12. M02 candidate intake proves PNG
 structure, exact dimensions, and the presence of transparency. M03 validation
 then measures the immutable decoded pixels. The Turnaround slice of M04 records
 the user-selected Concept and requires its exact bytes as the down view before
 atomically publishing the four directions. Ground luma remains Not assessed
 until a pinned ground reference exists; visual and identity acceptance remain
-user-only decisions. Walk Cycle and export tools will be added as their studio
-layers are built.
+user-only decisions. The Walk Cycle slice records the user's accepted
+Turnaround receipt, requires exact frame-zero bytes for all four directions,
+and atomically preserves sixteen frames at 300 ms. Motion and readability
+remain user-only. World Test and export tools will be added with their studio
+layers.
 
 ## Validation language
 
@@ -87,10 +98,10 @@ Use these distinct outcomes:
 
 Sessions live in `.studio/sessions` by default. Set `TFAS_WORKSPACE` to redirect
 local state. The desktop and MCP gateway read the same immutable session,
-Concept, and Turnaround documents; creation publishes complete directories
-atomically rather than exposing partial records. Original PNG bytes are
-rehash-verified on read and never overwritten. `.studio/` and generated exports
-are ignored by Git.
+Concept, Turnaround, and Walk Cycle documents; creation publishes complete
+directories atomically rather than exposing partial records. Original PNG
+bytes are rehash-verified on read and never overwritten. `.studio/` and
+generated exports are ignored by Git.
 
 ## Cost boundary
 

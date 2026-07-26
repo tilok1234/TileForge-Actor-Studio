@@ -17,6 +17,9 @@ const CONCEPT_PNG_MAX_BYTES: usize = 1_048_576;
 const VALIDATION_REPORT_VERSION: u32 = 1;
 const STRUCTURAL_VALIDATOR_ID: &str = "tileforge-actor-32-structural-v1";
 const TURNAROUND_VALIDATOR_ID: &str = "tileforge-actor-32-turnaround-structural-v1";
+const WALK_CYCLE_VALIDATOR_ID: &str = "tileforge-actor-32-walk-cycle-structural-v1";
+const WALK_CYCLE_FRAMES_PER_DIRECTION: usize = 4;
+const WALK_CYCLE_FRAME_DURATION_MS: u32 = 300;
 const FRAME_WIDTH: u32 = 32;
 const FRAME_HEIGHT: u32 = 32;
 const ACTOR_HEIGHT_MIN: u32 = 22;
@@ -207,6 +210,101 @@ struct TurnaroundCandidatePayload {
     png_bytes: TurnaroundPngBytes,
 }
 
+#[derive(Debug, Clone, Serialize, Deserialize)]
+#[serde(rename_all = "camelCase", deny_unknown_fields)]
+struct WalkCycleAcceptedDirectionSource {
+    direction: TurnaroundDirection,
+    sha256: String,
+    byte_length: usize,
+}
+
+#[derive(Debug, Clone, Serialize, Deserialize)]
+#[serde(rename_all = "camelCase", deny_unknown_fields)]
+struct WalkCycleSourceTurnaround {
+    turnaround_id: String,
+    direction_sources: Vec<WalkCycleAcceptedDirectionSource>,
+    accepted_by: String,
+    accepted_at: String,
+}
+
+#[derive(Debug, Clone, Serialize, Deserialize)]
+#[serde(rename_all = "camelCase", deny_unknown_fields)]
+struct WalkCycleFrameSource {
+    direction: TurnaroundDirection,
+    frame_index: usize,
+    source_file: String,
+    sha256: String,
+    byte_length: usize,
+    width: u32,
+    height: u32,
+}
+
+#[derive(Debug, Clone, Serialize, Deserialize)]
+#[serde(rename_all = "camelCase", deny_unknown_fields)]
+struct WalkCycleCandidate {
+    schema_version: u32,
+    id: String,
+    revision: u32,
+    session_id: String,
+    stage: String,
+    contract_id: String,
+    source_turnaround: WalkCycleSourceTurnaround,
+    clip: String,
+    frames_per_direction: usize,
+    frame_duration_ms: u32,
+    frames: Vec<WalkCycleFrameSource>,
+    created_at: String,
+    provenance: CandidateProvenance,
+    review_status: String,
+    motion_judgment: VisualJudgment,
+}
+
+#[derive(Debug, Clone, Serialize, Deserialize)]
+#[serde(rename_all = "camelCase", deny_unknown_fields)]
+struct WalkCyclePngBytes {
+    down: Vec<Vec<u8>>,
+    right: Vec<Vec<u8>>,
+    up: Vec<Vec<u8>>,
+    left: Vec<Vec<u8>>,
+}
+
+impl WalkCyclePngBytes {
+    fn get(&self, direction: TurnaroundDirection, frame_index: usize) -> Option<&[u8]> {
+        let frames = match direction {
+            TurnaroundDirection::Down => &self.down,
+            TurnaroundDirection::Right => &self.right,
+            TurnaroundDirection::Up => &self.up,
+            TurnaroundDirection::Left => &self.left,
+        };
+        frames.get(frame_index).map(Vec::as_slice)
+    }
+
+    fn direction(&self, direction: TurnaroundDirection) -> &[Vec<u8>] {
+        match direction {
+            TurnaroundDirection::Down => &self.down,
+            TurnaroundDirection::Right => &self.right,
+            TurnaroundDirection::Up => &self.up,
+            TurnaroundDirection::Left => &self.left,
+        }
+    }
+
+    fn direction_mut(&mut self, direction: TurnaroundDirection) -> &mut Vec<Vec<u8>> {
+        match direction {
+            TurnaroundDirection::Down => &mut self.down,
+            TurnaroundDirection::Right => &mut self.right,
+            TurnaroundDirection::Up => &mut self.up,
+            TurnaroundDirection::Left => &mut self.left,
+        }
+    }
+}
+
+#[derive(Debug, Serialize)]
+#[serde(rename_all = "camelCase")]
+struct WalkCycleCandidatePayload {
+    candidate: WalkCycleCandidate,
+    png_bytes: WalkCyclePngBytes,
+}
+
 #[derive(Debug, Clone, Copy, PartialEq, Eq, Serialize, Deserialize)]
 #[serde(rename_all = "snake_case")]
 enum ValidationStatus {
@@ -289,6 +387,26 @@ struct TurnaroundValidationReport {
     directions: Vec<TurnaroundDirectionReport>,
     summary: ValidationSummary,
     identity_judgment: VisualJudgment,
+}
+
+#[derive(Debug, Clone, PartialEq, Eq, Serialize, Deserialize)]
+#[serde(rename_all = "camelCase", deny_unknown_fields)]
+struct WalkCycleFrameReport {
+    direction: TurnaroundDirection,
+    frame_index: usize,
+    report: ValidationReport,
+}
+
+#[derive(Debug, Clone, PartialEq, Eq, Serialize, Deserialize)]
+#[serde(rename_all = "camelCase", deny_unknown_fields)]
+struct WalkCycleValidationReport {
+    schema_version: u32,
+    validator_id: String,
+    walk_cycle_id: String,
+    contract_id: String,
+    frames: Vec<WalkCycleFrameReport>,
+    summary: ValidationSummary,
+    motion_judgment: VisualJudgment,
 }
 
 #[derive(Debug)]
@@ -1154,6 +1272,432 @@ fn validate_turnaround_pngs(
     })
 }
 
+fn validate_walk_cycle(candidate: WalkCycleCandidate) -> Result<WalkCycleCandidate, String> {
+    validate_candidate_id(&candidate.id)?;
+    validate_session_id(&candidate.session_id)?;
+    validate_candidate_id(&candidate.source_turnaround.turnaround_id)?;
+    if candidate.schema_version != 1 {
+        return Err("Unsupported Walk Cycle document version.".to_owned());
+    }
+    if candidate.revision == 0 {
+        return Err("Walk Cycle revision must be at least 1.".to_owned());
+    }
+    if candidate.stage != "animate" || candidate.contract_id != CONTRACT_ID {
+        return Err("Walk Cycle stage or contract id is incompatible.".to_owned());
+    }
+    if candidate.source_turnaround.accepted_by != "user"
+        || candidate.source_turnaround.accepted_at.is_empty()
+    {
+        return Err("Walk Cycle source Turnaround acceptance is invalid.".to_owned());
+    }
+    if candidate.source_turnaround.direction_sources.len() != TURNAROUND_DIRECTIONS.len() {
+        return Err("Walk Cycle source receipt must contain four directions.".to_owned());
+    }
+    for (source, expected_direction) in candidate
+        .source_turnaround
+        .direction_sources
+        .iter()
+        .zip(TURNAROUND_DIRECTIONS)
+    {
+        if source.direction != expected_direction
+            || !valid_sha256(&source.sha256)
+            || source.byte_length == 0
+            || source.byte_length > CONCEPT_PNG_MAX_BYTES
+        {
+            return Err("Walk Cycle source Turnaround evidence is invalid.".to_owned());
+        }
+    }
+    if candidate.clip != "walk"
+        || candidate.frames_per_direction != WALK_CYCLE_FRAMES_PER_DIRECTION
+        || candidate.frame_duration_ms != WALK_CYCLE_FRAME_DURATION_MS
+    {
+        return Err("Walk Cycle clip or timing is incompatible.".to_owned());
+    }
+    if candidate.frames.len() != TURNAROUND_DIRECTIONS.len() * WALK_CYCLE_FRAMES_PER_DIRECTION {
+        return Err("Walk Cycle must contain sixteen frame sources.".to_owned());
+    }
+    for (direction_index, direction) in TURNAROUND_DIRECTIONS.iter().enumerate() {
+        let accepted_source = &candidate.source_turnaround.direction_sources[direction_index];
+        for frame_index in 0..WALK_CYCLE_FRAMES_PER_DIRECTION {
+            let flat_index = direction_index * WALK_CYCLE_FRAMES_PER_DIRECTION + frame_index;
+            let frame = &candidate.frames[flat_index];
+            if frame.direction != *direction
+                || frame.frame_index != frame_index
+                || frame.source_file != format!("{}-{frame_index}.png", direction.as_str())
+            {
+                return Err(
+                    "Walk Cycle frames must use canonical direction, index, and filenames."
+                        .to_owned(),
+                );
+            }
+            if !valid_sha256(&frame.sha256)
+                || frame.byte_length == 0
+                || frame.byte_length > CONCEPT_PNG_MAX_BYTES
+                || frame.width != FRAME_WIDTH
+                || frame.height != FRAME_HEIGHT
+            {
+                return Err("Walk Cycle frame evidence is invalid.".to_owned());
+            }
+            if frame_index == 0
+                && (frame.sha256 != accepted_source.sha256
+                    || frame.byte_length != accepted_source.byte_length)
+            {
+                return Err(
+                    "Frame 0 must preserve the accepted Turnaround direction bytes.".to_owned(),
+                );
+            }
+        }
+    }
+    if candidate.created_at.is_empty() {
+        return Err("Walk Cycle creation time is required.".to_owned());
+    }
+    validate_provenance(candidate.provenance.clone())?;
+    if candidate.review_status != "unreviewed" {
+        return Err("Walk Cycle creation cannot imply motion approval.".to_owned());
+    }
+    if candidate.motion_judgment.status != VisualJudgmentStatus::NotAssessed
+        || candidate.motion_judgment.authority != "user"
+        || candidate.motion_judgment.message.is_empty()
+    {
+        return Err("Walk Cycle crossed the user-owned motion gate.".to_owned());
+    }
+    Ok(candidate)
+}
+
+fn walk_cycle_root(root: &Path, session_id: &str) -> Result<PathBuf, String> {
+    validate_session_id(session_id)?;
+    Ok(root.join("sessions").join(session_id).join("walk-cycles"))
+}
+
+fn walk_cycle_directory(
+    root: &Path,
+    session_id: &str,
+    walk_cycle_id: &str,
+) -> Result<PathBuf, String> {
+    validate_candidate_id(walk_cycle_id)?;
+    Ok(walk_cycle_root(root, session_id)?.join(walk_cycle_id))
+}
+
+fn read_walk_cycle(
+    root: &Path,
+    session_id: &str,
+    walk_cycle_id: &str,
+) -> Result<WalkCycleCandidate, String> {
+    let session = read_session(root, session_id)?;
+    let raw = fs::read_to_string(
+        walk_cycle_directory(root, &session.id, walk_cycle_id)?.join("walk-cycle.json"),
+    )
+    .map_err(|error| format!("Could not read Walk Cycle: {error}"))?;
+    let candidate: WalkCycleCandidate = serde_json::from_str(&raw)
+        .map_err(|error| format!("Invalid Walk Cycle document: {error}"))?;
+    let candidate = validate_walk_cycle(candidate)?;
+    if candidate.session_id != session.id || candidate.id != walk_cycle_id {
+        return Err("Walk Cycle identity does not match its storage path.".to_owned());
+    }
+    Ok(candidate)
+}
+
+fn list_walk_cycles_at(root: &Path, session_id: &str) -> Result<Vec<WalkCycleCandidate>, String> {
+    let session = read_session(root, session_id)?;
+    let candidates_root = walk_cycle_root(root, &session.id)?;
+    fs::create_dir_all(&candidates_root)
+        .map_err(|error| format!("Could not create Walk Cycle storage: {error}"))?;
+
+    let mut candidates = Vec::new();
+    for entry in fs::read_dir(&candidates_root)
+        .map_err(|error| format!("Could not list Walk Cycles: {error}"))?
+    {
+        let Ok(entry) = entry else {
+            continue;
+        };
+        let file_name = entry.file_name();
+        let Some(walk_cycle_id) = file_name.to_str() else {
+            continue;
+        };
+        if walk_cycle_id.starts_with('.') || !entry.path().is_dir() {
+            continue;
+        }
+        if let Ok(candidate) = read_walk_cycle(root, &session.id, walk_cycle_id) {
+            candidates.push(candidate);
+        }
+    }
+    candidates.sort_by(|left, right| right.revision.cmp(&left.revision));
+    Ok(candidates)
+}
+
+#[allow(clippy::too_many_arguments)]
+fn create_walk_cycle_candidate_at(
+    root: &Path,
+    session_id: &str,
+    source_turnaround_id: &str,
+    png_bytes: &WalkCyclePngBytes,
+    provenance: CandidateProvenance,
+    timestamp: &str,
+    id_suffix: &str,
+    temporary_suffix: &str,
+    forced_revision: Option<u32>,
+) -> Result<WalkCycleCandidate, String> {
+    let session = read_session(root, session_id)?;
+    let source_turnaround = read_turnaround_payload(root, &session.id, source_turnaround_id)?;
+    let provenance = validate_provenance(provenance)?;
+
+    let mut frames = Vec::new();
+    for direction in TURNAROUND_DIRECTIONS {
+        let direction_frames = png_bytes.direction(direction);
+        if direction_frames.len() != WALK_CYCLE_FRAMES_PER_DIRECTION {
+            return Err(format!(
+                "Walk Cycle {} must contain exactly four frames.",
+                direction.as_str()
+            ));
+        }
+        if direction_frames[0] != source_turnaround.png_bytes.get(direction) {
+            return Err(format!(
+                "Frame 0 for {} must preserve the exact user-accepted Turnaround PNG bytes.",
+                direction.as_str()
+            ));
+        }
+        for (frame_index, bytes) in direction_frames.iter().enumerate() {
+            let (width, height, sha256) = validate_concept_png(bytes)?;
+            frames.push(WalkCycleFrameSource {
+                direction,
+                frame_index,
+                source_file: format!("{}-{frame_index}.png", direction.as_str()),
+                sha256,
+                byte_length: bytes.len(),
+                width,
+                height,
+            });
+        }
+    }
+
+    let candidates = list_walk_cycles_at(root, &session.id)?;
+    let revision = forced_revision.unwrap_or_else(|| {
+        candidates
+            .iter()
+            .map(|candidate| candidate.revision)
+            .max()
+            .unwrap_or(0)
+            + 1
+    });
+    let timestamp_digits: String = timestamp
+        .chars()
+        .filter(char::is_ascii_digit)
+        .take(14)
+        .collect();
+    let candidate = validate_walk_cycle(WalkCycleCandidate {
+        schema_version: 1,
+        id: format!(
+            "walk-cycle-r{:04}-{}-{}",
+            revision, timestamp_digits, id_suffix
+        ),
+        revision,
+        session_id: session.id.clone(),
+        stage: "animate".to_owned(),
+        contract_id: CONTRACT_ID.to_owned(),
+        source_turnaround: WalkCycleSourceTurnaround {
+            turnaround_id: source_turnaround.candidate.id,
+            direction_sources: source_turnaround
+                .candidate
+                .directions
+                .iter()
+                .map(|source| WalkCycleAcceptedDirectionSource {
+                    direction: source.direction,
+                    sha256: source.sha256.clone(),
+                    byte_length: source.byte_length,
+                })
+                .collect(),
+            accepted_by: "user".to_owned(),
+            accepted_at: timestamp.to_owned(),
+        },
+        clip: "walk".to_owned(),
+        frames_per_direction: WALK_CYCLE_FRAMES_PER_DIRECTION,
+        frame_duration_ms: WALK_CYCLE_FRAME_DURATION_MS,
+        frames,
+        created_at: timestamp.to_owned(),
+        provenance,
+        review_status: "unreviewed".to_owned(),
+        motion_judgment: VisualJudgment {
+            status: VisualJudgmentStatus::NotAssessed,
+            authority: "user".to_owned(),
+            message: "Only the user can accept Walk Cycle motion and readability.".to_owned(),
+        },
+    })?;
+
+    let candidates_root = walk_cycle_root(root, &session.id)?;
+    fs::create_dir_all(&candidates_root)
+        .map_err(|error| format!("Could not create Walk Cycle storage: {error}"))?;
+    let final_directory = walk_cycle_directory(root, &session.id, &candidate.id)?;
+    let temporary_directory =
+        candidates_root.join(format!(".{}.{}.tmp", candidate.id, temporary_suffix));
+    fs::create_dir(&temporary_directory)
+        .map_err(|error| format!("Could not stage Walk Cycle: {error}"))?;
+
+    let publish_result = (|| -> Result<(), String> {
+        for frame in &candidate.frames {
+            let bytes = png_bytes
+                .get(frame.direction, frame.frame_index)
+                .ok_or_else(|| "Walk Cycle frame bytes are incomplete.".to_owned())?;
+            fs::write(temporary_directory.join(&frame.source_file), bytes).map_err(|error| {
+                format!(
+                    "Could not write {} frame {} PNG: {error}",
+                    frame.direction.as_str(),
+                    frame.frame_index
+                )
+            })?;
+        }
+        let document = format!(
+            "{}\n",
+            serde_json::to_string_pretty(&candidate)
+                .map_err(|error| format!("Could not serialize Walk Cycle: {error}"))?
+        );
+        fs::write(temporary_directory.join("walk-cycle.json"), document)
+            .map_err(|error| format!("Could not write Walk Cycle document: {error}"))?;
+        fs::rename(&temporary_directory, &final_directory)
+            .map_err(|error| format!("Could not publish Walk Cycle: {error}"))
+    })();
+
+    if publish_result.is_err() {
+        let _ = fs::remove_dir_all(&temporary_directory);
+    }
+    publish_result?;
+    Ok(candidate)
+}
+
+fn read_walk_cycle_payload(
+    root: &Path,
+    session_id: &str,
+    walk_cycle_id: &str,
+) -> Result<WalkCycleCandidatePayload, String> {
+    let candidate = read_walk_cycle(root, session_id, walk_cycle_id)?;
+    let directory = walk_cycle_directory(root, session_id, walk_cycle_id)?;
+    let mut png_bytes = WalkCyclePngBytes {
+        down: Vec::new(),
+        right: Vec::new(),
+        up: Vec::new(),
+        left: Vec::new(),
+    };
+    for source in &candidate.frames {
+        let bytes = fs::read(directory.join(&source.source_file)).map_err(|error| {
+            format!(
+                "Could not read {} frame {} PNG: {error}",
+                source.direction.as_str(),
+                source.frame_index
+            )
+        })?;
+        if bytes.len() != source.byte_length
+            || format!("{:x}", Sha256::digest(&bytes)) != source.sha256
+        {
+            return Err(format!(
+                "{} frame {} bytes no longer match immutable provenance.",
+                source.direction.as_str(),
+                source.frame_index
+            ));
+        }
+        png_bytes.direction_mut(source.direction).push(bytes);
+    }
+    for direction in TURNAROUND_DIRECTIONS {
+        if png_bytes.direction(direction).len() != WALK_CYCLE_FRAMES_PER_DIRECTION {
+            return Err("Walk Cycle frame bytes are incomplete.".to_owned());
+        }
+    }
+    Ok(WalkCycleCandidatePayload {
+        candidate,
+        png_bytes,
+    })
+}
+
+fn validate_walk_cycle_report(
+    report: WalkCycleValidationReport,
+) -> Result<WalkCycleValidationReport, String> {
+    validate_candidate_id(&report.walk_cycle_id)?;
+    if report.schema_version != 1
+        || report.validator_id != WALK_CYCLE_VALIDATOR_ID
+        || report.contract_id != CONTRACT_ID
+    {
+        return Err("Unsupported Walk Cycle validation report.".to_owned());
+    }
+    if report.frames.len() != TURNAROUND_DIRECTIONS.len() * WALK_CYCLE_FRAMES_PER_DIRECTION {
+        return Err("Walk Cycle validation must contain sixteen frame reports.".to_owned());
+    }
+    let mut counted = ValidationSummary {
+        pass: 0,
+        fail: 0,
+        not_assessed: 0,
+    };
+    for (direction_index, direction) in TURNAROUND_DIRECTIONS.iter().enumerate() {
+        for frame_index in 0..WALK_CYCLE_FRAMES_PER_DIRECTION {
+            let flat_index = direction_index * WALK_CYCLE_FRAMES_PER_DIRECTION + frame_index;
+            let frame = &report.frames[flat_index];
+            if frame.direction != *direction || frame.frame_index != frame_index {
+                return Err(
+                    "Walk Cycle validation frames must use canonical direction and index order."
+                        .to_owned(),
+                );
+            }
+            validate_structural_report(frame.report.clone())?;
+            if frame.report.candidate_id != report.walk_cycle_id
+                || frame.report.contract_id != report.contract_id
+            {
+                return Err("Frame validation identity does not match Walk Cycle.".to_owned());
+            }
+            counted.pass += frame.report.summary.pass;
+            counted.fail += frame.report.summary.fail;
+            counted.not_assessed += frame.report.summary.not_assessed;
+        }
+    }
+    if counted != report.summary {
+        return Err("Walk Cycle validation summary does not match frame reports.".to_owned());
+    }
+    if report.motion_judgment.status != VisualJudgmentStatus::NotAssessed
+        || report.motion_judgment.authority != "user"
+        || report.motion_judgment.message.is_empty()
+    {
+        return Err("Walk Cycle validation crossed the user-owned motion gate.".to_owned());
+    }
+    Ok(report)
+}
+
+fn validate_walk_cycle_pngs(
+    payload: &WalkCycleCandidatePayload,
+) -> Result<WalkCycleValidationReport, String> {
+    let mut frames = Vec::new();
+    let mut summary = ValidationSummary {
+        pass: 0,
+        fail: 0,
+        not_assessed: 0,
+    };
+    for source in &payload.candidate.frames {
+        let bytes = payload
+            .png_bytes
+            .get(source.direction, source.frame_index)
+            .ok_or_else(|| "Walk Cycle frame bytes are incomplete.".to_owned())?;
+        let report = validate_png_structural_evidence(
+            &payload.candidate.id,
+            &source.sha256,
+            source.byte_length,
+            &payload.candidate.contract_id,
+            bytes,
+        )?;
+        summary.pass += report.summary.pass;
+        summary.fail += report.summary.fail;
+        summary.not_assessed += report.summary.not_assessed;
+        frames.push(WalkCycleFrameReport {
+            direction: source.direction,
+            frame_index: source.frame_index,
+            report,
+        });
+    }
+    validate_walk_cycle_report(WalkCycleValidationReport {
+        schema_version: 1,
+        validator_id: WALK_CYCLE_VALIDATOR_ID.to_owned(),
+        walk_cycle_id: payload.candidate.id.clone(),
+        contract_id: payload.candidate.contract_id.clone(),
+        frames,
+        summary,
+        motion_judgment: payload.candidate.motion_judgment.clone(),
+    })
+}
+
 fn validation_rule(
     id: ValidationRuleId,
     status: ValidationStatus,
@@ -1631,6 +2175,51 @@ fn validate_turnaround_candidate(
     validate_turnaround_pngs(&payload)
 }
 
+#[tauri::command]
+fn create_walk_cycle_candidate(
+    session_id: String,
+    source_turnaround_id: String,
+    png_bytes: WalkCyclePngBytes,
+    provenance: CandidateProvenance,
+) -> Result<WalkCycleCandidate, String> {
+    let timestamp = Utc::now().to_rfc3339_opts(SecondsFormat::Millis, true);
+    let id_suffix = Uuid::new_v4().simple().to_string()[..8].to_owned();
+    let temporary_suffix = Uuid::new_v4().simple().to_string();
+    create_walk_cycle_candidate_at(
+        &workspace_root(),
+        &session_id,
+        &source_turnaround_id,
+        &png_bytes,
+        provenance,
+        &timestamp,
+        &id_suffix,
+        &temporary_suffix,
+        None,
+    )
+}
+
+#[tauri::command]
+fn list_walk_cycle_candidates(session_id: String) -> Result<Vec<WalkCycleCandidate>, String> {
+    list_walk_cycles_at(&workspace_root(), &session_id)
+}
+
+#[tauri::command]
+fn get_walk_cycle_candidate(
+    session_id: String,
+    walk_cycle_id: String,
+) -> Result<WalkCycleCandidatePayload, String> {
+    read_walk_cycle_payload(&workspace_root(), &session_id, &walk_cycle_id)
+}
+
+#[tauri::command]
+fn validate_walk_cycle_candidate(
+    session_id: String,
+    walk_cycle_id: String,
+) -> Result<WalkCycleValidationReport, String> {
+    let payload = read_walk_cycle_payload(&workspace_root(), &session_id, &walk_cycle_id)?;
+    validate_walk_cycle_pngs(&payload)
+}
+
 #[cfg_attr(mobile, tauri::mobile_entry_point)]
 pub fn run() {
     tauri::Builder::default()
@@ -1646,7 +2235,11 @@ pub fn run() {
             create_turnaround_candidate,
             list_turnaround_candidates,
             get_turnaround_candidate,
-            validate_turnaround_candidate
+            validate_turnaround_candidate,
+            create_walk_cycle_candidate,
+            list_walk_cycle_candidates,
+            get_walk_cycle_candidate,
+            validate_walk_cycle_candidate
         ])
         .run(tauri::generate_context!())
         .expect("error while running TileForge Actor Studio");
@@ -2231,6 +2824,253 @@ mod tests {
             .join("sessions")
             .join(&session.id)
             .join("turnarounds")
+            .exists());
+        fs::remove_dir_all(root).unwrap();
+    }
+
+    #[test]
+    fn desktop_adapter_reads_shared_walk_cycle_fixture() {
+        let fixture = include_str!("../../tests/fixtures/walk-cycle-candidate-v1.json");
+        let candidate: WalkCycleCandidate = serde_json::from_str(fixture).unwrap();
+        let candidate = validate_walk_cycle(candidate).unwrap();
+
+        assert_eq!(candidate.contract_id, CONTRACT_ID);
+        assert_eq!(candidate.stage, "animate");
+        assert_eq!(candidate.source_turnaround.accepted_by, "user");
+        assert_eq!(candidate.frames.len(), 16);
+        assert_eq!(candidate.frame_duration_ms, WALK_CYCLE_FRAME_DURATION_MS);
+        assert_eq!(
+            candidate.motion_judgment.status,
+            VisualJudgmentStatus::NotAssessed
+        );
+    }
+
+    #[test]
+    fn walk_cycle_preserves_accepted_turnaround_and_sixteen_frame_bytes() {
+        let root = test_root("walk-cycle");
+        let session = create_session_at(
+            &root,
+            brief(),
+            "2026-07-27T23:00:00.000Z",
+            "walkcycl",
+            "session",
+        )
+        .unwrap();
+        let down = validation_png(false, 32, 32);
+        let concept = create_concept_candidate_at(
+            &root,
+            &session.id,
+            &down,
+            provenance(CandidateSource::Imported),
+            "2026-07-27T23:01:00.000Z",
+            "selected",
+            "candidate",
+            None,
+        )
+        .unwrap();
+        let views = TurnaroundPngBytes {
+            down: down.clone(),
+            right: down.clone(),
+            up: down.clone(),
+            left: down.clone(),
+        };
+        let turnaround = create_turnaround_candidate_at(
+            &root,
+            &session.id,
+            &concept.id,
+            &views,
+            CandidateProvenance {
+                source: CandidateSource::Generated,
+                original_filename: None,
+                provider: Some("subscription-image-tool".to_owned()),
+                model: Some("built-in".to_owned()),
+            },
+            "2026-07-27T23:02:00.000Z",
+            "accepted",
+            "turnaround",
+            None,
+        )
+        .unwrap();
+        let frames = WalkCyclePngBytes {
+            down: vec![down.clone(), down.clone(), down.clone(), down.clone()],
+            right: vec![
+                views.right.clone(),
+                views.right.clone(),
+                views.right.clone(),
+                views.right.clone(),
+            ],
+            up: vec![
+                views.up.clone(),
+                views.up.clone(),
+                views.up.clone(),
+                views.up.clone(),
+            ],
+            left: vec![
+                views.left.clone(),
+                views.left.clone(),
+                views.left.clone(),
+                views.left.clone(),
+            ],
+        };
+        let walk_cycle = create_walk_cycle_candidate_at(
+            &root,
+            &session.id,
+            &turnaround.id,
+            &frames,
+            provenance(CandidateSource::Imported),
+            "2026-07-27T23:30:00.000Z",
+            "native01",
+            "walk-cycle",
+            None,
+        )
+        .unwrap();
+        let payload = read_walk_cycle_payload(&root, &session.id, &walk_cycle.id).unwrap();
+        let report = validate_walk_cycle_pngs(&payload).unwrap();
+
+        assert_eq!(payload.png_bytes.down[0], down);
+        assert_eq!(
+            payload.candidate.source_turnaround.turnaround_id,
+            turnaround.id
+        );
+        assert_eq!(payload.candidate.source_turnaround.accepted_by, "user");
+        assert_eq!(payload.candidate.review_status, "unreviewed");
+        assert_eq!(
+            payload.candidate.motion_judgment.status,
+            VisualJudgmentStatus::NotAssessed
+        );
+        assert_eq!(
+            report.summary,
+            ValidationSummary {
+                pass: 96,
+                fail: 0,
+                not_assessed: 16,
+            }
+        );
+        assert_eq!(
+            fs::read_dir(
+                root.join("sessions")
+                    .join(&session.id)
+                    .join("walk-cycles")
+                    .join(&walk_cycle.id)
+            )
+            .unwrap()
+            .count(),
+            17
+        );
+
+        let collision = create_walk_cycle_candidate_at(
+            &root,
+            &session.id,
+            &turnaround.id,
+            &frames,
+            provenance(CandidateSource::Imported),
+            "2026-07-27T23:31:00.000Z",
+            "same0001",
+            "first",
+            Some(2),
+        )
+        .unwrap();
+        let second = create_walk_cycle_candidate_at(
+            &root,
+            &session.id,
+            &turnaround.id,
+            &frames,
+            provenance(CandidateSource::Imported),
+            "2026-07-27T23:31:00.000Z",
+            "same0001",
+            "second",
+            Some(2),
+        );
+        assert!(second.is_err());
+        assert_eq!(
+            read_walk_cycle_payload(&root, &session.id, &collision.id)
+                .unwrap()
+                .png_bytes
+                .down[0],
+            frames.down[0]
+        );
+        assert!(
+            fs::read_dir(root.join("sessions").join(&session.id).join("walk-cycles"))
+                .unwrap()
+                .all(|entry| !entry
+                    .unwrap()
+                    .file_name()
+                    .to_string_lossy()
+                    .starts_with('.'))
+        );
+        fs::remove_dir_all(root).unwrap();
+    }
+
+    #[test]
+    fn walk_cycle_rejects_frame_zero_replacement_without_partial_storage() {
+        let root = test_root("walk-cycle-invalid");
+        let session = create_session_at(
+            &root,
+            brief(),
+            "2026-07-27T23:00:00.000Z",
+            "invalidw",
+            "session",
+        )
+        .unwrap();
+        let down = validation_png(false, 32, 32);
+        let concept = create_concept_candidate_at(
+            &root,
+            &session.id,
+            &down,
+            provenance(CandidateSource::Imported),
+            "2026-07-27T23:01:00.000Z",
+            "selected",
+            "candidate",
+            None,
+        )
+        .unwrap();
+        let views = TurnaroundPngBytes {
+            down: down.clone(),
+            right: down.clone(),
+            up: down.clone(),
+            left: down.clone(),
+        };
+        let turnaround = create_turnaround_candidate_at(
+            &root,
+            &session.id,
+            &concept.id,
+            &views,
+            CandidateProvenance {
+                source: CandidateSource::Generated,
+                original_filename: None,
+                provider: Some("subscription-image-tool".to_owned()),
+                model: None,
+            },
+            "2026-07-27T23:02:00.000Z",
+            "accepted",
+            "turnaround",
+            None,
+        )
+        .unwrap();
+        let replacement = concept_png(32, 32, true);
+        let frames = WalkCyclePngBytes {
+            down: vec![replacement, down.clone(), down.clone(), down.clone()],
+            right: vec![down.clone(), down.clone(), down.clone(), down.clone()],
+            up: vec![down.clone(), down.clone(), down.clone(), down.clone()],
+            left: vec![down.clone(), down.clone(), down.clone(), down],
+        };
+        let result = create_walk_cycle_candidate_at(
+            &root,
+            &session.id,
+            &turnaround.id,
+            &frames,
+            provenance(CandidateSource::Imported),
+            "2026-07-27T23:30:00.000Z",
+            "invalid1",
+            "walk-cycle",
+            None,
+        );
+
+        assert!(result.is_err());
+        assert!(!root
+            .join("sessions")
+            .join(&session.id)
+            .join("walk-cycles")
             .exists());
         fs::remove_dir_all(root).unwrap();
     }

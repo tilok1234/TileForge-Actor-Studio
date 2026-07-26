@@ -78,12 +78,16 @@ runtime dependency or write generated assets back into them.
 | Turnaround storage | Atomically preserves canonical down/right/up/left PNGs as one immutable revision |
 | Turnaround restore | Desktop restart reopens the latest four-view comparison and its selected Concept receipt |
 | Turnaround evidence | Rehashes all four sources and recomputes per-direction plus aggregate structural reports |
+| Turnaround acceptance | Walk Cycle records the exact accepted Turnaround id, four source hashes, user authority, and acceptance time |
+| Walk Cycle storage | Atomically preserves four frames per down/right/up/left direction as one immutable revision at 300 ms |
+| Walk Cycle restore | Desktop restart opens Animate, plays all four directions, and shows the accepted Turnaround receipt |
+| Walk Cycle evidence | Rehashes all sixteen frame sources and recomputes per-frame plus aggregate structural reports |
 | Contract | JSON Schema, versioned JSON instance, and TypeScript representation |
 | Approval | Human-only approval boundary shown in UI, contract, prompt, and MCP |
 | MCP | Stdio and localhost Streamable HTTP transports |
-| MCP tools | Thirteen tools covering contract, prompt, sessions, Concept intake/read/validation, and Turnaround create/read/validation |
-| Shared storage | Tauri and MCP adapters use one atomic `.studio/sessions` protocol for immutable Concepts and Turnarounds |
-| Compatibility | Shared session, Concept, Turnaround, and validation fixtures plus TypeScript and Rust failure-path tests |
+| MCP tools | Seventeen tools covering contract, prompt, sessions, Concept, Turnaround, and Walk Cycle create/read/validation |
+| Shared storage | Tauri and MCP adapters use one atomic `.studio/sessions` protocol for immutable Concepts, Turnarounds, and Walk Cycles |
+| Compatibility | Shared session, Concept, Turnaround, Walk Cycle, and validation fixtures plus TypeScript and Rust failure-path tests |
 | Agent guidance | `AGENTS.md`, `CLAUDE.md`, `GEMINI.md`, project rules, and skill |
 | App icon | Generated Tauri desktop/mobile icon set from `src-tauri/icons/icon.svg` |
 
@@ -93,7 +97,9 @@ runtime dependency or write generated assets back into them.
 - Ground-luma validation remains Not assessed until a pinned ground reference
   exists.
 - No pinned TileForge reference pack exists yet.
-- Walk Cycle, world-test, and export stages are visual shells.
+- World-test and export stages are visual shells.
+- No motion-acceptance, approved-candidate promotion, or publishing operation
+  exists.
 - No approved-candidate promotion or publishing operation exists.
 - Tauri bundling/installers are disabled in `tauri.conf.json`.
 - The contract JSON import is typed, but full JSON-Schema validation is not yet
@@ -112,14 +118,16 @@ and verification evidence.
   Turnarounds, and generation evidence.
 
 The shared boundary is documented in `docs/DECISIONS.md`: both thin adapters
-use the same session, Concept, and Turnaround documents, identity rules, brief
-limits, directory layout, hash checks, atomic publish behavior, and recomputed
-artifact-hash-bound validation reports.
+use the same session, Concept, Turnaround, and Walk Cycle documents, identity
+rules, brief limits, directory layout, hash checks, atomic publish behavior,
+and recomputed artifact-hash-bound validation reports.
 `tests/fixtures/session-v1.json` and
 `tests/fixtures/concept-candidate-v1.json` guard storage compatibility;
 `tests/fixtures/turnaround-candidate-v1.json` guards the user-selection and
-four-direction artifact contract; `tests/fixtures/validation-report-v1.json`
-guards validator compatibility.
+four-direction artifact contract;
+`tests/fixtures/walk-cycle-candidate-v1.json` guards the accepted-Turnaround
+receipt, timing, and sixteen-frame contract;
+`tests/fixtures/validation-report-v1.json` guards validator compatibility.
 
 ## Current local review gate
 
@@ -131,7 +139,7 @@ its first immutable direction repair:
   `concept-r0004-20260726221830-633afb02`
 - preserved original Turnaround:
   `turnaround-r0001-20260726224205-a558350a`
-- current review Turnaround:
+- accepted Turnaround:
   `turnaround-r0002-20260726225909-696334cf`
 - repair scope: the user rejected the r1 right-facing outline/edge bleed; r2
   replaces only `right.png` with a deterministic mirrored and re-anchored copy
@@ -140,31 +148,43 @@ its first immutable direction repair:
   r1 remains unchanged
 - structural evidence: 24 Pass / 0 Fail / 4 Not assessed, with one ground-luma
   result pending per direction
-- identity consistency: Not assessed, user authority
+- identity consistency: explicitly accepted by the user in chat for animation
 
-The built-in ImageGen sources and deterministic repair evidence are preserved
-under `.studio/generated-source/`. The r2 repair used no AI service, API key, or
-incremental billing. Do not begin Walk Cycle work until the user explicitly
-accepts r2 identity consistency or asks for another immutable Turnaround
-revision.
+The first immutable Animate-stage candidate is now:
+
+- Walk Cycle:
+  `walk-cycle-r0001-20260726232040-8f002087`
+- source receipt: exact Turnaround r2 id and down/right/up/left hashes,
+  `acceptedBy: user`
+- clip: `walk`, four frames per direction, 300 ms
+- structural evidence: 96 Pass / 0 Fail / 16 Not assessed, with one
+  ground-luma result pending per frame
+- motion and readability: Not assessed, user authority
+
+The built-in ImageGen sources, deterministic Turnaround repair, and
+deterministic cloak-sway Walk Cycle evidence are preserved under
+`.studio/generated-source/`. Neither r2 nor Walk Cycle r1 used an AI API,
+additional AI service, or incremental billing. Do not begin World Test work
+until the user explicitly accepts Walk Cycle r1 motion/readability or asks for
+another immutable animation revision.
 
 ## Verification evidence
 
-The M04 Turnaround slice was verified on Windows with Node 24.15.0, npm
+The M04 Turnaround and Walk Cycle slices were verified on Windows with Node 24.15.0, npm
 11.12.1, and Rust 1.95:
 
 - `npm run check` — 0 errors and 0 warnings
 - `npm run build` — production bundle built
-- `npm run test:mcp` — thirteen tools, locked approval contract, shared
-  session/Concept/Turnaround/report compatibility, exact selected-down
-  preservation, immutable four-view reads, independent rule failures,
-  collisions, and atomic failure cleanup passed
+- `npm run test:mcp` — seventeen tools, locked approval contract, shared
+  session/Concept/Turnaround/Walk Cycle/report compatibility, exact
+  transition-source preservation, immutable four-view and sixteen-frame reads,
+  independent rule failures, collisions, and atomic failure cleanup passed
 - `npm run test:mcp:stdio` — real stdio transport passed
 - `npm run test:mcp:http` — real localhost HTTP transport passed while server ran
 - `cargo fmt --manifest-path src-tauri/Cargo.toml --check` — passed
 - `cargo check --manifest-path src-tauri/Cargo.toml` — passed
-- `cargo test --manifest-path src-tauri/Cargo.toml` — twelve
-  session/Concept/Turnaround/validation compatibility and failure-path tests
+- `cargo test --manifest-path src-tauri/Cargo.toml` — fifteen
+  session/Concept/Turnaround/Walk Cycle/validation compatibility and failure-path tests
   passed
 - `npm audit --audit-level=moderate` — 0 vulnerabilities
 - Native desktop QA — after a full app restart, the app restored the exact
@@ -174,17 +194,21 @@ The M04 Turnaround slice was verified on Windows with Node 24.15.0, npm
 - Local r2 repair evidence — the rejected r1 right view was replaced in a new
   atomic Turnaround; down, up, and left hashes remain exact; validation reports
   6 Pass / 0 Fail / 1 Not assessed per direction and 24 / 0 / 4 in aggregate
+- Native Walk Cycle QA — after a full app restart, the desktop restored Animate
+  and Walk Cycle r1, displayed the exact Turnaround r2 acceptance receipt,
+  advanced all four direction previews at 300 ms, reported 96 Pass / 0 Fail /
+  16 Not assessed, and kept motion/readability Not assessed and user-only
 
 Re-run checks relevant to any new change. For the HTTP smoke test, start
 `npm run mcp:http` in a separate terminal first.
 
 ## Recommended next milestone
 
-The next action is the user-owned Turnaround r2 identity gate. If the user
-accepts the current down/right/up/left set, continue M04 with an immutable
-four-frame walk cycle per direction at 300 ms. If the user requests changes,
-create another Turnaround revision; never overwrite r1 or r2. Do not treat 24
-green structural checks as identity acceptance.
+The next action is the user-owned Walk Cycle r1 motion/readability gate. If the
+user accepts the current 4 × 4 animation, continue with M05 World Test and a
+pinned read-only TileForge reference pack. If the user requests changes,
+create another Walk Cycle revision; never overwrite r1. Do not treat 96 green
+structural checks as motion acceptance.
 
 Any future AI integration must be included in the user's existing
 subscriptions. Do not enable pay-as-you-go APIs, purchased credits,

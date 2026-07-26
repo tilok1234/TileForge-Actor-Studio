@@ -24,6 +24,15 @@
     parseTurnaroundValidationReport,
     type TurnaroundValidationReport,
   } from "./lib/studio/turnaround-validation";
+  import {
+    parseWalkCycleCandidate,
+    WALK_CYCLE_FRAMES_PER_DIRECTION,
+    type WalkCycleCandidate,
+  } from "./lib/studio/walk-cycle";
+  import {
+    parseWalkCycleValidationReport,
+    type WalkCycleValidationReport,
+  } from "./lib/studio/walk-cycle-validation";
   import type { ActorBrief, StudioSession } from "./lib/studio/types";
   import {
     parseValidationReport,
@@ -90,16 +99,38 @@
   let turnaroundError = "";
   let turnaroundValidation: TurnaroundValidationReport | null = null;
   let validatingTurnaround = false;
+  let walkCycles: WalkCycleCandidate[] = [];
+  let selectedWalkCycle: WalkCycleCandidate | null = null;
+  let walkCyclePngUrls: Record<TurnaroundDirection, string[]> = {
+    down: [],
+    right: [],
+    up: [],
+    left: [],
+  };
+  let walkCycleMessage = "No immutable Walk Cycle has been created yet.";
+  let walkCycleError = "";
+  let walkCycleValidation: WalkCycleValidationReport | null = null;
+  let validatingWalkCycle = false;
+  let animationFrameIndex = 0;
+  let animationTimer: number | undefined;
 
   $: compiledPrompt = compileActorPrompt(brief);
 
   onMount(() => {
     void restoreLatestSession();
+    animationTimer = window.setInterval(() => {
+      animationFrameIndex =
+        (animationFrameIndex + 1) % WALK_CYCLE_FRAMES_PER_DIRECTION;
+    }, TILEFORGE_ACTOR_CONTRACT.animation.frameDurationMs);
   });
 
   onDestroy(() => {
     revokeCandidateUrl();
     revokeTurnaroundUrls();
+    revokeWalkCycleUrls();
+    if (animationTimer !== undefined) {
+      window.clearInterval(animationTimer);
+    }
   });
 
   function revokeCandidateUrl() {
@@ -137,6 +168,24 @@
     turnaroundMessage = "No immutable Turnaround has been created yet.";
   }
 
+  function revokeWalkCycleUrls() {
+    for (const direction of TURNAROUND_DIRECTIONS) {
+      for (const url of walkCyclePngUrls[direction]) {
+        URL.revokeObjectURL(url);
+      }
+    }
+    walkCyclePngUrls = { down: [], right: [], up: [], left: [] };
+  }
+
+  function clearWalkCycles() {
+    revokeWalkCycleUrls();
+    walkCycles = [];
+    selectedWalkCycle = null;
+    walkCycleValidation = null;
+    walkCycleError = "";
+    walkCycleMessage = "No immutable Walk Cycle has been created yet.";
+  }
+
   function showSession(saved: StudioSession) {
     session = saved;
     brief = { ...saved.brief };
@@ -163,6 +212,7 @@
         showSession(restoredSession);
         await refreshCandidates(restoredSession.id);
         await refreshTurnarounds(restoredSession.id);
+        await refreshWalkCycles(restoredSession.id);
         sessionMessage = "Reopened the latest durable session.";
       } else {
         sessionMessage = "No saved sessions yet.";
@@ -199,6 +249,7 @@
       showSession(saved);
       clearCandidates();
       clearTurnarounds();
+      clearWalkCycles();
       workspaceRoot ||= ".studio";
       sessionMessage = "Saved locally. MCP clients can read this session.";
     } catch (error) {
@@ -422,6 +473,122 @@
       validatingTurnaround = false;
     }
   }
+
+  async function refreshWalkCycles(
+    sessionId: string,
+    preferredId?: string,
+  ) {
+    walkCycleError = "";
+    try {
+      const result = await invoke<unknown[]>("list_walk_cycle_candidates", {
+        sessionId,
+      });
+      walkCycles = result.map(parseWalkCycleCandidate);
+      const preferred =
+        walkCycles.find((candidate) => candidate.id === preferredId) ??
+        walkCycles[0] ??
+        null;
+      if (preferred) {
+        await loadWalkCycle(preferred);
+        walkCycleMessage = `${walkCycles.length} immutable Walk Cycle revision${walkCycles.length === 1 ? "" : "s"} saved.`;
+        activeStage = 3;
+      } else {
+        clearWalkCycles();
+      }
+    } catch (error) {
+      walkCycleError = actorBriefError(error);
+      walkCycleMessage = "Walk Cycles could not be loaded.";
+    }
+  }
+
+  async function loadWalkCycle(candidate: WalkCycleCandidate) {
+    if (!session || !isTauri()) {
+      return;
+    }
+    walkCycleError = "";
+    walkCycleValidation = null;
+    try {
+      const payload = await invoke<{
+        candidate: unknown;
+        pngBytes: Record<TurnaroundDirection, number[][]>;
+      }>("get_walk_cycle_candidate", {
+        sessionId: session.id,
+        walkCycleId: candidate.id,
+      });
+      const loaded = parseWalkCycleCandidate(payload.candidate);
+      const sourceTurnaround = turnarounds.find(
+        (turnaround) =>
+          turnaround.id === loaded.sourceTurnaround.turnaroundId,
+      );
+      if (
+        sourceTurnaround &&
+        selectedTurnaround?.id !== sourceTurnaround.id
+      ) {
+        await loadTurnaround(sourceTurnaround);
+      }
+      revokeWalkCycleUrls();
+      walkCyclePngUrls = Object.fromEntries(
+        TURNAROUND_DIRECTIONS.map((direction) => [
+          direction,
+          payload.pngBytes[direction].map((bytes) =>
+            URL.createObjectURL(
+              new Blob([new Uint8Array(bytes).buffer], {
+                type: "image/png",
+              }),
+            ),
+          ),
+        ]),
+      ) as Record<TurnaroundDirection, string[]>;
+      selectedWalkCycle = loaded;
+      animationFrameIndex = 0;
+      await validateWalkCycle(loaded);
+    } catch (error) {
+      walkCycleError = actorBriefError(error);
+    }
+  }
+
+  async function validateWalkCycle(candidate: WalkCycleCandidate) {
+    if (!session || !isTauri()) {
+      return;
+    }
+    validatingWalkCycle = true;
+    walkCycleError = "";
+    try {
+      const report = parseWalkCycleValidationReport(
+        await invoke("validate_walk_cycle_candidate", {
+          sessionId: session.id,
+          walkCycleId: candidate.id,
+        }),
+      );
+      if (report.walkCycleId !== candidate.id) {
+        throw new Error(
+          "Walk Cycle validation identity does not match the candidate.",
+        );
+      }
+      walkCycleValidation = report;
+    } catch (error) {
+      walkCycleValidation = null;
+      walkCycleError = actorBriefError(error);
+    } finally {
+      validatingWalkCycle = false;
+    }
+  }
+
+  function walkDirectionSummary(direction: TurnaroundDirection) {
+    return (
+      walkCycleValidation?.frames
+        .filter((frame) => frame.direction === direction)
+        .reduce(
+          (summary, frame) => ({
+            pass: summary.pass + frame.report.summary.pass,
+            fail: summary.fail + frame.report.summary.fail,
+            notAssessed:
+              summary.notAssessed + frame.report.summary.notAssessed,
+          }),
+          { pass: 0, fail: 0, notAssessed: 0 },
+        ) ?? { pass: 0, fail: 0, notAssessed: 0 }
+    );
+  }
 </script>
 
 <svelte:head>
@@ -547,6 +714,17 @@
             <span>Recorded for Turnaround by user authority. This is not final-art approval.</span>
           </section>
         {/if}
+
+        {#if selectedWalkCycle}
+          <section class="turnaround-selection walk-source" aria-label="Accepted Turnaround receipt">
+            <p class="eyebrow">User acceptance receipt</p>
+            <strong>Turnaround r{turnarounds.find((candidate) => candidate.id === selectedWalkCycle?.sourceTurnaround.turnaroundId)?.revision ?? "?"}</strong>
+            <small title={selectedWalkCycle.sourceTurnaround.turnaroundId}>
+              {selectedWalkCycle.sourceTurnaround.turnaroundId}
+            </small>
+            <span>Accepted for animation by user authority. Final-art and publishing approval remain separate.</span>
+          </section>
+        {/if}
       {/if}
 
       <p class="session-message" class:error={Boolean(sessionError)} role={sessionError ? "alert" : "status"}>
@@ -589,8 +767,34 @@
         </div>
       </div>
 
-      <div class:turnaround={activeStage === 2} class="preview-stage">
-        {#if activeStage === 2 && selectedTurnaround}
+      <div
+        class:turnaround={activeStage === 2}
+        class:animate={activeStage === 3}
+        class="preview-stage"
+      >
+        {#if activeStage === 3 && selectedWalkCycle}
+          <div
+            class="walk-cycle-grid"
+            style={`--walk-cycle-size: ${32 * Math.min(previewZoom, 8)}px`}
+          >
+            {#each TURNAROUND_DIRECTIONS as direction}
+              <figure>
+                <div class="walk-cycle-canvas">
+                  <img
+                    alt={`${direction} walk animation for revision ${selectedWalkCycle.revision}, frame ${animationFrameIndex + 1}`}
+                    height={32 * Math.min(previewZoom, 8)}
+                    src={walkCyclePngUrls[direction][animationFrameIndex]}
+                    width={32 * Math.min(previewZoom, 8)}
+                  />
+                </div>
+                <figcaption>
+                  <span>{direction}</span>
+                  <small>frame {animationFrameIndex + 1}/4</small>
+                </figcaption>
+              </figure>
+            {/each}
+          </div>
+        {:else if activeStage === 2 && selectedTurnaround}
           <div
             class="turnaround-grid"
             style={`--turnaround-size: ${32 * Math.min(previewZoom, 8)}px`}
@@ -634,7 +838,9 @@
           </div>
         {/if}
         <p class="preview-note">
-          {activeStage === 2 && selectedTurnaround
+          {activeStage === 3 && selectedWalkCycle
+            ? `Walk Cycle r${selectedWalkCycle.revision} · 4 × 4 immutable frames · ${selectedWalkCycle.frameDurationMs} ms · motion not assessed`
+            : activeStage === 2 && selectedTurnaround
             ? `Turnaround r${selectedTurnaround.revision} · four immutable views · identity consistency not assessed`
             : selectedCandidate
             ? `Candidate r${selectedCandidate.revision} · structural intake passed · visual judgment not assessed`
@@ -642,7 +848,23 @@
               ? "Concept slot ready. Import creates immutable, unreviewed candidates here."
               : "Begin a concept to create the first immutable candidate."}
         </p>
-        {#if activeStage === 2 && turnarounds.length > 0}
+        {#if activeStage === 3 && walkCycles.length > 0}
+          <div class="candidate-strip" aria-label="Immutable Walk Cycle candidates">
+            {#each walkCycles as candidate}
+              <button
+                class:selected={selectedWalkCycle?.id === candidate.id}
+                onclick={() => loadWalkCycle(candidate)}
+                title={candidate.id}
+              >
+                <strong>r{candidate.revision}</strong>
+                <span>{candidate.provenance.source}</span>
+              </button>
+            {/each}
+          </div>
+          <p class="turnaround-message" class:error={Boolean(walkCycleError)} role={walkCycleError ? "alert" : "status"}>
+            {walkCycleError || walkCycleMessage}
+          </p>
+        {:else if activeStage === 2 && turnarounds.length > 0}
           <div class="candidate-strip" aria-label="Immutable Turnaround candidates">
             {#each turnarounds as candidate}
               <button
@@ -735,7 +957,15 @@
             <p class="eyebrow">Local evidence</p>
             <strong>Contract validation</strong>
           </div>
-          {#if activeStage === 2 && selectedTurnaround}
+          {#if activeStage === 3 && selectedWalkCycle}
+            <button
+              aria-label="Run Walk Cycle structural validation again"
+              disabled={validatingWalkCycle}
+              onclick={() => selectedWalkCycle && validateWalkCycle(selectedWalkCycle)}
+            >
+              {validatingWalkCycle ? "Running…" : "Re-run"}
+            </button>
+          {:else if activeStage === 2 && selectedTurnaround}
             <button
               aria-label="Run Turnaround structural validation again"
               disabled={validatingTurnaround}
@@ -754,7 +984,50 @@
           {/if}
         </div>
 
-        {#if activeStage === 2}
+        {#if activeStage === 3}
+          {#if !selectedWalkCycle}
+            <p class="validation-empty">Create an immutable Walk Cycle to measure all sixteen frames.</p>
+          {:else if validatingWalkCycle && !walkCycleValidation}
+            <p class="validation-empty">Measuring sixteen immutable frame PNGs locally…</p>
+          {:else if walkCycleError}
+            <p class="validation-error" role="alert">{walkCycleError}</p>
+          {:else if walkCycleValidation}
+            <div class="validation-summary" aria-label="Walk Cycle validation totals">
+              <span class="pass">{walkCycleValidation.summary.pass} pass</span>
+              <span class:quiet={walkCycleValidation.summary.fail === 0} class="fail">
+                {walkCycleValidation.summary.fail} fail
+              </span>
+              <span class="not-assessed">
+                {walkCycleValidation.summary.notAssessed} not assessed
+              </span>
+            </div>
+            <div class="validation-results">
+              {#each TURNAROUND_DIRECTIONS as direction}
+                {@const summary = walkDirectionSummary(direction)}
+                <div
+                  class:pass={summary.fail === 0}
+                  class:fail={summary.fail > 0}
+                  class="validation-result"
+                >
+                  <span class="validation-mark" aria-label={summary.fail === 0 ? "pass" : "fail"}>
+                    {summary.fail === 0 ? "✓" : "!"}
+                  </span>
+                  <div>
+                    <strong>{direction} · 4 frames</strong>
+                    <span>
+                      {summary.pass} pass · {summary.fail} fail ·
+                      {summary.notAssessed} not assessed
+                    </span>
+                  </div>
+                </div>
+              {/each}
+            </div>
+            <div class="visual-judgment">
+              <span>Motion and readability</span>
+              <strong>Not assessed — user only</strong>
+            </div>
+          {/if}
+        {:else if activeStage === 2}
           {#if !selectedTurnaround}
             <p class="validation-empty">Create an immutable Turnaround to measure all four views.</p>
           {:else if validatingTurnaround && !turnaroundValidation}

@@ -3,11 +3,12 @@
 A narrow desktop workflow for creating **32 px TileForge mobs and NPCs with AI**.
 The artist supplies the identity; the studio supplies the boundaries.
 
-Current status: **M04 Turnaround is implemented and awaiting the user's
-identity-consistency decision; Walk Cycle has not started.** The desktop and
-MCP gateway share durable local sessions, never-overwritten Concept and
-Turnaround PNG revisions, user-selection receipts, and local deterministic
-validation reports. No image-generation provider adapter is integrated.
+Current status: **M04 Turnaround and Walk Cycle persistence are implemented;
+Walk Cycle r1 is awaiting the user's motion/readability decision.** The user
+accepted Turnaround r2 for animation. The desktop and MCP gateway share durable
+local sessions, never-overwritten Concept, Turnaround, and Walk Cycle PNG
+revisions, user-owned transition receipts, and local deterministic validation
+reports. No image-generation provider adapter is integrated.
 
 The initial workflow has six deliberate stages:
 
@@ -112,7 +113,11 @@ human/reference inputs exist. The Turnaround slice of M04 stores the exact
 user-selected Concept as the down view plus immutable right/up/left PNGs,
 restores the four-view comparison in the desktop, and exposes equivalent MCP
 create/list/read/validate operations. Identity consistency remains a user-only
-gate before Walk Cycle work.
+gate before Walk Cycle work. The Animate slice records the user's accepted
+Turnaround receipt, preserves sixteen original frame PNGs in canonical 4 × 4
+order at 300 ms, restores and plays them in the desktop, and exposes equivalent
+MCP operations. Motion and readability remain a user-only gate before World
+Test work.
 
 Future AI integrations may use only capabilities already covered by the user's
 subscriptions. Pay-as-you-go APIs, purchased credits, usage billing, and paid

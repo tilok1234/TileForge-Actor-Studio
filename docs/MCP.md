@@ -84,6 +84,10 @@ this project so every client observes the same gateway behavior.
 - `list_turnaround_candidates`
 - `get_turnaround_candidate`
 - `validate_turnaround_candidate`
+- `create_walk_cycle_candidate`
+- `list_walk_cycle_candidates`
+- `get_walk_cycle_candidate`
+- `validate_walk_cycle_candidate`
 
 The gateway also exposes:
 
@@ -112,6 +116,16 @@ it cannot accept identity consistency or approve final art.
 recomputes the structural report for each direction. Its aggregate report keeps
 identity consistency Not assessed with user authority.
 
+`create_walk_cycle_candidate` is available only after the user explicitly
+accepts a Turnaround. It requires four frames per canonical direction at 300
+ms; frame 0 must preserve each accepted Turnaround view exactly. It atomically
+publishes sixteen PNGs plus a versioned document and cannot accept motion,
+approve final art, or publish.
+
+`validate_walk_cycle_candidate` rehashes all sixteen immutable frame sources
+and recomputes structural evidence per frame. Its aggregate report keeps motion
+and readability Not assessed with user authority.
+
 ## Shared desktop state
 
 MCP session tools and the Tauri desktop use the same local workspace:
@@ -121,7 +135,9 @@ created from the desktop can therefore be listed and read through MCP without a
 conversion or copy step. Concept candidate directories use the same rule and
 preserve the exact original `source.png`; Turnaround directories preserve
 `turnaround.json` plus `down.png`, `right.png`, `up.png`, and `left.png`.
-Either adapter can list and read an artifact created by the other.
+Walk Cycle directories preserve `walk-cycle.json` plus four numbered frame
+PNGs for every canonical direction. Either adapter can list and read an
+artifact created by the other.
 
 Do not configure an AI provider that incurs incremental charges. Any future AI
 connection must be covered by the user's existing subscriptions.

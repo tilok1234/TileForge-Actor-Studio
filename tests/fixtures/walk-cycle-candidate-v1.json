@@ -1,0 +1,195 @@
+{
+  "schemaVersion": 1,
+  "id": "walk-cycle-r0001-20260727233000-fixture1",
+  "revision": 1,
+  "sessionId": "mirelight-pilgrim-20260727230000-fixture1",
+  "stage": "animate",
+  "contractId": "tileforge-actor-32-v1",
+  "sourceTurnaround": {
+    "turnaroundId": "turnaround-r0002-20260727232000-fixture1",
+    "directionSources": [
+      {
+        "direction": "down",
+        "sha256": "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa",
+        "byteLength": 100
+      },
+      {
+        "direction": "right",
+        "sha256": "bbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbb",
+        "byteLength": 101
+      },
+      {
+        "direction": "up",
+        "sha256": "cccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccc",
+        "byteLength": 102
+      },
+      {
+        "direction": "left",
+        "sha256": "dddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddd",
+        "byteLength": 103
+      }
+    ],
+    "acceptedBy": "user",
+    "acceptedAt": "2026-07-27T23:30:00.000Z"
+  },
+  "clip": "walk",
+  "framesPerDirection": 4,
+  "frameDurationMs": 300,
+  "frames": [
+    {
+      "direction": "down",
+      "frameIndex": 0,
+      "sourceFile": "down-0.png",
+      "sha256": "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa",
+      "byteLength": 100,
+      "width": 32,
+      "height": 32
+    },
+    {
+      "direction": "down",
+      "frameIndex": 1,
+      "sourceFile": "down-1.png",
+      "sha256": "0000000000000000000000000000000000000000000000000000000000000001",
+      "byteLength": 111,
+      "width": 32,
+      "height": 32
+    },
+    {
+      "direction": "down",
+      "frameIndex": 2,
+      "sourceFile": "down-2.png",
+      "sha256": "0000000000000000000000000000000000000000000000000000000000000002",
+      "byteLength": 112,
+      "width": 32,
+      "height": 32
+    },
+    {
+      "direction": "down",
+      "frameIndex": 3,
+      "sourceFile": "down-3.png",
+      "sha256": "0000000000000000000000000000000000000000000000000000000000000003",
+      "byteLength": 113,
+      "width": 32,
+      "height": 32
+    },
+    {
+      "direction": "right",
+      "frameIndex": 0,
+      "sourceFile": "right-0.png",
+      "sha256": "bbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbb",
+      "byteLength": 101,
+      "width": 32,
+      "height": 32
+    },
+    {
+      "direction": "right",
+      "frameIndex": 1,
+      "sourceFile": "right-1.png",
+      "sha256": "0000000000000000000000000000000000000000000000000000000000000004",
+      "byteLength": 114,
+      "width": 32,
+      "height": 32
+    },
+    {
+      "direction": "right",
+      "frameIndex": 2,
+      "sourceFile": "right-2.png",
+      "sha256": "0000000000000000000000000000000000000000000000000000000000000005",
+      "byteLength": 115,
+      "width": 32,
+      "height": 32
+    },
+    {
+      "direction": "right",
+      "frameIndex": 3,
+      "sourceFile": "right-3.png",
+      "sha256": "0000000000000000000000000000000000000000000000000000000000000006",
+      "byteLength": 116,
+      "width": 32,
+      "height": 32
+    },
+    {
+      "direction": "up",
+      "frameIndex": 0,
+      "sourceFile": "up-0.png",
+      "sha256": "cccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccc",
+      "byteLength": 102,
+      "width": 32,
+      "height": 32
+    },
+    {
+      "direction": "up",
+      "frameIndex": 1,
+      "sourceFile": "up-1.png",
+      "sha256": "0000000000000000000000000000000000000000000000000000000000000007",
+      "byteLength": 117,
+      "width": 32,
+      "height": 32
+    },
+    {
+      "direction": "up",
+      "frameIndex": 2,
+      "sourceFile": "up-2.png",
+      "sha256": "0000000000000000000000000000000000000000000000000000000000000008",
+      "byteLength": 118,
+      "width": 32,
+      "height": 32
+    },
+    {
+      "direction": "up",
+      "frameIndex": 3,
+      "sourceFile": "up-3.png",
+      "sha256": "0000000000000000000000000000000000000000000000000000000000000009",
+      "byteLength": 119,
+      "width": 32,
+      "height": 32
+    },
+    {
+      "direction": "left",
+      "frameIndex": 0,
+      "sourceFile": "left-0.png",
+      "sha256": "dddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddd",
+      "byteLength": 103,
+      "width": 32,
+      "height": 32
+    },
+    {
+      "direction": "left",
+      "frameIndex": 1,
+      "sourceFile": "left-1.png",
+      "sha256": "000000000000000000000000000000000000000000000000000000000000000a",
+      "byteLength": 120,
+      "width": 32,
+      "height": 32
+    },
+    {
+      "direction": "left",
+      "frameIndex": 2,
+      "sourceFile": "left-2.png",
+      "sha256": "000000000000000000000000000000000000000000000000000000000000000b",
+      "byteLength": 121,
+      "width": 32,
+      "height": 32
+    },
+    {
+      "direction": "left",
+      "frameIndex": 3,
+      "sourceFile": "left-3.png",
+      "sha256": "000000000000000000000000000000000000000000000000000000000000000c",
+      "byteLength": 122,
+      "width": 32,
+      "height": 32
+    }
+  ],
+  "createdAt": "2026-07-27T23:30:00.000Z",
+  "provenance": {
+    "source": "imported",
+    "originalFilename": "mirelight-walk-cycle-r1"
+  },
+  "reviewStatus": "unreviewed",
+  "motionJudgment": {
+    "status": "not_assessed",
+    "authority": "user",
+    "message": "Only the user can accept Walk Cycle motion and readability."
+  }
+}

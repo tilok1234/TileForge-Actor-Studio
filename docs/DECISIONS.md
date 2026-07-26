@@ -214,3 +214,30 @@ Reason: a narrow correction should not introduce silent drift into directions
 the user did not reject. Publishing the complete repaired set atomically keeps
 the stage coherent while retaining a precise audit trail from feedback to
 changed bytes.
+
+## 2026-07-27 - Walk Cycle is the durable accepted-Turnaround receipt
+
+M04 does not mutate a Turnaround or add an approval field to it. The first Walk
+Cycle revision records the exact accepted Turnaround id, its four direction
+hashes and byte lengths, `acceptedBy: user`, and acceptance time. Frame 0 in
+every direction must preserve the corresponding accepted Turnaround PNG bytes.
+
+Reason: user acceptance unlocks animation but is not final-art approval.
+Binding the next-stage artifact to exact source identities makes that
+transition durable without creating an agent-writable approval state.
+
+## 2026-07-27 - Sixteen-frame Walk Cycles are immutable atomic artifacts
+
+Each Walk Cycle revision contains one versioned `walk-cycle.json` plus four
+original PNG frames for each canonical down/right/up/left direction. The fixed
+clip is `walk`, the duration is 300 ms, and files use direction-major frame 0–3
+order. TypeScript/MCP and Rust/Tauri adapters share the document, hash
+verification, atomic-directory publish behavior, and compatibility fixture.
+
+Structural validation is recomputed across all sixteen PNGs and aggregated.
+Motion and readability remain Not assessed with user authority; no agent
+operation can accept the animation, approve final art, or publish it.
+
+Reason: a complete atomic 4 × 4 artifact prevents mixed animation revisions,
+keeps the accepted poses auditable, and gives the desktop and every agent
+client the same motion-review evidence.

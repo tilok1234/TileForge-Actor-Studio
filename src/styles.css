@@ -502,6 +502,15 @@ small {
   line-height: 1.45;
 }
 
+.turnaround-selection.walk-source {
+  border-color: #46684f;
+  background: rgba(99, 160, 113, 0.08);
+}
+
+.turnaround-selection.walk-source strong {
+  color: #cfe6d4;
+}
+
 .preview-panel {
   display: grid;
   grid-template-rows: auto minmax(0, 1fr) 174px;
@@ -542,7 +551,8 @@ small {
   background-size: 24px 24px;
 }
 
-.preview-stage.turnaround {
+.preview-stage.turnaround,
+.preview-stage.animate {
   place-items: start center;
   align-content: start;
 }
@@ -639,6 +649,67 @@ small {
   display: block;
   width: var(--turnaround-size);
   height: var(--turnaround-size);
+  image-rendering: pixelated;
+}
+
+.walk-cycle-grid {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 12px;
+  max-width: 100%;
+}
+
+.walk-cycle-grid figure {
+  display: grid;
+  gap: 6px;
+  justify-items: center;
+  margin: 0;
+}
+
+.walk-cycle-grid figcaption {
+  display: flex;
+  justify-content: space-between;
+  width: 100%;
+  color: #a8b4aa;
+  font: 9px/1 ui-monospace, SFMono-Regular, Consolas, monospace;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+}
+
+.walk-cycle-grid figcaption small {
+  color: #69776d;
+  font: inherit;
+  letter-spacing: 0;
+}
+
+.walk-cycle-canvas {
+  display: grid;
+  place-items: center;
+  width: calc(var(--walk-cycle-size) + 18px);
+  height: calc(var(--walk-cycle-size) + 18px);
+  max-width: 100%;
+  overflow: auto;
+  border: 1px solid #46684f;
+  border-radius: 7px;
+  background-color: #d8ddd8;
+  background-image:
+    linear-gradient(45deg, #bec5be 25%, transparent 25%),
+    linear-gradient(-45deg, #bec5be 25%, transparent 25%),
+    linear-gradient(45deg, transparent 75%, #bec5be 75%),
+    linear-gradient(-45deg, transparent 75%, #bec5be 75%);
+  background-position:
+    0 0,
+    0 8px,
+    8px -8px,
+    -8px 0;
+  background-size: 16px 16px;
+  box-shadow: 0 0 0 1px rgba(116, 185, 138, 0.06);
+}
+
+.walk-cycle-canvas img {
+  display: block;
+  width: var(--walk-cycle-size);
+  height: var(--walk-cycle-size);
   image-rendering: pixelated;
 }
 

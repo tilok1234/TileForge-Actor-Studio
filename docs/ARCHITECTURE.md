@@ -19,8 +19,8 @@ frame, art, animation, and approval rules. The TypeScript representation in
 
 ### Shared studio core
 
-`src/lib/studio/` contains client-neutral types, session, Concept, and
-Turnaround documents, intake rules, versioned validation-report schemas,
+`src/lib/studio/` contains client-neutral types, session, Concept, Turnaround,
+and Walk Cycle documents, intake rules, versioned validation-report schemas,
 deterministic PNG validators, and prompt compilation. Business rules belong
 here.
 
@@ -28,14 +28,14 @@ here.
 
 `mcp/` exposes the shared core over standard MCP transports. It owns no art
 style rules and grants no final-approval capability. Its adapter reads and
-publishes the same session, Concept, and Turnaround documents as the desktop
-backend and exposes the shared read-only validators.
+publishes the same session, Concept, Turnaround, and Walk Cycle documents as
+the desktop backend and exposes the shared read-only validators.
 
 ### Desktop shell
 
 `src/` renders the focused workflow. Tauri 2 in `src-tauri/` supplies the native
-Windows shell and the desktop adapter for durable session, Concept, and
-Turnaround commands. Rust independently enforces the same validator semantics
+Windows shell and the desktop adapter for durable session, Concept, Turnaround,
+and Walk Cycle commands. Rust independently enforces the same validator semantics
 at the native trust boundary. The UI shows structural evidence while remaining
 the eventual human approval surface.
 
@@ -54,8 +54,19 @@ turnarounds/<turnaround-id>/
   left.png
 ```
 
+Walk Cycle directories extend the same protocol:
+
+```text
+walk-cycles/<walk-cycle-id>/
+  walk-cycle.json
+  down-0.png ... down-3.png
+  right-0.png ... right-3.png
+  up-0.png ... up-3.png
+  left-0.png ... left-3.png
+```
+
 Concept directories contain `candidate.json` and the original `source.png`.
-A complete session, Concept, or Turnaround is first written to a hidden
+A complete session, Concept, Turnaround, or Walk Cycle is first written to a hidden
 same-parent temporary directory, then published with one rename so readers
 never observe a partial record. `TFAS_WORKSPACE` redirects the root for either
 adapter and for tests.
@@ -63,8 +74,9 @@ adapter and for tests.
 The JSON documents, identity rules, brief and intake limits, hashes, and
 directory layout form one local protocol; the Rust and TypeScript adapters are
 not separate stores. `tests/fixtures/session-v1.json`,
-`tests/fixtures/concept-candidate-v1.json`, and
-`tests/fixtures/turnaround-candidate-v1.json` are read by both test suites to
+`tests/fixtures/concept-candidate-v1.json`,
+`tests/fixtures/turnaround-candidate-v1.json`, and
+`tests/fixtures/walk-cycle-candidate-v1.json` are read by both test suites to
 detect storage drift. `tests/fixtures/validation-report-v1.json` guards the
 recomputed cross-language report shape and semantics. `.studio/` is not
 source-controlled.
@@ -94,6 +106,20 @@ validation recomputes the M03 structural report for each view and aggregates
 the totals. Its separate identity-consistency judgment is fixed to Not assessed
 with user authority. Structural success therefore cannot accept a Turnaround
 or authorize Walk Cycle work.
+
+### Walk Cycle acceptance and validation
+
+A Walk Cycle document is the durable receipt for the user's accepted
+Turnaround. It records the Turnaround id, all four exact direction hashes,
+`acceptedBy: user`, and the acceptance time. Frame 0 for every direction must
+match that accepted source hash and byte length, preventing animation work from
+silently changing an approved pose.
+
+All sixteen original frame PNGs are rehash-verified on every read. Walk Cycle
+validation recomputes the M03 structural report for every frame and aggregates
+the totals. Its motion/readability judgment is fixed to Not assessed with user
+authority. Structural success therefore cannot accept animation, approve final
+art, or authorize World Test work.
 
 ## Reference boundary
 

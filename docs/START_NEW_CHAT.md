@@ -36,13 +36,14 @@ Hard boundaries:
 - Never overwrite generated candidates; create immutable revisions.
 - Keep Codex, Claude, and Antigravity on the same client-neutral MCP contract.
 
-After orientation, verify the implemented M04 Turnaround behavior against the
-live code and checks. The user selected real Concept r4, rejected the r1
-right-facing outline, and immutable Turnaround r2 is awaiting the user-owned
-identity-consistency gate. R1 is preserved; r2 changes only the right view. Do
-not begin Walk Cycle work until that gate is explicit. Keep every repair
+After orientation, verify the implemented M04 Turnaround and Walk Cycle
+behavior against the live code and checks. The user selected real Concept r4,
+rejected the Turnaround r1 right-facing outline, then explicitly accepted
+immutable Turnaround r2 for animation. Local Walk Cycle r1 contains four frames
+per direction at 300 ms and is awaiting the user-owned motion/readability gate.
+Do not begin World Test work until that gate is explicit. Keep every repair
 immutable, keep Pass/Fail/Not assessed separate from visual acceptance, and do
-not grant approval or publishing authority.
+not grant final-art approval or publishing authority.
 
 Do not use any AI service that adds cost beyond my existing subscriptions. No
 pay-as-you-go APIs, purchased credits, usage billing, or paid add-ons.

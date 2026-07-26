@@ -20,6 +20,12 @@ import {
   listTurnaroundCandidates,
   validateTurnaroundCandidate,
 } from "./turnarounds.js";
+import {
+  createWalkCycleCandidate,
+  getWalkCycleCandidatePayload,
+  listWalkCycleCandidates,
+  validateWalkCycleCandidate,
+} from "./walk-cycles.js";
 
 function textResult(value: unknown) {
   return {
@@ -45,6 +51,10 @@ const canonicalPngBase64Schema = z
   .min(1)
   .max(Math.ceil((CONCEPT_PNG_MAX_BYTES * 4) / 3) + 4)
   .regex(/^[A-Za-z0-9+/]+={0,2}$/);
+
+const canonicalWalkCycleFramesSchema = z
+  .array(canonicalPngBase64Schema)
+  .length(TILEFORGE_ACTOR_CONTRACT.animation.framesPerDirection);
 
 interface ActorStudioServerOptions {
   workspaceRoot?: string;
@@ -403,6 +413,133 @@ export function createActorStudioServer(
         await validateTurnaroundCandidate(
           sessionId,
           turnaroundId,
+          storageRoot,
+        ),
+      ),
+  );
+
+  server.registerTool(
+    "create_walk_cycle_candidate",
+    {
+      title: "Create Walk Cycle candidate",
+      description:
+        "After the user explicitly accepts a Turnaround, atomically preserve four original walk frames per down/right/up/left direction at the contract timing. Frame 0 must exactly preserve each accepted Turnaround view. This records the user gate but cannot approve motion, final art, or publishing.",
+      inputSchema: {
+        sessionId: z.string().min(3).max(96),
+        sourceTurnaroundId: z.string().min(3).max(96),
+        pngBase64: z
+          .object({
+            down: canonicalWalkCycleFramesSchema,
+            right: canonicalWalkCycleFramesSchema,
+            up: canonicalWalkCycleFramesSchema,
+            left: canonicalWalkCycleFramesSchema,
+          })
+          .strict(),
+        provenance: candidateProvenanceSchema,
+      },
+      annotations: {
+        readOnlyHint: false,
+        destructiveHint: false,
+        idempotentHint: false,
+        openWorldHint: false,
+      },
+    },
+    async ({ sessionId, sourceTurnaroundId, pngBase64, provenance }) =>
+      textResult(
+        await createWalkCycleCandidate(
+          sessionId,
+          sourceTurnaroundId,
+          {
+            down: pngBase64.down.map(decodeCanonicalBase64),
+            right: pngBase64.right.map(decodeCanonicalBase64),
+            up: pngBase64.up.map(decodeCanonicalBase64),
+            left: pngBase64.left.map(decodeCanonicalBase64),
+          },
+          provenance,
+          { root: storageRoot },
+        ),
+      ),
+  );
+
+  server.registerTool(
+    "list_walk_cycle_candidates",
+    {
+      title: "List Walk Cycle candidates",
+      description:
+        "List immutable unreviewed Walk Cycle revisions for one studio session.",
+      inputSchema: {
+        sessionId: z.string().min(3).max(96),
+      },
+      annotations: {
+        readOnlyHint: true,
+        destructiveHint: false,
+        idempotentHint: true,
+        openWorldHint: false,
+      },
+    },
+    async ({ sessionId }) =>
+      textResult({
+        candidates: await listWalkCycleCandidates(sessionId, storageRoot),
+      }),
+  );
+
+  server.registerTool(
+    "get_walk_cycle_candidate",
+    {
+      title: "Get Walk Cycle candidate",
+      description:
+        "Read one immutable Walk Cycle document and all sixteen original frame PNGs. Motion and readability remain user judgments.",
+      inputSchema: {
+        sessionId: z.string().min(3).max(96),
+        walkCycleId: z.string().min(3).max(96),
+      },
+      annotations: {
+        readOnlyHint: true,
+        destructiveHint: false,
+        idempotentHint: true,
+        openWorldHint: false,
+      },
+    },
+    async ({ sessionId, walkCycleId }) => {
+      const payload = await getWalkCycleCandidatePayload(
+        sessionId,
+        walkCycleId,
+        storageRoot,
+      );
+      return textResult({
+        candidate: payload.candidate,
+        pngBase64: Object.fromEntries(
+          Object.entries(payload.pngBytes).map(([direction, frames]) => [
+            direction,
+            frames.map((bytes) => Buffer.from(bytes).toString("base64")),
+          ]),
+        ),
+      });
+    },
+  );
+
+  server.registerTool(
+    "validate_walk_cycle_candidate",
+    {
+      title: "Validate Walk Cycle candidate",
+      description:
+        "Recompute structural evidence for all sixteen immutable walk frames. This cannot decide whether motion or readability is acceptable; only the user can accept the Walk Cycle.",
+      inputSchema: {
+        sessionId: z.string().min(3).max(96),
+        walkCycleId: z.string().min(3).max(96),
+      },
+      annotations: {
+        readOnlyHint: true,
+        destructiveHint: false,
+        idempotentHint: true,
+        openWorldHint: false,
+      },
+    },
+    async ({ sessionId, walkCycleId }) =>
+      textResult(
+        await validateWalkCycleCandidate(
+          sessionId,
+          walkCycleId,
           storageRoot,
         ),
       ),

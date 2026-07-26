@@ -111,8 +111,9 @@ Implemented:
 
 ## M04 - Turnaround and Walk Cycle
 
-Status: in progress. Turnaround is implemented and immutable repair r2 is
-awaiting the user's identity-consistency decision. Walk Cycle has not started.
+Status: in progress. The user accepted Turnaround r2. Walk Cycle persistence,
+validation, and desktop playback are implemented; local r1 is awaiting the
+user's motion/readability decision.
 
 Goal: move an accepted concept through consistent four-direction views and a
 four-frame walk cycle per direction.
@@ -144,11 +145,28 @@ Turnaround implemented:
   document, exact-down invariant, malformed views, immutable reads, collisions,
   and partial-write cleanup.
 
-Pending after the human Turnaround gate:
+Walk Cycle implemented:
 
-- explicit user acceptance of the latest r2 identity consistency;
-- four walk frames per direction at the contract's 300 ms default;
-- immutable Walk Cycle revisions and motion/readability review.
+- the first Walk Cycle document records the exact accepted Turnaround id and
+  four source hashes, `acceptedBy: user`, and acceptance time;
+- frame 0 for each direction must preserve the accepted Turnaround PNG bytes;
+- sixteen original PNGs publish atomically in canonical down/right/up/left and
+  frame 0–3 order with a fixed 300 ms contract duration;
+- desktop and MCP adapters create, list, read, rehash, and structurally
+  validate the same immutable Walk Cycle document and frame bytes;
+- desktop restart opens Animate, plays all four directions at 300 ms, shows the
+  durable r2 acceptance receipt, and presents aggregate plus per-direction
+  evidence;
+- structural validation is recomputed across all sixteen frames, while motion
+  and readability remain Not assessed with user authority;
+- shared TypeScript and Rust compatibility/failure-path tests cover exact
+  frame-zero preservation, malformed frame sets, immutable reads, collisions,
+  and partial-write cleanup.
+
+Pending after the human Walk Cycle gate:
+
+- explicit user acceptance of Walk Cycle r1 motion/readability;
+- M05 pinned-reference World Test work.
 
 ## M05 - World Test and Export
 
