@@ -111,7 +111,8 @@ Implemented:
 
 ## M04 - Turnaround and Walk Cycle
 
-Status: next; requires a real user-selected Concept candidate.
+Status: in progress. Turnaround is implemented and awaiting the user's
+identity-consistency decision. Walk Cycle has not started.
 
 Goal: move an accepted concept through consistent four-direction views and a
 four-frame walk cycle per direction.
@@ -121,6 +122,30 @@ four-frame walk cycle per direction.
 - 300 ms default frame duration
 - identity and scale consistency checks
 - immutable revisions at every repair
+
+Turnaround implemented:
+
+- one immutable Turnaround revision records the exact user-selected Concept id,
+  SHA-256, user authority, and selection time;
+- the down view must preserve the selected Concept PNG byte for byte;
+- down, right, up, and left PNGs use canonical order and filenames and publish
+  atomically under one never-overwritten revision directory;
+- desktop and MCP adapters create, list, read, rehash, and structurally
+  validate the same four-view document and original PNG bytes;
+- the desktop restores the latest Turnaround after restart, displays the
+  selection receipt and four-view comparison, and reports per-direction plus
+  aggregate structural evidence;
+- structural validation is recomputed, not stored, and identity consistency
+  remains Not assessed with user authority;
+- shared TypeScript and Rust compatibility/failure-path tests cover the
+  document, exact-down invariant, malformed views, immutable reads, collisions,
+  and partial-write cleanup.
+
+Pending after the human Turnaround gate:
+
+- explicit user acceptance of identity consistency;
+- four walk frames per direction at the contract's 300 ms default;
+- immutable Walk Cycle revisions and motion/readability review.
 
 ## M05 - World Test and Export
 

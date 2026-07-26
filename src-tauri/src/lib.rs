@@ -16,6 +16,7 @@ const CANDIDATE_ID_MAX_LENGTH: usize = 96;
 const CONCEPT_PNG_MAX_BYTES: usize = 1_048_576;
 const VALIDATION_REPORT_VERSION: u32 = 1;
 const STRUCTURAL_VALIDATOR_ID: &str = "tileforge-actor-32-structural-v1";
+const TURNAROUND_VALIDATOR_ID: &str = "tileforge-actor-32-turnaround-structural-v1";
 const FRAME_WIDTH: u32 = 32;
 const FRAME_HEIGHT: u32 = 32;
 const ACTOR_HEIGHT_MIN: u32 = 22;
@@ -116,6 +117,97 @@ struct ConceptCandidatePayload {
 }
 
 #[derive(Debug, Clone, Copy, PartialEq, Eq, Serialize, Deserialize)]
+#[serde(rename_all = "lowercase")]
+enum TurnaroundDirection {
+    Down,
+    Right,
+    Up,
+    Left,
+}
+
+impl TurnaroundDirection {
+    fn as_str(self) -> &'static str {
+        match self {
+            Self::Down => "down",
+            Self::Right => "right",
+            Self::Up => "up",
+            Self::Left => "left",
+        }
+    }
+}
+
+const TURNAROUND_DIRECTIONS: [TurnaroundDirection; 4] = [
+    TurnaroundDirection::Down,
+    TurnaroundDirection::Right,
+    TurnaroundDirection::Up,
+    TurnaroundDirection::Left,
+];
+
+#[derive(Debug, Clone, Serialize, Deserialize)]
+#[serde(rename_all = "camelCase", deny_unknown_fields)]
+struct TurnaroundSourceSelection {
+    candidate_id: String,
+    candidate_sha256: String,
+    selected_by: String,
+    selected_at: String,
+}
+
+#[derive(Debug, Clone, Serialize, Deserialize)]
+#[serde(rename_all = "camelCase", deny_unknown_fields)]
+struct TurnaroundDirectionSource {
+    direction: TurnaroundDirection,
+    source_file: String,
+    sha256: String,
+    byte_length: usize,
+    width: u32,
+    height: u32,
+}
+
+#[derive(Debug, Clone, Serialize, Deserialize)]
+#[serde(rename_all = "camelCase", deny_unknown_fields)]
+struct TurnaroundCandidate {
+    schema_version: u32,
+    id: String,
+    revision: u32,
+    session_id: String,
+    stage: String,
+    contract_id: String,
+    source_selection: TurnaroundSourceSelection,
+    directions: Vec<TurnaroundDirectionSource>,
+    created_at: String,
+    provenance: CandidateProvenance,
+    review_status: String,
+    identity_judgment: VisualJudgment,
+}
+
+#[derive(Debug, Clone, Serialize, Deserialize)]
+#[serde(rename_all = "camelCase", deny_unknown_fields)]
+struct TurnaroundPngBytes {
+    down: Vec<u8>,
+    right: Vec<u8>,
+    up: Vec<u8>,
+    left: Vec<u8>,
+}
+
+impl TurnaroundPngBytes {
+    fn get(&self, direction: TurnaroundDirection) -> &[u8] {
+        match direction {
+            TurnaroundDirection::Down => &self.down,
+            TurnaroundDirection::Right => &self.right,
+            TurnaroundDirection::Up => &self.up,
+            TurnaroundDirection::Left => &self.left,
+        }
+    }
+}
+
+#[derive(Debug, Serialize)]
+#[serde(rename_all = "camelCase")]
+struct TurnaroundCandidatePayload {
+    candidate: TurnaroundCandidate,
+    png_bytes: TurnaroundPngBytes,
+}
+
+#[derive(Debug, Clone, Copy, PartialEq, Eq, Serialize, Deserialize)]
 #[serde(rename_all = "snake_case")]
 enum ValidationStatus {
     Pass,
@@ -178,6 +270,25 @@ struct ValidationReport {
     results: Vec<ValidationRuleResult>,
     summary: ValidationSummary,
     visual_judgment: VisualJudgment,
+}
+
+#[derive(Debug, Clone, PartialEq, Eq, Serialize, Deserialize)]
+#[serde(rename_all = "camelCase", deny_unknown_fields)]
+struct TurnaroundDirectionReport {
+    direction: TurnaroundDirection,
+    report: ValidationReport,
+}
+
+#[derive(Debug, Clone, PartialEq, Eq, Serialize, Deserialize)]
+#[serde(rename_all = "camelCase", deny_unknown_fields)]
+struct TurnaroundValidationReport {
+    schema_version: u32,
+    validator_id: String,
+    turnaround_id: String,
+    contract_id: String,
+    directions: Vec<TurnaroundDirectionReport>,
+    summary: ValidationSummary,
+    identity_judgment: VisualJudgment,
 }
 
 #[derive(Debug)]
@@ -685,6 +796,364 @@ fn read_candidate_payload(
     })
 }
 
+fn valid_sha256(value: &str) -> bool {
+    value.len() == 64
+        && value
+            .chars()
+            .all(|character| character.is_ascii_hexdigit() && !character.is_ascii_uppercase())
+}
+
+fn validate_turnaround(candidate: TurnaroundCandidate) -> Result<TurnaroundCandidate, String> {
+    validate_candidate_id(&candidate.id)?;
+    validate_session_id(&candidate.session_id)?;
+    validate_candidate_id(&candidate.source_selection.candidate_id)?;
+    if candidate.schema_version != 1 {
+        return Err("Unsupported Turnaround document version.".to_owned());
+    }
+    if candidate.revision == 0 {
+        return Err("Turnaround revision must be at least 1.".to_owned());
+    }
+    if candidate.stage != "turnaround" || candidate.contract_id != CONTRACT_ID {
+        return Err("Turnaround stage or contract id is incompatible.".to_owned());
+    }
+    if candidate.source_selection.selected_by != "user"
+        || candidate.source_selection.selected_at.is_empty()
+        || !valid_sha256(&candidate.source_selection.candidate_sha256)
+    {
+        return Err("Turnaround source selection is invalid.".to_owned());
+    }
+    if candidate.directions.len() != TURNAROUND_DIRECTIONS.len() {
+        return Err("Turnaround must contain four direction sources.".to_owned());
+    }
+    for (source, expected_direction) in candidate.directions.iter().zip(TURNAROUND_DIRECTIONS) {
+        if source.direction != expected_direction
+            || source.source_file != format!("{}.png", expected_direction.as_str())
+        {
+            return Err("Turnaround directions must use canonical order and filenames.".to_owned());
+        }
+        if !valid_sha256(&source.sha256)
+            || source.byte_length == 0
+            || source.byte_length > CONCEPT_PNG_MAX_BYTES
+            || source.width != FRAME_WIDTH
+            || source.height != FRAME_HEIGHT
+        {
+            return Err("Turnaround direction evidence is invalid.".to_owned());
+        }
+    }
+    if candidate.directions[0].sha256 != candidate.source_selection.candidate_sha256 {
+        return Err("Down view must preserve the selected Concept bytes.".to_owned());
+    }
+    if candidate.created_at.is_empty() {
+        return Err("Turnaround creation time is required.".to_owned());
+    }
+    validate_provenance(candidate.provenance.clone())?;
+    if candidate.review_status != "unreviewed" {
+        return Err("Turnaround creation cannot imply visual approval.".to_owned());
+    }
+    if candidate.identity_judgment.status != VisualJudgmentStatus::NotAssessed
+        || candidate.identity_judgment.authority != "user"
+        || candidate.identity_judgment.message.is_empty()
+    {
+        return Err("Turnaround crossed the user-owned identity gate.".to_owned());
+    }
+    Ok(candidate)
+}
+
+fn turnaround_root(root: &Path, session_id: &str) -> Result<PathBuf, String> {
+    validate_session_id(session_id)?;
+    Ok(root.join("sessions").join(session_id).join("turnarounds"))
+}
+
+fn turnaround_directory(
+    root: &Path,
+    session_id: &str,
+    turnaround_id: &str,
+) -> Result<PathBuf, String> {
+    validate_candidate_id(turnaround_id)?;
+    Ok(turnaround_root(root, session_id)?.join(turnaround_id))
+}
+
+fn read_turnaround(
+    root: &Path,
+    session_id: &str,
+    turnaround_id: &str,
+) -> Result<TurnaroundCandidate, String> {
+    let session = read_session(root, session_id)?;
+    let raw = fs::read_to_string(
+        turnaround_directory(root, &session.id, turnaround_id)?.join("turnaround.json"),
+    )
+    .map_err(|error| format!("Could not read Turnaround: {error}"))?;
+    let candidate: TurnaroundCandidate = serde_json::from_str(&raw)
+        .map_err(|error| format!("Invalid Turnaround document: {error}"))?;
+    let candidate = validate_turnaround(candidate)?;
+    if candidate.session_id != session.id || candidate.id != turnaround_id {
+        return Err("Turnaround identity does not match its storage path.".to_owned());
+    }
+    Ok(candidate)
+}
+
+fn list_turnarounds_at(root: &Path, session_id: &str) -> Result<Vec<TurnaroundCandidate>, String> {
+    let session = read_session(root, session_id)?;
+    let candidates_root = turnaround_root(root, &session.id)?;
+    fs::create_dir_all(&candidates_root)
+        .map_err(|error| format!("Could not create Turnaround storage: {error}"))?;
+
+    let mut candidates = Vec::new();
+    for entry in fs::read_dir(&candidates_root)
+        .map_err(|error| format!("Could not list Turnarounds: {error}"))?
+    {
+        let Ok(entry) = entry else {
+            continue;
+        };
+        let file_name = entry.file_name();
+        let Some(turnaround_id) = file_name.to_str() else {
+            continue;
+        };
+        if turnaround_id.starts_with('.') || !entry.path().is_dir() {
+            continue;
+        }
+        if let Ok(candidate) = read_turnaround(root, &session.id, turnaround_id) {
+            candidates.push(candidate);
+        }
+    }
+    candidates.sort_by(|left, right| right.revision.cmp(&left.revision));
+    Ok(candidates)
+}
+
+#[allow(clippy::too_many_arguments)]
+fn create_turnaround_candidate_at(
+    root: &Path,
+    session_id: &str,
+    source_concept_id: &str,
+    png_bytes: &TurnaroundPngBytes,
+    provenance: CandidateProvenance,
+    timestamp: &str,
+    id_suffix: &str,
+    temporary_suffix: &str,
+    forced_revision: Option<u32>,
+) -> Result<TurnaroundCandidate, String> {
+    let session = read_session(root, session_id)?;
+    let source_concept = read_candidate_payload(root, &session.id, source_concept_id)?;
+    let provenance = validate_provenance(provenance)?;
+    if png_bytes.down != source_concept.png_bytes {
+        return Err(
+            "Down view must preserve the exact user-selected Concept PNG bytes.".to_owned(),
+        );
+    }
+
+    let mut directions = Vec::new();
+    for direction in TURNAROUND_DIRECTIONS {
+        let bytes = png_bytes.get(direction);
+        let (width, height, sha256) = validate_concept_png(bytes)?;
+        directions.push(TurnaroundDirectionSource {
+            direction,
+            source_file: format!("{}.png", direction.as_str()),
+            sha256,
+            byte_length: bytes.len(),
+            width,
+            height,
+        });
+    }
+
+    let candidates = list_turnarounds_at(root, &session.id)?;
+    let revision = forced_revision.unwrap_or_else(|| {
+        candidates
+            .iter()
+            .map(|candidate| candidate.revision)
+            .max()
+            .unwrap_or(0)
+            + 1
+    });
+    let timestamp_digits: String = timestamp
+        .chars()
+        .filter(char::is_ascii_digit)
+        .take(14)
+        .collect();
+    let candidate = validate_turnaround(TurnaroundCandidate {
+        schema_version: 1,
+        id: format!(
+            "turnaround-r{:04}-{}-{}",
+            revision, timestamp_digits, id_suffix
+        ),
+        revision,
+        session_id: session.id.clone(),
+        stage: "turnaround".to_owned(),
+        contract_id: CONTRACT_ID.to_owned(),
+        source_selection: TurnaroundSourceSelection {
+            candidate_id: source_concept.candidate.id,
+            candidate_sha256: source_concept.candidate.sha256,
+            selected_by: "user".to_owned(),
+            selected_at: timestamp.to_owned(),
+        },
+        directions,
+        created_at: timestamp.to_owned(),
+        provenance,
+        review_status: "unreviewed".to_owned(),
+        identity_judgment: VisualJudgment {
+            status: VisualJudgmentStatus::NotAssessed,
+            authority: "user".to_owned(),
+            message: "Only the user can accept identity consistency across turnaround views."
+                .to_owned(),
+        },
+    })?;
+
+    let candidates_root = turnaround_root(root, &session.id)?;
+    fs::create_dir_all(&candidates_root)
+        .map_err(|error| format!("Could not create Turnaround storage: {error}"))?;
+    let final_directory = turnaround_directory(root, &session.id, &candidate.id)?;
+    let temporary_directory =
+        candidates_root.join(format!(".{}.{}.tmp", candidate.id, temporary_suffix));
+    fs::create_dir(&temporary_directory)
+        .map_err(|error| format!("Could not stage Turnaround: {error}"))?;
+
+    let publish_result = (|| -> Result<(), String> {
+        for direction in TURNAROUND_DIRECTIONS {
+            fs::write(
+                temporary_directory.join(format!("{}.png", direction.as_str())),
+                png_bytes.get(direction),
+            )
+            .map_err(|error| {
+                format!(
+                    "Could not write {} Turnaround PNG: {error}",
+                    direction.as_str()
+                )
+            })?;
+        }
+        let document = format!(
+            "{}\n",
+            serde_json::to_string_pretty(&candidate)
+                .map_err(|error| format!("Could not serialize Turnaround: {error}"))?
+        );
+        fs::write(temporary_directory.join("turnaround.json"), document)
+            .map_err(|error| format!("Could not write Turnaround document: {error}"))?;
+        fs::rename(&temporary_directory, &final_directory)
+            .map_err(|error| format!("Could not publish Turnaround: {error}"))
+    })();
+
+    if publish_result.is_err() {
+        let _ = fs::remove_dir_all(&temporary_directory);
+    }
+    publish_result?;
+    Ok(candidate)
+}
+
+fn read_turnaround_payload(
+    root: &Path,
+    session_id: &str,
+    turnaround_id: &str,
+) -> Result<TurnaroundCandidatePayload, String> {
+    let candidate = read_turnaround(root, session_id, turnaround_id)?;
+    let directory = turnaround_directory(root, session_id, turnaround_id)?;
+    let png_bytes = TurnaroundPngBytes {
+        down: fs::read(directory.join("down.png"))
+            .map_err(|error| format!("Could not read down Turnaround PNG: {error}"))?,
+        right: fs::read(directory.join("right.png"))
+            .map_err(|error| format!("Could not read right Turnaround PNG: {error}"))?,
+        up: fs::read(directory.join("up.png"))
+            .map_err(|error| format!("Could not read up Turnaround PNG: {error}"))?,
+        left: fs::read(directory.join("left.png"))
+            .map_err(|error| format!("Could not read left Turnaround PNG: {error}"))?,
+    };
+    for source in &candidate.directions {
+        let bytes = png_bytes.get(source.direction);
+        if bytes.len() != source.byte_length
+            || format!("{:x}", Sha256::digest(bytes)) != source.sha256
+        {
+            return Err(format!(
+                "{} source bytes no longer match immutable provenance.",
+                source.direction.as_str()
+            ));
+        }
+    }
+    Ok(TurnaroundCandidatePayload {
+        candidate,
+        png_bytes,
+    })
+}
+
+fn validate_turnaround_report(
+    report: TurnaroundValidationReport,
+) -> Result<TurnaroundValidationReport, String> {
+    validate_candidate_id(&report.turnaround_id)?;
+    if report.schema_version != 1
+        || report.validator_id != TURNAROUND_VALIDATOR_ID
+        || report.contract_id != CONTRACT_ID
+    {
+        return Err("Unsupported Turnaround validation report.".to_owned());
+    }
+    if report.directions.len() != TURNAROUND_DIRECTIONS.len()
+        || report
+            .directions
+            .iter()
+            .zip(TURNAROUND_DIRECTIONS)
+            .any(|(direction, expected)| direction.direction != expected)
+    {
+        return Err("Turnaround validation directions must use canonical order.".to_owned());
+    }
+    let mut counted = ValidationSummary {
+        pass: 0,
+        fail: 0,
+        not_assessed: 0,
+    };
+    for direction in &report.directions {
+        validate_structural_report(direction.report.clone())?;
+        if direction.report.candidate_id != report.turnaround_id
+            || direction.report.contract_id != report.contract_id
+        {
+            return Err("Direction validation identity does not match Turnaround.".to_owned());
+        }
+        counted.pass += direction.report.summary.pass;
+        counted.fail += direction.report.summary.fail;
+        counted.not_assessed += direction.report.summary.not_assessed;
+    }
+    if counted != report.summary {
+        return Err("Turnaround validation summary does not match direction reports.".to_owned());
+    }
+    if report.identity_judgment.status != VisualJudgmentStatus::NotAssessed
+        || report.identity_judgment.authority != "user"
+        || report.identity_judgment.message.is_empty()
+    {
+        return Err("Turnaround validation crossed the user-owned identity gate.".to_owned());
+    }
+    Ok(report)
+}
+
+fn validate_turnaround_pngs(
+    payload: &TurnaroundCandidatePayload,
+) -> Result<TurnaroundValidationReport, String> {
+    let mut directions = Vec::new();
+    let mut summary = ValidationSummary {
+        pass: 0,
+        fail: 0,
+        not_assessed: 0,
+    };
+    for source in &payload.candidate.directions {
+        let report = validate_png_structural_evidence(
+            &payload.candidate.id,
+            &source.sha256,
+            source.byte_length,
+            &payload.candidate.contract_id,
+            payload.png_bytes.get(source.direction),
+        )?;
+        summary.pass += report.summary.pass;
+        summary.fail += report.summary.fail;
+        summary.not_assessed += report.summary.not_assessed;
+        directions.push(TurnaroundDirectionReport {
+            direction: source.direction,
+            report,
+        });
+    }
+    validate_turnaround_report(TurnaroundValidationReport {
+        schema_version: 1,
+        validator_id: TURNAROUND_VALIDATOR_ID.to_owned(),
+        turnaround_id: payload.candidate.id.clone(),
+        contract_id: payload.candidate.contract_id.clone(),
+        directions,
+        summary,
+        identity_judgment: payload.candidate.identity_judgment.clone(),
+    })
+}
+
 fn validation_rule(
     id: ValidationRuleId,
     status: ValidationStatus,
@@ -779,10 +1248,25 @@ fn validate_candidate_png(
     png_bytes: &[u8],
 ) -> Result<ValidationReport, String> {
     let candidate = validate_candidate(candidate.clone())?;
-    if png_bytes.len() != candidate.byte_length
-        || format!("{:x}", Sha256::digest(png_bytes)) != candidate.sha256
-    {
-        return Err("Candidate source bytes no longer match immutable provenance.".to_owned());
+    validate_png_structural_evidence(
+        &candidate.id,
+        &candidate.sha256,
+        candidate.byte_length,
+        &candidate.contract_id,
+        png_bytes,
+    )
+}
+
+fn validate_png_structural_evidence(
+    artifact_id: &str,
+    sha256: &str,
+    byte_length: usize,
+    contract_id: &str,
+    png_bytes: &[u8],
+) -> Result<ValidationReport, String> {
+    validate_candidate_id(artifact_id)?;
+    if png_bytes.len() != byte_length || format!("{:x}", Sha256::digest(png_bytes)) != sha256 {
+        return Err("Artifact source bytes no longer match immutable provenance.".to_owned());
     }
     let decoded = decode_png_rgba(png_bytes)
         .map_err(|_| "Candidate source is not a valid PNG.".to_owned())?;
@@ -984,9 +1468,9 @@ fn validate_candidate_png(
     validate_structural_report(ValidationReport {
         schema_version: VALIDATION_REPORT_VERSION,
         validator_id: STRUCTURAL_VALIDATOR_ID.to_owned(),
-        candidate_id: candidate.id,
-        candidate_sha256: candidate.sha256,
-        contract_id: candidate.contract_id,
+        candidate_id: artifact_id.to_owned(),
+        candidate_sha256: sha256.to_owned(),
+        contract_id: contract_id.to_owned(),
         results,
         summary,
         visual_judgment: VisualJudgment {
@@ -1102,6 +1586,51 @@ fn validate_concept_candidate(
     validate_candidate_png(&payload.candidate, &payload.png_bytes)
 }
 
+#[tauri::command]
+fn create_turnaround_candidate(
+    session_id: String,
+    source_concept_id: String,
+    png_bytes: TurnaroundPngBytes,
+    provenance: CandidateProvenance,
+) -> Result<TurnaroundCandidate, String> {
+    let timestamp = Utc::now().to_rfc3339_opts(SecondsFormat::Millis, true);
+    let id_suffix = Uuid::new_v4().simple().to_string()[..8].to_owned();
+    let temporary_suffix = Uuid::new_v4().simple().to_string();
+    create_turnaround_candidate_at(
+        &workspace_root(),
+        &session_id,
+        &source_concept_id,
+        &png_bytes,
+        provenance,
+        &timestamp,
+        &id_suffix,
+        &temporary_suffix,
+        None,
+    )
+}
+
+#[tauri::command]
+fn list_turnaround_candidates(session_id: String) -> Result<Vec<TurnaroundCandidate>, String> {
+    list_turnarounds_at(&workspace_root(), &session_id)
+}
+
+#[tauri::command]
+fn get_turnaround_candidate(
+    session_id: String,
+    turnaround_id: String,
+) -> Result<TurnaroundCandidatePayload, String> {
+    read_turnaround_payload(&workspace_root(), &session_id, &turnaround_id)
+}
+
+#[tauri::command]
+fn validate_turnaround_candidate(
+    session_id: String,
+    turnaround_id: String,
+) -> Result<TurnaroundValidationReport, String> {
+    let payload = read_turnaround_payload(&workspace_root(), &session_id, &turnaround_id)?;
+    validate_turnaround_pngs(&payload)
+}
+
 #[cfg_attr(mobile, tauri::mobile_entry_point)]
 pub fn run() {
     tauri::Builder::default()
@@ -1113,7 +1642,11 @@ pub fn run() {
             import_concept_candidate,
             list_concept_candidates,
             get_concept_candidate,
-            validate_concept_candidate
+            validate_concept_candidate,
+            create_turnaround_candidate,
+            list_turnaround_candidates,
+            get_turnaround_candidate,
+            validate_turnaround_candidate
         ])
         .run(tauri::generate_context!())
         .expect("error while running TileForge Actor Studio");
@@ -1504,6 +2037,201 @@ mod tests {
             report.visual_judgment.status,
             VisualJudgmentStatus::NotAssessed
         );
+        fs::remove_dir_all(root).unwrap();
+    }
+
+    #[test]
+    fn desktop_adapter_reads_shared_turnaround_fixture() {
+        let fixture = include_str!("../../tests/fixtures/turnaround-candidate-v1.json");
+        let candidate: TurnaroundCandidate = serde_json::from_str(fixture).unwrap();
+        let candidate = validate_turnaround(candidate).unwrap();
+
+        assert_eq!(candidate.contract_id, CONTRACT_ID);
+        assert_eq!(candidate.stage, "turnaround");
+        assert_eq!(candidate.source_selection.selected_by, "user");
+        assert_eq!(
+            candidate.identity_judgment.status,
+            VisualJudgmentStatus::NotAssessed
+        );
+    }
+
+    #[test]
+    fn turnaround_preserves_selected_concept_and_four_direction_bytes() {
+        let root = test_root("turnaround");
+        let session = create_session_at(
+            &root,
+            brief(),
+            "2026-07-27T20:00:00.000Z",
+            "turnrond",
+            "session",
+        )
+        .unwrap();
+        let down = validation_png(false, 32, 32);
+        let concept = create_concept_candidate_at(
+            &root,
+            &session.id,
+            &down,
+            provenance(CandidateSource::Imported),
+            "2026-07-27T20:01:00.000Z",
+            "selected",
+            "candidate",
+            None,
+        )
+        .unwrap();
+        let views = TurnaroundPngBytes {
+            down: down.clone(),
+            right: down.clone(),
+            up: down.clone(),
+            left: down.clone(),
+        };
+        let generated = CandidateProvenance {
+            source: CandidateSource::Generated,
+            original_filename: None,
+            provider: Some("subscription-image-tool".to_owned()),
+            model: Some("built-in".to_owned()),
+        };
+        let turnaround = create_turnaround_candidate_at(
+            &root,
+            &session.id,
+            &concept.id,
+            &views,
+            generated.clone(),
+            "2026-07-27T20:30:00.000Z",
+            "native01",
+            "turnaround",
+            None,
+        )
+        .unwrap();
+        let payload = read_turnaround_payload(&root, &session.id, &turnaround.id).unwrap();
+        let report = validate_turnaround_pngs(&payload).unwrap();
+
+        assert_eq!(payload.png_bytes.down, down);
+        assert_eq!(payload.png_bytes.right, views.right);
+        assert_eq!(payload.png_bytes.up, views.up);
+        assert_eq!(payload.png_bytes.left, views.left);
+        assert_eq!(payload.candidate.source_selection.candidate_id, concept.id);
+        assert_eq!(payload.candidate.source_selection.selected_by, "user");
+        assert_eq!(payload.candidate.review_status, "unreviewed");
+        assert_eq!(
+            payload.candidate.identity_judgment.status,
+            VisualJudgmentStatus::NotAssessed
+        );
+        assert_eq!(
+            report.summary,
+            ValidationSummary {
+                pass: 24,
+                fail: 0,
+                not_assessed: 4,
+            }
+        );
+        assert_eq!(
+            fs::read_dir(
+                root.join("sessions")
+                    .join(&session.id)
+                    .join("turnarounds")
+                    .join(&turnaround.id)
+            )
+            .unwrap()
+            .count(),
+            5
+        );
+
+        let collision = create_turnaround_candidate_at(
+            &root,
+            &session.id,
+            &concept.id,
+            &views,
+            generated.clone(),
+            "2026-07-27T20:31:00.000Z",
+            "same0001",
+            "first",
+            Some(2),
+        )
+        .unwrap();
+        let second = create_turnaround_candidate_at(
+            &root,
+            &session.id,
+            &concept.id,
+            &views,
+            generated,
+            "2026-07-27T20:31:00.000Z",
+            "same0001",
+            "second",
+            Some(2),
+        );
+        assert!(second.is_err());
+        assert_eq!(
+            read_turnaround_payload(&root, &session.id, &collision.id)
+                .unwrap()
+                .png_bytes
+                .down,
+            down
+        );
+        assert!(
+            fs::read_dir(root.join("sessions").join(&session.id).join("turnarounds"))
+                .unwrap()
+                .all(|entry| !entry
+                    .unwrap()
+                    .file_name()
+                    .to_string_lossy()
+                    .starts_with('.'))
+        );
+        fs::remove_dir_all(root).unwrap();
+    }
+
+    #[test]
+    fn turnaround_rejects_down_replacement_without_partial_storage() {
+        let root = test_root("turnaround-invalid");
+        let session = create_session_at(
+            &root,
+            brief(),
+            "2026-07-27T20:00:00.000Z",
+            "invalidt",
+            "session",
+        )
+        .unwrap();
+        let down = validation_png(false, 32, 32);
+        let concept = create_concept_candidate_at(
+            &root,
+            &session.id,
+            &down,
+            provenance(CandidateSource::Imported),
+            "2026-07-27T20:01:00.000Z",
+            "selected",
+            "candidate",
+            None,
+        )
+        .unwrap();
+        let replacement = concept_png(32, 32, true);
+        let views = TurnaroundPngBytes {
+            down: replacement,
+            right: down.clone(),
+            up: down.clone(),
+            left: down,
+        };
+        let result = create_turnaround_candidate_at(
+            &root,
+            &session.id,
+            &concept.id,
+            &views,
+            CandidateProvenance {
+                source: CandidateSource::Generated,
+                original_filename: None,
+                provider: Some("subscription-image-tool".to_owned()),
+                model: None,
+            },
+            "2026-07-27T20:30:00.000Z",
+            "invalid1",
+            "turnaround",
+            None,
+        );
+
+        assert!(result.is_err());
+        assert!(!root
+            .join("sessions")
+            .join(&session.id)
+            .join("turnarounds")
+            .exists());
         fs::remove_dir_all(root).unwrap();
     }
 }

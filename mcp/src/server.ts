@@ -14,6 +14,12 @@ import {
   listConceptCandidates,
 } from "./candidates.js";
 import { createSession, getSession, listSessions, workspaceRoot } from "./storage.js";
+import {
+  createTurnaroundCandidate,
+  getTurnaroundCandidatePayload,
+  listTurnaroundCandidates,
+  validateTurnaroundCandidate,
+} from "./turnarounds.js";
 
 function textResult(value: unknown) {
   return {
@@ -33,6 +39,12 @@ function decodeCanonicalBase64(value: string): Uint8Array {
   }
   return decoded;
 }
+
+const canonicalPngBase64Schema = z
+  .string()
+  .min(1)
+  .max(Math.ceil((CONCEPT_PNG_MAX_BYTES * 4) / 3) + 4)
+  .regex(/^[A-Za-z0-9+/]+={0,2}$/);
 
 interface ActorStudioServerOptions {
   workspaceRoot?: string;
@@ -167,11 +179,7 @@ export function createActorStudioServer(
         "Atomically preserve one original 32 x 32 down-facing PNG with provenance. This creates an unreviewed candidate and cannot approve art.",
       inputSchema: {
         sessionId: z.string().min(3).max(96),
-        pngBase64: z
-          .string()
-          .min(1)
-          .max(Math.ceil((CONCEPT_PNG_MAX_BYTES * 4) / 3) + 4)
-          .regex(/^[A-Za-z0-9+/]+={0,2}$/),
+        pngBase64: canonicalPngBase64Schema,
         provenance: candidateProvenanceSchema,
       },
       annotations: {
@@ -271,6 +279,133 @@ export function createActorStudioServer(
         validateConceptCandidatePng(payload.candidate, payload.pngBytes),
       );
     },
+  );
+
+  server.registerTool(
+    "create_turnaround_candidate",
+    {
+      title: "Create turnaround candidate",
+      description:
+        "After the user explicitly selects a Concept, atomically preserve exact down/right/up/left PNG views as one immutable unreviewed Turnaround revision. This records user selection but cannot accept identity consistency or approve final art.",
+      inputSchema: {
+        sessionId: z.string().min(3).max(96),
+        sourceConceptId: z.string().min(3).max(96),
+        pngBase64: z
+          .object({
+            down: canonicalPngBase64Schema,
+            right: canonicalPngBase64Schema,
+            up: canonicalPngBase64Schema,
+            left: canonicalPngBase64Schema,
+          })
+          .strict(),
+        provenance: candidateProvenanceSchema,
+      },
+      annotations: {
+        readOnlyHint: false,
+        destructiveHint: false,
+        idempotentHint: false,
+        openWorldHint: false,
+      },
+    },
+    async ({ sessionId, sourceConceptId, pngBase64, provenance }) =>
+      textResult(
+        await createTurnaroundCandidate(
+          sessionId,
+          sourceConceptId,
+          {
+            down: decodeCanonicalBase64(pngBase64.down),
+            right: decodeCanonicalBase64(pngBase64.right),
+            up: decodeCanonicalBase64(pngBase64.up),
+            left: decodeCanonicalBase64(pngBase64.left),
+          },
+          provenance,
+          { root: storageRoot },
+        ),
+      ),
+  );
+
+  server.registerTool(
+    "list_turnaround_candidates",
+    {
+      title: "List turnaround candidates",
+      description:
+        "List immutable unreviewed Turnaround revisions for one studio session.",
+      inputSchema: {
+        sessionId: z.string().min(3).max(96),
+      },
+      annotations: {
+        readOnlyHint: true,
+        destructiveHint: false,
+        idempotentHint: true,
+        openWorldHint: false,
+      },
+    },
+    async ({ sessionId }) =>
+      textResult({
+        candidates: await listTurnaroundCandidates(sessionId, storageRoot),
+      }),
+  );
+
+  server.registerTool(
+    "get_turnaround_candidate",
+    {
+      title: "Get turnaround candidate",
+      description:
+        "Read one immutable Turnaround document and all four original direction PNGs. Identity consistency remains a user judgment.",
+      inputSchema: {
+        sessionId: z.string().min(3).max(96),
+        turnaroundId: z.string().min(3).max(96),
+      },
+      annotations: {
+        readOnlyHint: true,
+        destructiveHint: false,
+        idempotentHint: true,
+        openWorldHint: false,
+      },
+    },
+    async ({ sessionId, turnaroundId }) => {
+      const payload = await getTurnaroundCandidatePayload(
+        sessionId,
+        turnaroundId,
+        storageRoot,
+      );
+      return textResult({
+        candidate: payload.candidate,
+        pngBase64: Object.fromEntries(
+          Object.entries(payload.pngBytes).map(([direction, bytes]) => [
+            direction,
+            Buffer.from(bytes).toString("base64"),
+          ]),
+        ),
+      });
+    },
+  );
+
+  server.registerTool(
+    "validate_turnaround_candidate",
+    {
+      title: "Validate turnaround candidate",
+      description:
+        "Recompute structural evidence for all four immutable direction PNGs. This cannot decide whether identity is visually consistent; only the user can accept the Turnaround.",
+      inputSchema: {
+        sessionId: z.string().min(3).max(96),
+        turnaroundId: z.string().min(3).max(96),
+      },
+      annotations: {
+        readOnlyHint: true,
+        destructiveHint: false,
+        idempotentHint: true,
+        openWorldHint: false,
+      },
+    },
+    async ({ sessionId, turnaroundId }) =>
+      textResult(
+        await validateTurnaroundCandidate(
+          sessionId,
+          turnaroundId,
+          storageRoot,
+        ),
+      ),
   );
 
   server.registerPrompt(

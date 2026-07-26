@@ -156,3 +156,43 @@ AI provider and incur no additional service cost.
 
 Reason: the studio must remain predictable to operate and must never create an
 unexpected bill while moving work between supported AI clients.
+
+## 2026-07-27 - Turnaround document is the durable Concept-selection receipt
+
+M04 does not mutate a Concept or add an approval field to it. The first
+Turnaround revision records the selected Concept id and SHA-256,
+`selectedBy: user`, and selection time. Its down PNG must match the selected
+Concept byte for byte.
+
+Reason: selection for the next stage is not final-art approval, but it must
+still be durable and auditable. Binding the Turnaround to exact source bytes
+prevents a later agent from silently repairing or replacing the user's choice.
+
+## 2026-07-27 - Four-view Turnarounds are immutable atomic artifacts
+
+Each Turnaround revision contains one versioned `turnaround.json` plus original
+`down.png`, `right.png`, `up.png`, and `left.png` files in canonical contract
+order. The TypeScript/MCP and Rust/Tauri adapters share the document, identity
+rules, hash verification, atomic-directory publish behavior, and compatibility
+fixture.
+
+Structural validation is recomputed independently for each direction and
+aggregated. Identity consistency remains Not assessed with user authority; no
+agent operation can accept the Turnaround or authorize final art.
+
+Reason: four loose candidate files could be mixed across repairs or identities.
+One atomic immutable artifact keeps a coherent comparison set while preserving
+the human gate before animation.
+
+## 2026-07-27 - Subscription image generation remains outside the core
+
+The first real Concept and Turnaround sources were prepared with OpenAI's
+built-in ImageGen covered by the user's active subscription. Provider prompts
+and raw sources remain in ignored `.studio/` work state, while the shared core
+stores only provider-neutral provenance and immutable PNG evidence.
+
+No API key, pay-as-you-go endpoint, purchased credit, usage billing, or paid
+add-on is integrated.
+
+Reason: this permits real artwork without coupling the studio protocol to one
+client or creating incremental AI-service spend.

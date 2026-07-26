@@ -475,6 +475,33 @@ small {
   color: #df957e;
 }
 
+.turnaround-selection {
+  display: grid;
+  gap: 5px;
+  padding: 11px;
+  border: 1px solid #6c5933;
+  border-radius: 6px;
+  background: rgba(181, 139, 62, 0.08);
+}
+
+.turnaround-selection strong {
+  color: #eadab9;
+  font-size: 11px;
+}
+
+.turnaround-selection small {
+  overflow: hidden;
+  color: #9c8c6d;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.turnaround-selection span {
+  color: #8e876f;
+  font-size: 9px;
+  line-height: 1.45;
+}
+
 .preview-panel {
   display: grid;
   grid-template-rows: auto minmax(0, 1fr) 174px;
@@ -513,6 +540,11 @@ small {
     linear-gradient(90deg, rgba(255, 255, 255, 0.018) 1px, transparent 1px),
     #111813;
   background-size: 24px 24px;
+}
+
+.preview-stage.turnaround {
+  place-items: start center;
+  align-content: start;
 }
 
 .canvas-frame {
@@ -556,6 +588,57 @@ small {
   display: block;
   width: var(--candidate-size);
   height: var(--candidate-size);
+  image-rendering: pixelated;
+}
+
+.turnaround-grid {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 12px;
+  max-width: 100%;
+}
+
+.turnaround-grid figure {
+  display: grid;
+  gap: 6px;
+  justify-items: center;
+  margin: 0;
+}
+
+.turnaround-grid figcaption {
+  color: #a8b4aa;
+  font: 9px/1 ui-monospace, SFMono-Regular, Consolas, monospace;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+}
+
+.turnaround-canvas {
+  display: grid;
+  place-items: center;
+  width: calc(var(--turnaround-size) + 18px);
+  height: calc(var(--turnaround-size) + 18px);
+  max-width: 100%;
+  overflow: auto;
+  border: 1px solid #3a453c;
+  border-radius: 7px;
+  background-color: #d8ddd8;
+  background-image:
+    linear-gradient(45deg, #bec5be 25%, transparent 25%),
+    linear-gradient(-45deg, #bec5be 25%, transparent 25%),
+    linear-gradient(45deg, transparent 75%, #bec5be 75%),
+    linear-gradient(-45deg, transparent 75%, #bec5be 75%);
+  background-position:
+    0 0,
+    0 8px,
+    8px -8px,
+    -8px 0;
+  background-size: 16px 16px;
+}
+
+.turnaround-canvas img {
+  display: block;
+  width: var(--turnaround-size);
+  height: var(--turnaround-size);
   image-rendering: pixelated;
 }
 
@@ -733,6 +816,18 @@ small {
 
 .candidate-strip strong {
   font-size: 10px;
+}
+
+.turnaround-message {
+  max-width: 420px;
+  margin: -8px 0 0;
+  color: #758477;
+  font-size: 9px;
+  text-align: center;
+}
+
+.turnaround-message.error {
+  color: #df957e;
 }
 
 .world-strip {

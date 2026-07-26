@@ -74,22 +74,26 @@ runtime dependency or write generated assets back into them.
 | Candidate evidence | Shows provenance, SHA-256 identity, and structural-intake status without implying visual acceptance |
 | Contract validation | Measures six PNG rules locally and reports ground luma as Not assessed pending a pinned reference |
 | Validation UI | Shows Pass, Fail, and Not assessed totals plus per-rule evidence for the selected revision |
+| Concept selection | Turnaround records the exact selected Concept id, SHA-256, user authority, and selection time |
+| Turnaround storage | Atomically preserves canonical down/right/up/left PNGs as one immutable revision |
+| Turnaround restore | Desktop restart reopens the latest four-view comparison and its selected Concept receipt |
+| Turnaround evidence | Rehashes all four sources and recomputes per-direction plus aggregate structural reports |
 | Contract | JSON Schema, versioned JSON instance, and TypeScript representation |
 | Approval | Human-only approval boundary shown in UI, contract, prompt, and MCP |
 | MCP | Stdio and localhost Streamable HTTP transports |
-| MCP tools | Contract read, prompt compile, session create/list/get, candidate import/list/get, and read-only validation |
-| Shared storage | Tauri and MCP adapters use one atomic `.studio/sessions` and immutable candidate protocol |
-| Compatibility | Shared session, candidate, and validation-report fixtures plus TypeScript and Rust failure-path tests |
+| MCP tools | Thirteen tools covering contract, prompt, sessions, Concept intake/read/validation, and Turnaround create/read/validation |
+| Shared storage | Tauri and MCP adapters use one atomic `.studio/sessions` protocol for immutable Concepts and Turnarounds |
+| Compatibility | Shared session, Concept, Turnaround, and validation fixtures plus TypeScript and Rust failure-path tests |
 | Agent guidance | `AGENTS.md`, `CLAUDE.md`, `GEMINI.md`, project rules, and skill |
 | App icon | Generated Tauri desktop/mobile icon set from `src-tauri/icons/icon.svg` |
 
 ## Not implemented yet
 
-- No image-generation provider is selected or integrated.
+- No image-generation provider adapter is integrated.
 - Ground-luma validation remains Not assessed until a pinned ground reference
   exists.
 - No pinned TileForge reference pack exists yet.
-- Turnaround, animation, world-test, and export stages are visual shells.
+- Walk Cycle, world-test, and export stages are visual shells.
 - No approved-candidate promotion or publishing operation exists.
 - Tauri bundling/installers are disabled in `tauri.conf.json`.
 - The contract JSON import is typed, but full JSON-Schema validation is not yet
@@ -104,35 +108,59 @@ and verification evidence.
 - `src-tauri/` contains the native shell and durable session commands.
 - `contracts/` is the versioned machine-readable art/world contract.
 - `mcp/` exposes the domain over MCP and uses the shared filesystem protocol.
-- `.studio/` is the ignored local workspace for sessions and immutable candidates.
+- `.studio/` is the ignored local workspace for sessions, immutable Concepts,
+  Turnarounds, and generation evidence.
 
 The shared boundary is documented in `docs/DECISIONS.md`: both thin adapters
-use the same session and candidate documents, identity rules, brief limits,
-directory layout, hash checks, atomic publish behavior, and recomputed
-candidate-hash-bound validation report.
+use the same session, Concept, and Turnaround documents, identity rules, brief
+limits, directory layout, hash checks, atomic publish behavior, and recomputed
+artifact-hash-bound validation reports.
 `tests/fixtures/session-v1.json` and
 `tests/fixtures/concept-candidate-v1.json` guard storage compatibility;
-`tests/fixtures/validation-report-v1.json` guards validator compatibility.
+`tests/fixtures/turnaround-candidate-v1.json` guards the user-selection and
+four-direction artifact contract; `tests/fixtures/validation-report-v1.json`
+guards validator compatibility.
+
+## Current local review gate
+
+Ignored `.studio/` state currently contains the first real M04 Turnaround:
+
+- session: `mirelight-pilgrim-20260726212353-df9dd645`
+- user-selected Concept:
+  `concept-r0004-20260726221830-633afb02`
+- immutable Turnaround:
+  `turnaround-r0001-20260726224205-a558350a`
+- structural evidence: 24 Pass / 0 Fail / 4 Not assessed, with one ground-luma
+  result pending per direction
+- identity consistency: Not assessed, user authority
+
+The built-in ImageGen sources and local preparation evidence are preserved
+under `.studio/generated-source/` and did not use an API key or incremental
+AI-service billing. Do not begin Walk Cycle work until the user explicitly
+accepts identity consistency or asks for a new immutable Turnaround revision.
 
 ## Verification evidence
 
-M03 was verified on Windows with Node 24.15.0, npm 11.12.1, and Rust 1.95:
+The M04 Turnaround slice was verified on Windows with Node 24.15.0, npm
+11.12.1, and Rust 1.95:
 
 - `npm run check` — 0 errors and 0 warnings
 - `npm run build` — production bundle built
-- `npm run test:mcp` — nine tools, locked approval contract, shared
-  session/candidate/report compatibility, independent rule failures, immutable
-  validation reads, and atomic failure cleanup passed
+- `npm run test:mcp` — thirteen tools, locked approval contract, shared
+  session/Concept/Turnaround/report compatibility, exact selected-down
+  preservation, immutable four-view reads, independent rule failures,
+  collisions, and atomic failure cleanup passed
 - `npm run test:mcp:stdio` — real stdio transport passed
 - `npm run test:mcp:http` — real localhost HTTP transport passed while server ran
 - `cargo fmt --manifest-path src-tauri/Cargo.toml --check` — passed
 - `cargo check --manifest-path src-tauri/Cargo.toml` — passed
-- `cargo test --manifest-path src-tauri/Cargo.toml` — nine
-  session/candidate/validation compatibility and failure-path tests passed
+- `cargo test --manifest-path src-tauri/Cargo.toml` — twelve
+  session/Concept/Turnaround/validation compatibility and failure-path tests
+  passed
 - `npm audit --audit-level=moderate` — 0 vulnerabilities
-- Native desktop QA — the app restored two shared unreviewed candidates,
-  displayed 6 Pass / 0 Fail / 1 Not assessed for each exact revision, switched
-  candidate-bound evidence, and re-ran validation while keeping visual judgment
+- Native desktop QA — after a full app restart, the app restored the exact
+  Concept r4 selection receipt and Turnaround r1, displayed all four views,
+  reported 24 Pass / 0 Fail / 4 Not assessed, and kept identity consistency
   Not assessed and user-only
 
 Re-run checks relevant to any new change. For the HTTP smoke test, start
@@ -140,10 +168,11 @@ Re-run checks relevant to any new change. For the HTTP smoke test, start
 
 ## Recommended next milestone
 
-M04 is next, but it requires a real user-selected Concept candidate before
-Turnaround work begins. Do not treat the synthetic `.studio/` QA candidates or
-an all-green structural report as that selection. Preserve immutable revisions
-and the human approval boundary throughout Turnaround and Walk Cycle work.
+The next action is the user-owned Turnaround identity gate. If the user accepts
+the current down/right/up/left set, continue M04 with an immutable four-frame
+walk cycle per direction at 300 ms. If the user requests changes, create a new
+Turnaround revision; never overwrite r1. Do not treat 24 green structural
+checks as identity acceptance.
 
 Any future AI integration must be included in the user's existing
 subscriptions. Do not enable pay-as-you-go APIs, purchased credits,

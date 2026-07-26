@@ -80,6 +80,10 @@ this project so every client observes the same gateway behavior.
 - `list_concept_candidates`
 - `get_concept_candidate`
 - `validate_concept_candidate`
+- `create_turnaround_candidate`
+- `list_turnaround_candidates`
+- `get_turnaround_candidate`
+- `validate_turnaround_candidate`
 
 The gateway also exposes:
 
@@ -99,15 +103,25 @@ SHA-256. Ground luma is Not assessed until a pinned ground reference exists.
 The report's visual judgment is also Not assessed and user-owned; no MCP tool
 can change that state.
 
+`create_turnaround_candidate` is available only after the user explicitly
+selects a Concept. Its down PNG must preserve that exact Concept's bytes. It
+atomically publishes down, right, up, and left PNGs plus a versioned document;
+it cannot accept identity consistency or approve final art.
+
+`validate_turnaround_candidate` rehashes all four immutable sources and
+recomputes the structural report for each direction. Its aggregate report keeps
+identity consistency Not assessed with user authority.
+
 ## Shared desktop state
 
 MCP session tools and the Tauri desktop use the same local workspace:
 `.studio/sessions` by default, or `TFAS_WORKSPACE` when redirected. Session
 directories are published atomically and are never overwritten. A session
 created from the desktop can therefore be listed and read through MCP without a
-conversion or copy step. Candidate directories use the same rule and preserve
-the exact original `source.png`; either adapter can list and read a candidate
-created by the other.
+conversion or copy step. Concept candidate directories use the same rule and
+preserve the exact original `source.png`; Turnaround directories preserve
+`turnaround.json` plus `down.png`, `right.png`, `up.png`, and `left.png`.
+Either adapter can list and read an artifact created by the other.
 
 Do not configure an AI provider that incurs incremental charges. Any future AI
 connection must be covered by the user's existing subscriptions.

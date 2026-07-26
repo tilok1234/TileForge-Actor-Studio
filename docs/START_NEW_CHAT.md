@@ -36,10 +36,10 @@ Hard boundaries:
 - Never overwrite generated candidates; create immutable revisions.
 - Keep Codex, Claude, and Antigravity on the same client-neutral MCP contract.
 
-After orientation, verify the completed M03 validation behavior against the
-live code and checks. M04: Turnaround and Walk Cycle is next, but do not begin
-it until I select a real Concept candidate; the synthetic `.studio/` QA
-candidates and structural passes are not approval. Keep every repair
+After orientation, verify the implemented M04 Turnaround behavior against the
+live code and checks. The user selected real Concept r4 and an immutable
+four-direction Turnaround r1 is awaiting the user-owned identity-consistency
+gate. Do not begin Walk Cycle work until that gate is explicit. Keep every repair
 immutable, keep Pass/Fail/Not assessed separate from visual acceptance, and do
 not grant approval or publishing authority.
 

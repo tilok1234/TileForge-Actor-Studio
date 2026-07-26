@@ -55,14 +55,23 @@ revision and preserve the evidence trail.
    evidence.
 6. Call `validate_concept_candidate` and present every Pass, Fail, and Not
    assessed result without converting it into visual acceptance.
-7. Ask the user for visual approval at the defined gates.
+7. After the user explicitly selects a Concept, call
+   `create_turnaround_candidate` with the exact selected PNG as `down` plus
+   right, up, and left views.
+8. Use `list_turnaround_candidates`, `get_turnaround_candidate`, and
+   `validate_turnaround_candidate` to compare and measure immutable Turnaround
+   revisions.
+9. Ask the user to accept or reject identity consistency across the four views.
+10. Do not begin Walk Cycle work until that Turnaround gate is explicit.
 
-The MCP tools currently implement steps 1–6. M02 candidate intake proves PNG
+The MCP tools currently implement steps 1–8. M02 candidate intake proves PNG
 structure, exact dimensions, and the presence of transparency. M03 validation
-then measures the immutable decoded pixels. Ground luma remains Not assessed
-until a pinned ground reference exists; visual acceptance remains a user-only
-decision. Turnaround and export tools will be added as their studio layers are
-built.
+then measures the immutable decoded pixels. The Turnaround slice of M04 records
+the user-selected Concept and requires its exact bytes as the down view before
+atomically publishing the four directions. Ground luma remains Not assessed
+until a pinned ground reference exists; visual and identity acceptance remain
+user-only decisions. Walk Cycle and export tools will be added as their studio
+layers are built.
 
 ## Validation language
 
@@ -77,9 +86,9 @@ Use these distinct outcomes:
 ## Local state
 
 Sessions live in `.studio/sessions` by default. Set `TFAS_WORKSPACE` to redirect
-local state. The desktop and MCP gateway read the same immutable session and
-candidate documents; creating either publishes a complete directory atomically
-rather than exposing a partial record. Original candidate PNG bytes are
+local state. The desktop and MCP gateway read the same immutable session,
+Concept, and Turnaround documents; creation publishes complete directories
+atomically rather than exposing partial records. Original PNG bytes are
 rehash-verified on read and never overwritten. `.studio/` and generated exports
 are ignored by Git.
 

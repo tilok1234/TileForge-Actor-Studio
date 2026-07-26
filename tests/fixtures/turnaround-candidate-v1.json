@@ -1,0 +1,60 @@
+{
+  "schemaVersion": 1,
+  "id": "turnaround-r0001-20260727203000-rustdesk",
+  "revision": 1,
+  "sessionId": "mirelight-pilgrim-20260726210140-rustdesk",
+  "stage": "turnaround",
+  "contractId": "tileforge-actor-32-v1",
+  "sourceSelection": {
+    "candidateId": "concept-r0001-20260726213000-rustdesk",
+    "candidateSha256": "0123456789abcdef0123456789abcdef0123456789abcdef0123456789abcdef",
+    "selectedBy": "user",
+    "selectedAt": "2026-07-27T20:30:00.000Z"
+  },
+  "directions": [
+    {
+      "direction": "down",
+      "sourceFile": "down.png",
+      "sha256": "0123456789abcdef0123456789abcdef0123456789abcdef0123456789abcdef",
+      "byteLength": 128,
+      "width": 32,
+      "height": 32
+    },
+    {
+      "direction": "right",
+      "sourceFile": "right.png",
+      "sha256": "1123456789abcdef0123456789abcdef0123456789abcdef0123456789abcdef",
+      "byteLength": 129,
+      "width": 32,
+      "height": 32
+    },
+    {
+      "direction": "up",
+      "sourceFile": "up.png",
+      "sha256": "2123456789abcdef0123456789abcdef0123456789abcdef0123456789abcdef",
+      "byteLength": 130,
+      "width": 32,
+      "height": 32
+    },
+    {
+      "direction": "left",
+      "sourceFile": "left.png",
+      "sha256": "3123456789abcdef0123456789abcdef0123456789abcdef0123456789abcdef",
+      "byteLength": 131,
+      "width": 32,
+      "height": 32
+    }
+  ],
+  "createdAt": "2026-07-27T20:30:00.000Z",
+  "provenance": {
+    "source": "generated",
+    "provider": "subscription-image-tool",
+    "model": "built-in"
+  },
+  "reviewStatus": "unreviewed",
+  "identityJudgment": {
+    "status": "not_assessed",
+    "authority": "user",
+    "message": "Only the user can accept identity consistency across turnaround views."
+  }
+}

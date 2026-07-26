@@ -14,6 +14,16 @@
   import { BOUNDARY_RULES, TILEFORGE_ACTOR_CONTRACT } from "./lib/studio/contract";
   import { compileActorPrompt } from "./lib/studio/prompt";
   import { parseStudioSession } from "./lib/studio/session";
+  import {
+    parseTurnaroundCandidate,
+    TURNAROUND_DIRECTIONS,
+    type TurnaroundCandidate,
+    type TurnaroundDirection,
+  } from "./lib/studio/turnaround";
+  import {
+    parseTurnaroundValidationReport,
+    type TurnaroundValidationReport,
+  } from "./lib/studio/turnaround-validation";
   import type { ActorBrief, StudioSession } from "./lib/studio/types";
   import {
     parseValidationReport,
@@ -68,6 +78,18 @@
   let validationReport: ValidationReport | null = null;
   let validationError = "";
   let validating = false;
+  let turnarounds: TurnaroundCandidate[] = [];
+  let selectedTurnaround: TurnaroundCandidate | null = null;
+  let turnaroundPngUrls: Record<TurnaroundDirection, string> = {
+    down: "",
+    right: "",
+    up: "",
+    left: "",
+  };
+  let turnaroundMessage = "No immutable Turnaround has been created yet.";
+  let turnaroundError = "";
+  let turnaroundValidation: TurnaroundValidationReport | null = null;
+  let validatingTurnaround = false;
 
   $: compiledPrompt = compileActorPrompt(brief);
 
@@ -77,6 +99,7 @@
 
   onDestroy(() => {
     revokeCandidateUrl();
+    revokeTurnaroundUrls();
   });
 
   function revokeCandidateUrl() {
@@ -94,6 +117,24 @@
     validationError = "";
     candidateError = "";
     candidateMessage = "Import a 32 × 32 PNG to create the first immutable candidate.";
+  }
+
+  function revokeTurnaroundUrls() {
+    for (const direction of TURNAROUND_DIRECTIONS) {
+      if (turnaroundPngUrls[direction]) {
+        URL.revokeObjectURL(turnaroundPngUrls[direction]);
+      }
+    }
+    turnaroundPngUrls = { down: "", right: "", up: "", left: "" };
+  }
+
+  function clearTurnarounds() {
+    revokeTurnaroundUrls();
+    turnarounds = [];
+    selectedTurnaround = null;
+    turnaroundValidation = null;
+    turnaroundError = "";
+    turnaroundMessage = "No immutable Turnaround has been created yet.";
   }
 
   function showSession(saved: StudioSession) {
@@ -121,6 +162,7 @@
         const restoredSession = parseStudioSession(latest);
         showSession(restoredSession);
         await refreshCandidates(restoredSession.id);
+        await refreshTurnarounds(restoredSession.id);
         sessionMessage = "Reopened the latest durable session.";
       } else {
         sessionMessage = "No saved sessions yet.";
@@ -156,6 +198,7 @@
       );
       showSession(saved);
       clearCandidates();
+      clearTurnarounds();
       workspaceRoot ||= ".studio";
       sessionMessage = "Saved locally. MCP clients can read this session.";
     } catch (error) {
@@ -285,6 +328,100 @@
       importingCandidate = false;
     }
   }
+
+  async function refreshTurnarounds(
+    sessionId: string,
+    preferredId?: string,
+  ) {
+    turnaroundError = "";
+    try {
+      const result = await invoke<unknown[]>("list_turnaround_candidates", {
+        sessionId,
+      });
+      turnarounds = result.map(parseTurnaroundCandidate);
+      const preferred =
+        turnarounds.find((candidate) => candidate.id === preferredId) ??
+        turnarounds[0] ??
+        null;
+      if (preferred) {
+        await loadTurnaround(preferred);
+        turnaroundMessage = `${turnarounds.length} immutable Turnaround revision${turnarounds.length === 1 ? "" : "s"} saved.`;
+        activeStage = 2;
+      } else {
+        clearTurnarounds();
+      }
+    } catch (error) {
+      turnaroundError = actorBriefError(error);
+      turnaroundMessage = "Turnarounds could not be loaded.";
+    }
+  }
+
+  async function loadTurnaround(candidate: TurnaroundCandidate) {
+    if (!session || !isTauri()) {
+      return;
+    }
+    turnaroundError = "";
+    turnaroundValidation = null;
+    try {
+      const payload = await invoke<{
+        candidate: unknown;
+        pngBytes: Record<TurnaroundDirection, number[]>;
+      }>("get_turnaround_candidate", {
+        sessionId: session.id,
+        turnaroundId: candidate.id,
+      });
+      const loaded = parseTurnaroundCandidate(payload.candidate);
+      const sourceCandidate = candidates.find(
+        (concept) => concept.id === loaded.sourceSelection.candidateId,
+      );
+      if (sourceCandidate && selectedCandidate?.id !== sourceCandidate.id) {
+        await loadCandidate(sourceCandidate);
+      }
+      revokeTurnaroundUrls();
+      turnaroundPngUrls = Object.fromEntries(
+        TURNAROUND_DIRECTIONS.map((direction) => [
+          direction,
+          URL.createObjectURL(
+            new Blob(
+              [new Uint8Array(payload.pngBytes[direction]).buffer],
+              { type: "image/png" },
+            ),
+          ),
+        ]),
+      ) as Record<TurnaroundDirection, string>;
+      selectedTurnaround = loaded;
+      await validateTurnaround(loaded);
+    } catch (error) {
+      turnaroundError = actorBriefError(error);
+    }
+  }
+
+  async function validateTurnaround(candidate: TurnaroundCandidate) {
+    if (!session || !isTauri()) {
+      return;
+    }
+    validatingTurnaround = true;
+    turnaroundError = "";
+    try {
+      const report = parseTurnaroundValidationReport(
+        await invoke("validate_turnaround_candidate", {
+          sessionId: session.id,
+          turnaroundId: candidate.id,
+        }),
+      );
+      if (report.turnaroundId !== candidate.id) {
+        throw new Error(
+          "Turnaround validation identity does not match the candidate.",
+        );
+      }
+      turnaroundValidation = report;
+    } catch (error) {
+      turnaroundValidation = null;
+      turnaroundError = actorBriefError(error);
+    } finally {
+      validatingTurnaround = false;
+    }
+  }
 </script>
 
 <svelte:head>
@@ -399,6 +536,17 @@
             {candidateError || candidateMessage}
           </p>
         </section>
+
+        {#if selectedTurnaround}
+          <section class="turnaround-selection" aria-label="Turnaround source selection">
+            <p class="eyebrow">User selection receipt</p>
+            <strong>Concept r{candidates.find((candidate) => candidate.id === selectedTurnaround?.sourceSelection.candidateId)?.revision ?? "?"}</strong>
+            <small title={selectedTurnaround.sourceSelection.candidateId}>
+              {selectedTurnaround.sourceSelection.candidateId}
+            </small>
+            <span>Recorded for Turnaround by user authority. This is not final-art approval.</span>
+          </section>
+        {/if}
       {/if}
 
       <p class="session-message" class:error={Boolean(sessionError)} role={sessionError ? "alert" : "status"}>
@@ -441,8 +589,27 @@
         </div>
       </div>
 
-      <div class="preview-stage">
-        {#if selectedCandidate && candidatePngUrl}
+      <div class:turnaround={activeStage === 2} class="preview-stage">
+        {#if activeStage === 2 && selectedTurnaround}
+          <div
+            class="turnaround-grid"
+            style={`--turnaround-size: ${32 * Math.min(previewZoom, 8)}px`}
+          >
+            {#each TURNAROUND_DIRECTIONS as direction}
+              <figure>
+                <div class="turnaround-canvas">
+                  <img
+                    alt={`${direction} view for Turnaround revision ${selectedTurnaround.revision}`}
+                    height={32 * Math.min(previewZoom, 8)}
+                    src={turnaroundPngUrls[direction]}
+                    width={32 * Math.min(previewZoom, 8)}
+                  />
+                </div>
+                <figcaption>{direction}</figcaption>
+              </figure>
+            {/each}
+          </div>
+        {:else if selectedCandidate && candidatePngUrl}
           <div class="candidate-canvas" style={`--candidate-size: ${32 * previewZoom}px`}>
             <img
               alt={`Concept candidate revision ${selectedCandidate.revision}`}
@@ -467,13 +634,31 @@
           </div>
         {/if}
         <p class="preview-note">
-          {selectedCandidate
+          {activeStage === 2 && selectedTurnaround
+            ? `Turnaround r${selectedTurnaround.revision} · four immutable views · identity consistency not assessed`
+            : selectedCandidate
             ? `Candidate r${selectedCandidate.revision} · structural intake passed · visual judgment not assessed`
             : session
               ? "Concept slot ready. Import creates immutable, unreviewed candidates here."
               : "Begin a concept to create the first immutable candidate."}
         </p>
-        {#if candidates.length > 0}
+        {#if activeStage === 2 && turnarounds.length > 0}
+          <div class="candidate-strip" aria-label="Immutable Turnaround candidates">
+            {#each turnarounds as candidate}
+              <button
+                class:selected={selectedTurnaround?.id === candidate.id}
+                onclick={() => loadTurnaround(candidate)}
+                title={candidate.id}
+              >
+                <strong>r{candidate.revision}</strong>
+                <span>{candidate.provenance.source}</span>
+              </button>
+            {/each}
+          </div>
+          <p class="turnaround-message" class:error={Boolean(turnaroundError)} role={turnaroundError ? "alert" : "status"}>
+            {turnaroundError || turnaroundMessage}
+          </p>
+        {:else if candidates.length > 0}
           <div class="candidate-strip" aria-label="Immutable Concept candidates">
             {#each candidates as candidate}
               <button
@@ -550,7 +735,15 @@
             <p class="eyebrow">Local evidence</p>
             <strong>Contract validation</strong>
           </div>
-          {#if selectedCandidate}
+          {#if activeStage === 2 && selectedTurnaround}
+            <button
+              aria-label="Run Turnaround structural validation again"
+              disabled={validatingTurnaround}
+              onclick={() => selectedTurnaround && validateTurnaround(selectedTurnaround)}
+            >
+              {validatingTurnaround ? "Running…" : "Re-run"}
+            </button>
+          {:else if selectedCandidate}
             <button
               aria-label="Run structural validation again"
               disabled={validating}
@@ -561,7 +754,49 @@
           {/if}
         </div>
 
-        {#if !selectedCandidate}
+        {#if activeStage === 2}
+          {#if !selectedTurnaround}
+            <p class="validation-empty">Create an immutable Turnaround to measure all four views.</p>
+          {:else if validatingTurnaround && !turnaroundValidation}
+            <p class="validation-empty">Measuring four immutable direction PNGs locally…</p>
+          {:else if turnaroundError}
+            <p class="validation-error" role="alert">{turnaroundError}</p>
+          {:else if turnaroundValidation}
+            <div class="validation-summary" aria-label="Turnaround validation totals">
+              <span class="pass">{turnaroundValidation.summary.pass} pass</span>
+              <span class:quiet={turnaroundValidation.summary.fail === 0} class="fail">
+                {turnaroundValidation.summary.fail} fail
+              </span>
+              <span class="not-assessed">
+                {turnaroundValidation.summary.notAssessed} not assessed
+              </span>
+            </div>
+            <div class="validation-results">
+              {#each turnaroundValidation.directions as direction}
+                <div
+                  class:pass={direction.report.summary.fail === 0}
+                  class:fail={direction.report.summary.fail > 0}
+                  class="validation-result"
+                >
+                  <span class="validation-mark" aria-label={direction.report.summary.fail === 0 ? "pass" : "fail"}>
+                    {direction.report.summary.fail === 0 ? "✓" : "!"}
+                  </span>
+                  <div>
+                    <strong>{direction.direction}</strong>
+                    <span>
+                      {direction.report.summary.pass} pass · {direction.report.summary.fail} fail ·
+                      {direction.report.summary.notAssessed} not assessed
+                    </span>
+                  </div>
+                </div>
+              {/each}
+            </div>
+            <div class="visual-judgment">
+              <span>Identity consistency</span>
+              <strong>Not assessed — user only</strong>
+            </div>
+          {/if}
+        {:else if !selectedCandidate}
           <p class="validation-empty">Select or import a candidate to measure its structure.</p>
         {:else if validating && !validationReport}
           <p class="validation-empty">Measuring immutable PNG pixels locally…</p>

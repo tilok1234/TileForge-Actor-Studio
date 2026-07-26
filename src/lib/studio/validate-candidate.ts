@@ -32,12 +32,34 @@ export function validateConceptCandidatePng(
   pngBytes: Uint8Array,
 ): ValidationReport {
   const candidate = parseConceptCandidate(candidateInput);
+  return validatePngStructuralEvidence(
+    {
+      artifactId: candidate.id,
+      sha256: candidate.sha256,
+      byteLength: candidate.byteLength,
+      contractId: candidate.contractId,
+    },
+    pngBytes,
+  );
+}
+
+interface StructuralArtifactIdentity {
+  artifactId: string;
+  sha256: string;
+  byteLength: number;
+  contractId: string;
+}
+
+export function validatePngStructuralEvidence(
+  identity: StructuralArtifactIdentity,
+  pngBytes: Uint8Array,
+): ValidationReport {
   const sourceSha256 = createHash("sha256").update(pngBytes).digest("hex");
   if (
-    pngBytes.byteLength !== candidate.byteLength ||
-    sourceSha256 !== candidate.sha256
+    pngBytes.byteLength !== identity.byteLength ||
+    sourceSha256 !== identity.sha256
   ) {
-    throw new Error("Candidate source bytes no longer match immutable provenance.");
+    throw new Error("Artifact source bytes no longer match immutable provenance.");
   }
 
   let decoded: PNG;
@@ -190,9 +212,9 @@ export function validateConceptCandidatePng(
   return parseValidationReport({
     schemaVersion: 1,
     validatorId: STRUCTURAL_VALIDATOR_ID,
-    candidateId: candidate.id,
-    candidateSha256: candidate.sha256,
-    contractId: candidate.contractId,
+    candidateId: identity.artifactId,
+    candidateSha256: identity.sha256,
+    contractId: identity.contractId,
     results,
     summary,
     visualJudgment: {

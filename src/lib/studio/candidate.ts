@@ -5,6 +5,11 @@ import { SESSION_ID_MAX_LENGTH } from "./session";
 export const CANDIDATE_DOCUMENT_VERSION = 1;
 export const CANDIDATE_ID_MAX_LENGTH = 96;
 export const CONCEPT_PNG_MAX_BYTES = 1_048_576;
+export const candidateIdSchema = z
+  .string()
+  .regex(/^[a-z0-9][a-z0-9-]{2,95}$/i, "Invalid candidate id.")
+  .max(CANDIDATE_ID_MAX_LENGTH);
+export const candidateSha256Schema = z.string().regex(/^[a-f0-9]{64}$/);
 
 export const candidateProvenanceSchema = z
   .object({
@@ -37,10 +42,7 @@ const intakeValidationSchema = z
 export const conceptCandidateSchema = z
   .object({
     schemaVersion: z.literal(CANDIDATE_DOCUMENT_VERSION),
-    id: z
-      .string()
-      .regex(/^[a-z0-9][a-z0-9-]{2,95}$/i, "Invalid candidate id.")
-      .max(CANDIDATE_ID_MAX_LENGTH),
+    id: candidateIdSchema,
     revision: z.number().int().min(1),
     sessionId: z
       .string()
@@ -51,7 +53,7 @@ export const conceptCandidateSchema = z
     contractId: z.literal(TILEFORGE_ACTOR_CONTRACT.id),
     sourceFile: z.literal("source.png"),
     mimeType: z.literal("image/png"),
-    sha256: z.string().regex(/^[a-f0-9]{64}$/),
+    sha256: candidateSha256Schema,
     byteLength: z.number().int().min(1).max(CONCEPT_PNG_MAX_BYTES),
     width: z.literal(TILEFORGE_ACTOR_CONTRACT.frame.width),
     height: z.literal(TILEFORGE_ACTOR_CONTRACT.frame.height),

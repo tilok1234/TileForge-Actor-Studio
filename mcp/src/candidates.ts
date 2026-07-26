@@ -21,7 +21,7 @@ import {
 import { TILEFORGE_ACTOR_CONTRACT } from "../../src/lib/studio/contract.js";
 import { getSession, workspaceRoot } from "./storage.js";
 
-interface CandidateImageEvidence {
+export interface CandidateImageEvidence {
   width: 32;
   height: 32;
   sha256: string;
@@ -62,7 +62,9 @@ function candidateDirectory(
   return join(candidateRoot(root, sessionId), assertCandidateId(candidateId));
 }
 
-function validateConceptPng(pngBytes: Uint8Array): CandidateImageEvidence {
+export function validateConceptPng(
+  pngBytes: Uint8Array,
+): CandidateImageEvidence {
   if (pngBytes.byteLength === 0) {
     throw new Error("PNG file is empty.");
   }

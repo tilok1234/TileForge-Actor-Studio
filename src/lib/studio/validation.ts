@@ -1,5 +1,5 @@
 import * as z from "zod/v4";
-import { conceptCandidateSchema } from "./candidate";
+import { candidateIdSchema, candidateSha256Schema } from "./candidate";
 import { TILEFORGE_ACTOR_CONTRACT } from "./contract";
 
 export const VALIDATION_REPORT_VERSION = 1;
@@ -50,8 +50,8 @@ export const validationReportSchema = z
   .object({
     schemaVersion: z.literal(VALIDATION_REPORT_VERSION),
     validatorId: z.literal(STRUCTURAL_VALIDATOR_ID),
-    candidateId: conceptCandidateSchema.shape.id,
-    candidateSha256: conceptCandidateSchema.shape.sha256,
+    candidateId: candidateIdSchema,
+    candidateSha256: candidateSha256Schema,
     contractId: z.literal(TILEFORGE_ACTOR_CONTRACT.id),
     results: z
       .array(validationRuleResultSchema)
