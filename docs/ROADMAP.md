@@ -287,14 +287,20 @@ Current evidence:
   neutral/first-foot/neutral/opposite-foot rhythm suited to a heavy
   armored actor, now with alternating lifted boots in down/up and a two-pixel
   forward/back foot arc in right/left;
+- the user confirmed r2's foot motion read better and requested cleanup of its
+  thin planted-heel spikes and isolated side pixels;
+- cleanup Walk Cycle `walk-cycle-r0003-20260727021420-5e86e86e` preserves r2's
+  foot motion, removes artificial arm-tip and torso/hip seam nubs, replaces the
+  narrow planted heel with a connected three-pixel boot core, and keeps each
+  final frame in one four-connected silhouette;
 - Walk Cycle validation reports 96 Pass / 0 Fail / 16 Not assessed, while
   motion and readability remain Not assessed with user authority;
 - generation used built-in subscription ImageGen outside the provider-neutral
   core; transparency preparation and validation were local and incurred no
   additional AI-service cost;
 - the next transition is blocked only on the user's acceptance or rejection of
-  exact Walk Cycle r2 motion; no World Test may be created before that
-  decision;
+  exact Walk Cycle r3 motion/readability; no World Test may be created before
+  that decision;
 - the larger attack-animation reference was translated only into original
   32 px character language; attacks, weapons, and equipment remain outside the
   v1 workflow;
