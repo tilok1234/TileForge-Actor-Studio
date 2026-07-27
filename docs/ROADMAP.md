@@ -254,7 +254,7 @@ Implemented:
 
 ## Post-M06 - Second-actor generality run
 
-Status: in progress at the user-owned Concept selection gate.
+Status: in progress at the user-owned Turnaround identity-consistency gate.
 
 Goal: exercise the unchanged version 1 workflow with a visually and
 semantically different actor, exposing any remaining assumptions tied to the
@@ -267,11 +267,19 @@ Current evidence:
 - three immutable down-facing Concept candidates were imported through MCP;
 - all three report 6 Pass / 0 Fail / 1 Not assessed, with ground luma correctly
   deferred until World Test and visual judgment retained by the user;
+- the user selected exact Concept A
+  `concept-r0001-20260727013308-fd1e91fe`;
+- immutable Turnaround `turnaround-r0001-20260727014752-775090c7` records that
+  exact user-selection receipt, preserves the selected down PNG byte for byte,
+  and adds strict right/up/left sources;
+- Turnaround validation reports 24 Pass / 0 Fail / 4 Not assessed, while
+  identity consistency remains Not assessed with user authority;
 - generation used built-in subscription ImageGen outside the provider-neutral
   core; transparency preparation and validation were local and incurred no
   additional AI-service cost;
-- the next transition is blocked only on the user's selection of one exact
-  Concept identity; no Turnaround may be created before that decision.
+- the next transition is blocked only on the user's acceptance or rejection of
+  the exact four-view identity; no Walk Cycle may be created before that
+  decision;
 - the larger attack-animation reference was translated only into original
   32 px character language; attacks, weapons, and equipment remain outside the
   v1 workflow;

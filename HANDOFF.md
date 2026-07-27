@@ -155,21 +155,35 @@ The post-release generality run is active with a deliberately different mob:
 - session: `orc-vanguard-20260727012850-6bb50608`
 - brief: Orc Vanguard, a broad green-skinned front-liner with a horned helmet,
   asymmetrical armor, and crimson cloth, shown unarmed for the v1 walk scope
-- stage: Concept; no candidate has been selected
+- stage: Turnaround identity-consistency gate
 - immutable Concept candidates:
   - A: `concept-r0001-20260727013308-fd1e91fe`
   - B: `concept-r0002-20260727013308-e6d9ca44`
   - C: `concept-r0003-20260727013308-18fe2f93`
 - structural evidence: each candidate reports 6 Pass / 0 Fail / 1 Not
   assessed; ground luma remains pending until World Test
-- visual judgment: Not assessed with user authority; the next action requires
-  the user to select A, B, or C or request a new immutable repair candidate
+- user-selected Concept: A,
+  `concept-r0001-20260727013308-fd1e91fe`
+- immutable Turnaround:
+  `turnaround-r0001-20260727014752-775090c7`
+- source receipt: exact Concept A id and SHA-256
+  `95d3b5a484e700f8e266651ac55f85d23e2c305f6df7101f9fcb440509baf568`,
+  `selectedBy: user`
+- byte preservation: `down.png` exactly matches the selected Concept A hash;
+  right, up, and left are separate immutable sources
+- Turnaround structural evidence: 24 Pass / 0 Fail / 4 Not assessed, with one
+  ground-luma result pending per direction
+- identity consistency: Not assessed with user authority; the next action is
+  the user's acceptance or rejection of these exact four views, and no Walk
+  Cycle may be created before that decision
 - generation boundary: sources used OpenAI built-in ImageGen through the
   user's subscription; preparation and validation were local, with no API key,
   paid add-on, or usage-metered service
-- preservation: fourteen source, prompt, preparation, comparison, and import
-  evidence files were copied byte-for-byte into the shared per-user workspace
-  under `generated-source/orc-vanguard-20260727`
+- preservation: the fourteen Concept evidence files remain under
+  `generated-source/orc-vanguard-20260727`; sixteen Turnaround identity
+  references, prompts, sources, prepared views, comparison, and import files
+  were copied byte-for-byte under
+  `generated-source/orc-vanguard-turnaround-20260727`
 - scope translation: the user's larger eight-frame axe-swing reference informed
   character language only; v1 keeps the actor at 32 px, empty-handed, and
   limited to the four-direction walk workflow
@@ -316,12 +330,14 @@ Re-run checks relevant to any new change. For the HTTP smoke test, start
 ## Recommended next milestone
 
 M06 release hardening is complete. The second-actor generality test is now at
-the Orc Vanguard Concept gate. The next action is the user's visual
-selection of candidate A, B, or C (or a request for another immutable
-candidate), followed by a four-direction Turnaround tied to that exact selected
-Concept. Keep this one mob active and preserve every revision. Publishing
-remains a separate user-owned scope decision and is not implemented in version
-1; do not add a destination or publish without explicit authority.
+the Orc Vanguard Turnaround identity gate. The next action is the user's
+acceptance or rejection of
+`turnaround-r0001-20260727014752-775090c7`. If accepted, create a four-frame
+walk cycle per canonical direction tied to that exact Turnaround. If rejected,
+create a new immutable Turnaround revision and preserve all unaffected
+direction bytes. Keep this one mob active and preserve every revision.
+Publishing remains a separate user-owned scope decision and is not implemented
+in version 1; do not add a destination or publish without explicit authority.
 
 Any future AI integration must be included in the user's existing
 subscriptions. Do not enable pay-as-you-go APIs, purchased credits,
