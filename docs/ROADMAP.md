@@ -252,6 +252,27 @@ Implemented:
 - release hardening adds no AI provider, publishing operation, paid service, or
   incremental billing.
 
+## Post-M06 - Second-actor generality run
+
+Status: in progress at the user-owned Concept selection gate.
+
+Goal: exercise the unchanged version 1 workflow with a visually and
+semantically different NPC, exposing any remaining assumptions tied to the
+first Mirelight Pilgrim mob without widening product scope.
+
+Current evidence:
+
+- durable NPC session `snowberry-courier-20260727010001-2a512f14` is shared by
+  desktop and MCP in the per-user workspace;
+- three immutable down-facing Concept candidates were imported through MCP;
+- all three report 6 Pass / 0 Fail / 1 Not assessed, with ground luma correctly
+  deferred until World Test and visual judgment retained by the user;
+- generation used built-in subscription ImageGen outside the provider-neutral
+  core; transparency preparation and validation were local and incurred no
+  additional AI-service cost;
+- the next transition is blocked only on the user's selection of one exact
+  Concept identity; no Turnaround may be created before that decision.
+
 ## Deferred beyond version 1
 
 - tiles and map editing

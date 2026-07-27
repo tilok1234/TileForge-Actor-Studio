@@ -150,6 +150,27 @@ publishing boundary;
 
 ## Current local artifact and publishing gate
 
+The post-release generality run is active with a deliberately different NPC:
+
+- session: `snowberry-courier-20260727010001-2a512f14`
+- brief: Snowberry Courier, a small village courier in an indigo hooded coat,
+  berry-red scarf, and tan cross-body mail satchel
+- stage: Concept; no candidate has been selected
+- immutable Concept candidates:
+  - A: `concept-r0001-20260727010550-4a5f2ed7`
+  - B: `concept-r0002-20260727010550-a3cb97a7`
+  - C: `concept-r0003-20260727010550-b75debf8`
+- structural evidence: each candidate reports 6 Pass / 0 Fail / 1 Not
+  assessed; ground luma remains pending until World Test
+- visual judgment: Not assessed with user authority; the next action requires
+  the user to select A, B, or C or request a new immutable repair candidate
+- generation boundary: sources used OpenAI built-in ImageGen through the
+  user's subscription; preparation and validation were local, with no API key,
+  paid add-on, or usage-metered service
+- preservation: fourteen source, prompt, preparation, comparison, and import
+  evidence files were copied byte-for-byte into the shared per-user workspace
+  under `generated-source/snowberry-courier-20260727`
+
 Ignored `.studio/` state currently contains the first real M04 Turnaround and
 its first immutable direction repair:
 
@@ -286,12 +307,13 @@ Re-run checks relevant to any new change. For the HTTP smoke test, start
 
 ## Recommended next milestone
 
-M06 release hardening is complete. The best next product test is a second,
-new 32 px mob or NPC session taken through the same six stages to expose any
-remaining assumptions tied to Mirelight Pilgrim. Keep one actor active at a
-time and preserve every revision. Publishing remains a separate user-owned
-scope decision and is not implemented in version 1; do not add a destination
-or publish without explicit authority.
+M06 release hardening is complete. The second-actor generality test is now at
+the Snowberry Courier Concept gate. The next action is the user's visual
+selection of candidate A, B, or C (or a request for another immutable
+candidate), followed by a four-direction Turnaround tied to that exact selected
+Concept. Keep this one NPC active and preserve every revision. Publishing
+remains a separate user-owned scope decision and is not implemented in version
+1; do not add a destination or publish without explicit authority.
 
 Any future AI integration must be included in the user's existing
 subscriptions. Do not enable pay-as-you-go APIs, purchased credits,
