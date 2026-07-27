@@ -314,7 +314,14 @@ Current evidence:
   the passing-pose weight drop while moving each animated boot or
   lower-leg-and-boot shape as one connected unit, with no independently moving
   foot fragments;
-- frames 0 and 2 remain exact neutral beats, and every r7 frame is exactly one
+- the user reported that r7 no longer lifted a foot and read as a grounded
+  shuffle;
+- lifted-step Walk Cycle `walk-cycle-r0008-20260727061503-7be83825` raises the
+  complete swing lower leg and boot one pixel in every passing pose, retains a
+  sturdy stance foot at the contract anchor, and moves the side-view swing leg
+  two pixels through the stride;
+- frames 0 and 2 remain exact neutral beats; every passing pose has a visible
+  one-pixel ground gap below the swing foot, and every r8 frame is exactly one
   four-connected visible component;
 - Walk Cycle validation reports 96 Pass / 0 Fail / 16 Not assessed, while
   motion and readability remain Not assessed with user authority;
@@ -322,7 +329,7 @@ Current evidence:
   core; transparency preparation and validation were local and incurred no
   additional AI-service cost;
 - the next transition is blocked only on the user's acceptance or rejection of
-  exact Walk Cycle r7 motion/readability; no World Test may be created before
+  exact Walk Cycle r8 motion/readability; no World Test may be created before
   that decision;
 - the larger attack-animation reference was translated only into original
   32 px character language; attacks, weapons, and equipment remain outside the
