@@ -458,3 +458,21 @@ Reason: a direct provider adapter would either couple the product to one AI
 client or require separately metered API access. A durable work order makes the
 generation step visible and reproducible across clients while preserving the
 user's no-additional-cost rule and approval authority.
+
+## 2026-07-28 - Source milestones and installed releases require separate proof
+
+Completing a source milestone does not retroactively update an existing
+installer. The verified `0.1.0` NSIS package belongs to the M06
+release-hardening checkpoint and predates M07. Documentation must describe it
+as historical M06 evidence, not as an installed M07 build.
+
+The next installed proof will advance the application version to `0.1.1`
+across the JavaScript package, lockfile root, Tauri configuration, and Actor
+Studio Rust package entries; build a new current-user NSIS package from the
+verified M07 source; record its SHA-256; and repeat installed launch/restart
+checks. Only that new evidence may establish that the packaged desktop contains
+the generation request UI and shares those requests with MCP.
+
+Reason: source checks, native development QA, package creation, and installed
+restart QA prove different boundaries. Keeping them distinct prevents a stale
+binary from being presented as current and makes release claims reproducible.

@@ -1,7 +1,7 @@
 # Agent Guide
 
-Read `HANDOFF.md`, `docs/AGENT_WORKFLOW.md`, `docs/ROADMAP.md`, and
-`contracts/tileforge-actor-32-v1.json` before doing sprite work.
+Read `HANDOFF.md`, `docs/AGENT_WORKFLOW.md`, `docs/ROADMAP.md`, `docs/MCP.md`,
+and `contracts/tileforge-actor-32-v1.json` before doing sprite work.
 
 ## Mission
 
@@ -27,6 +27,7 @@ creative brief to an approved four-direction walk-cycle export.
   equivalent capabilities.
 - Store local work under `.studio/`; it is intentionally ignored by Git.
 - Keep the human approval boundary visible in both the UI and tool descriptions.
+- Treat a generation request as a durable handoff, not a dispatched AI job.
 - Run `npm run check`, `npm run build`, `npm run test:mcp`, and the relevant
   Rust check before claiming a milestone is complete.
 - Keep `HANDOFF.md`, `docs/ROADMAP.md`, and `docs/DECISIONS.md` synchronized

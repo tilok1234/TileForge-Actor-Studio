@@ -257,6 +257,9 @@ Implemented:
 - release hardening adds no AI provider, publishing operation, paid service, or
   incremental billing.
 
+The verified `0.1.0` installer is the historical M06 package. It predates M07
+and must not be presented as containing the generation-request UI.
+
 ## Post-M06 - Second-actor generality run
 
 Status: complete through one immutable local draft Export. Publishing remains
@@ -266,7 +269,7 @@ Goal: exercise the unchanged version 1 workflow with a visually and
 semantically different actor, exposing any remaining assumptions tied to the
 first Mirelight Pilgrim mob without widening product scope.
 
-Current evidence:
+Completion evidence:
 
 - durable mob session `orc-vanguard-20260727012850-6bb50608` is shared by
   desktop and MCP in the per-user workspace;
@@ -422,6 +425,39 @@ This bridge deliberately does not pretend the standalone desktop can invoke a
 user's Codex, Claude, or Antigravity subscription directly. The durable request
 is the client-neutral handoff; the connected client owns its optional native
 image invocation.
+
+## M08 - Installed cross-client generation proof
+
+Status: next.
+
+Goal: package the completed M07 source and prove that one durable Concept
+request can cross the installed desktop/MCP boundary without adding a provider
+API or extra-cost service.
+
+Acceptance criteria:
+
+- the application version advances consistently from `0.1.0` to `0.1.1` in
+  `package.json`, the root `package-lock.json` entries,
+  `src-tauri/tauri.conf.json`, `src-tauri/Cargo.toml`, and the Actor Studio
+  package entry in `src-tauri/Cargo.lock`;
+- a new current-user NSIS installer is built from the verified M07 source and
+  recorded with its SHA-256;
+- the installed desktop creates a durable generation request, displays its
+  stable identity, and restores it after a full app restart;
+- MCP reads the exact same request from the installed per-user workspace;
+- one fresh simple actor is used for the proof without changing or promoting
+  the completed Orc Vanguard draft;
+- an active connected client confirms whether it actually has a native image
+  capability included in the user's subscription;
+- when that capability exists, it produces the requested outputs separately
+  and imports each PNG as an immutable unreviewed Concept revision;
+- when it does not exist, the request remains durable and the limitation is
+  reported without connecting a paid API;
+- the installed desktop shows the imported revisions and stops for the user's
+  visual selection;
+- no request is described as a dispatched job, no client is claimed to have
+  image generation without a live proof, and no autonomous approval or
+  publishing capability is added.
 
 ## Deferred beyond version 1
 

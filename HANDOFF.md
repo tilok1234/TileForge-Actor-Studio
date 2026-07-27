@@ -1,6 +1,7 @@
 # TileForge Actor Studio Handoff
 
-This is the canonical continuation point for a new agent or chat.
+This is the canonical continuation point for a new agent or chat. It is an
+operational snapshot, not a substitute for the live Git state.
 
 ## Start here
 
@@ -15,10 +16,11 @@ Before editing, run:
 ```powershell
 Get-Location
 git status -sb
-git log -3 --oneline --decorate
+git log -5 --oneline --decorate
+git remote -v
 ```
 
-Then read, in order:
+Then read completely, in order:
 
 1. `AGENTS.md`
 2. this handoff
@@ -28,533 +30,280 @@ Then read, in order:
 6. `docs/AGENT_WORKFLOW.md`
 7. `docs/ROADMAP.md`
 8. `docs/DECISIONS.md`
+9. `docs/MCP.md`
+10. `docs/START_NEW_CHAT.md`
 
-Do not assume the handoff is newer than Git. Reconcile it with the live branch,
-working tree, and tests.
+Reconcile every claim below with the live branch, working tree, package
+versions, and tests. Preserve dirty work and report any disagreement before
+editing.
 
-## Product intent
+## Verified source checkpoint
 
-TileForge Actor Studio is a deliberately narrow AI-assisted desktop workflow
-for creating one 32 px TileForge mob or NPC at a time:
+As of 2026-07-28:
+
+- branch: `main`
+- M07 implementation commit: `81f443e`
+  (`Add subscription-native generation requests`)
+- expected remote: `https://github.com/tilok1234/TileForge-Actor-Studio.git`
+- a later documentation-only audit commit may be at HEAD
+- expected state after the audit: clean and synchronized with `origin/main`
+- source milestone: M07 complete
+- MCP surface: 28 tools
+
+These are orientation expectations, not permission to skip live verification.
+
+## Product and authority
+
+TileForge Actor Studio is deliberately limited to one 32 px mob or NPC at a
+time:
 
 ```text
 Brief -> Concept -> Turnaround -> Animate -> World test -> Export
 ```
 
-The artist describes identity and mood. The versioned contract supplies the
-world boundaries. Agents may create, compare, validate, and prepare candidates,
-but only the user may approve final art or publishing.
+The contract supplies deterministic world boundaries. Agents may compile
+prompts, create and compare immutable candidates, run structural checks, and
+prepare local drafts. Only the user may:
 
-## Repository and boundaries
+- select a Concept for Turnaround;
+- accept Turnaround identity consistency;
+- accept Walk Cycle motion and readability;
+- approve final art after World Test;
+- approve publishing.
 
-- Remote: `https://github.com/tilok1234/TileForge-Actor-Studio`
-- Default branch: `main`
-- Initial baseline commit: `595da2d`
-- Windows local generated state:
-  `%LOCALAPPDATA%\TileForge\Actor Studio\.studio`
-- Source-checkout `.studio/`: ignored migration backup, not the packaged
-  default
-- External `animation_editor_live`: read-only reference; never edit it
-- External `Semantic tile generator design`: read-only reference; never edit it
+No publishing operation exists. A prepared Export is still a local draft.
 
-This is a clean-room project. Do not add either external repository as a
-runtime dependency or write generated assets back into them.
+## Hard boundaries
 
-## Implemented now
+- Never modify `C:\Users\headc\Documents\animation_editor_live`.
+- Never modify
+  `C:\Users\headc\Documents\Semantic tile generator design`.
+- Treat both external repositories as read-only evidence.
+- Never overwrite a generated candidate or repair an old revision in place.
+- Do not expand version 1 into maps, tiles, bosses, effects, attacks,
+  equipment, paperdolls, batching, or publishing.
+- Do not add secrets or provider credentials.
+- Use only AI capabilities included in the user's existing subscriptions.
+  Pay-as-you-go APIs, purchased credits, usage billing, and paid add-ons are
+  forbidden.
 
-| Area | Current state |
-| --- | --- |
-| Desktop shell | Tauri 2 shell with a Svelte 5 UI |
-| Workflow UI | Six-stage navigation and polished three-panel layout |
-| Brief | Editable name, mob/NPC kind, and description |
-| Prompt | Live contract-constrained prompt preview |
-| UI session | Creates an atomic durable session and advances to Concept |
-| Generation handoff | New Concepts also create an immutable subscription-only AI request with exact prompt, output count, cost rule, and approval boundary |
-| Generation restore | Desktop restart restores and shows the newest stable request id; agents read the same request through MCP |
-| Session restore | Reopens the newest valid local session on desktop startup |
-| Saved identity | Shows session id, revision, contract id, and saved workspace |
-| Candidate intake | Imports a local 32 x 32 transparent PNG as a new immutable Concept revision |
-| Candidate restore | Reopens, lists, and reads saved candidates through either adapter |
-| Candidate comparison | Switches revisions and previews them at 1x, 8x, and 16x |
-| Candidate evidence | Shows provenance, SHA-256 identity, and structural-intake status without implying visual acceptance |
-| Contract validation | Measures six PNG rules locally; static art requires exact `(16, 28)` placement contact, walk frames require contact on row 28, and ground luma stays Not assessed until World Test |
-| Validation UI | Shows Pass, Fail, and Not assessed totals plus per-rule evidence for the selected revision |
-| Concept selection | Turnaround records the exact selected Concept id, SHA-256, user authority, and selection time |
-| Turnaround storage | Atomically preserves canonical down/right/up/left PNGs as one immutable revision |
-| Turnaround restore | Desktop restart reopens the latest four-view comparison and its selected Concept receipt |
-| Turnaround evidence | Rehashes all four sources and recomputes per-direction plus aggregate structural reports |
-| Turnaround acceptance | Walk Cycle records the exact accepted Turnaround id, four source hashes, user authority, and acceptance time |
-| Walk Cycle storage | Atomically preserves four frames per down/right/up/left direction as one immutable revision at 300 ms |
-| Walk Cycle restore | Desktop restart opens Animate, plays all four directions, and shows the accepted Turnaround receipt |
-| Walk Cycle evidence | Rehashes all sixteen frame sources and recomputes per-frame plus aggregate structural reports |
-| Walk Cycle acceptance | World Test records the exact accepted Walk Cycle id, all sixteen source hashes, user authority, and acceptance time |
-| Reference pack | Tracks four TileForge scenes across four themes at 1x with upstream commits, dimensions, byte lengths, and SHA-256 identities |
-| World Test storage | Locally composites and atomically preserves sixteen immutable 640 x 384 scene/theme previews |
-| World Test restore | Desktop restart opens World Test r1, restores its accepted Walk Cycle receipt, and switches all pinned scene/theme evidence |
-| World Test evidence | Rehashes all previews and recomputes 256 frame-to-ground luma measurements with final-art judgment user-only |
-| Final-art receipt | Export records the exact approved World Test document hash, sixteen preview identities, user authority, and approval time |
-| Export storage | Atomically preserves one immutable draft with `export.json`, `sprite-sheet.png`, `metadata.json`, and `provenance.json` |
-| Export restore | Desktop restart opens Export r1, shows its full stable id and 4 x 4 sheet, and keeps publishing visibly unapproved |
-| Export evidence | Rehashes all package files, reconstructs sheet pixels from sixteen sources, and verifies metadata, provenance, and publishing boundary |
-| Export access | Desktop validates the exact immutable package before opening its directory in Windows Explorer |
-| Packaged storage | Desktop and MCP default to the same uninstall-safe `%LOCALAPPDATA%\TileForge\Actor Studio\.studio`; `TFAS_WORKSPACE` retains precedence |
-| Windows release | Current-user NSIS installer builds without administrator rights |
-| Contract | JSON Schema, versioned JSON instance, and TypeScript representation |
-| Approval | Human-only approval boundary shown in UI, contract, prompt, and MCP |
-| MCP | Stdio and localhost Streamable HTTP transports |
-| MCP tools | Twenty-eight tools covering contract, prompt, sessions, generation requests, Concept, Turnaround, Walk Cycle, World Test, and Export create/read/validation |
-| Shared storage | Tauri and MCP adapters use one atomic `.studio/sessions` protocol for immutable generation requests, Concepts, Turnarounds, Walk Cycles, World Tests, and Exports |
-| Compatibility | Shared session, generation-request, Concept, Turnaround, Walk Cycle, World Test, Export, and validation fixtures plus TypeScript and Rust failure-path tests |
-| Agent guidance | `AGENTS.md`, `CLAUDE.md`, `GEMINI.md`, project rules, and skill |
-| App icon | Generated Tauri desktop/mobile icon set from `src-tauri/icons/icon.svg` |
+## Shared persistence boundary
 
-## Not implemented yet
+Desktop and MCP are thin adapters over one local filesystem protocol. On
+packaged Windows builds the default root is:
 
-- No image-generation provider API is integrated. Generation execution stays
-  inside an included native capability of the connected AI client; otherwise
-  the durable request remains available for another client or manual import.
-- Earlier-stage ground-luma validation remains Not assessed because those
-  artifacts have no pinned placement; World Test resolves it with real grounds.
-- No publishing operation exists; every prepared Export remains a local draft.
-- The contract JSON import is typed, but full JSON-Schema validation is not yet
-  an automated test.
+```text
+%LOCALAPPDATA%\TileForge\Actor Studio\.studio
+```
 
-Do not describe any item in this section as working until it has implementation
-and verification evidence.
+`TFAS_WORKSPACE` has highest precedence for both adapters. Non-Windows source
+development falls back to the ignored repository `.studio/`.
 
-## Architecture snapshot
+Each session has immutable subdirectories for:
 
-- `src/` contains the Svelte UI and client-neutral TypeScript domain helpers.
-- `src-tauri/` contains the native shell and durable session commands.
-- `contracts/` is the versioned machine-readable art/world contract.
-- `mcp/` exposes the domain over MCP and uses the shared filesystem protocol.
-- `reference-packs/` contains the copied, tracked, SHA-256-pinned TileForge
-  World Test input.
-- `%LOCALAPPDATA%\TileForge\Actor Studio\.studio` is the packaged Windows
-  workspace for sessions, immutable Concepts, Turnarounds, Walk Cycles, World
-  Tests, Exports, generation requests, and generation evidence.
-  `TFAS_WORKSPACE` redirects both adapters. The source-checkout `.studio/`
-  remains an ignored migration backup.
+- Concept generation requests;
+- Concept candidates;
+- Turnarounds;
+- Walk Cycles;
+- World Tests;
+- draft Exports.
 
-The shared boundary is documented in `docs/DECISIONS.md`: both thin adapters
-use the same session, generation-request, Concept, Turnaround, Walk Cycle,
-World Test, and Export documents, identity rules, brief limits, directory
-layout, hash checks, atomic publish behavior, and recomputed
-artifact-hash-bound validation reports.
-`tests/fixtures/session-v1.json` guards session compatibility;
-`tests/fixtures/concept-generation-request-v1.json` guards the immutable
-subscription-only work order, exact output contract, and human authority;
-`tests/fixtures/concept-candidate-v1.json` guards storage compatibility;
-`tests/fixtures/turnaround-candidate-v1.json` guards the user-selection and
-four-direction artifact contract;
-`tests/fixtures/walk-cycle-candidate-v1.json` guards the accepted-Turnaround
-receipt, timing, and sixteen-frame contract;
-`tests/fixtures/world-test-candidate-v1.json` guards the accepted-Walk-Cycle
-receipt, pinned pack, sixteen-preview, no-cost, and final-art boundary;
-`tests/fixtures/export-candidate-v1.json` guards the user-approved World Test
-receipt, 4 x 4 package layout, draft status, no-cost preparation, and
-publishing boundary;
-`tests/fixtures/validation-report-v1.json` guards validator compatibility.
+Complete records are written to hidden same-parent temporary directories and
+published with one rename. Readers rehash stored artifacts. Identity
+collisions fail instead of overwriting.
 
-## Current local artifact and publishing gate
+## Implemented through M07
 
-The post-release generality run is active with a deliberately different mob:
+### Brief and durable session
+
+- The Svelte/Tauri desktop creates an atomic versioned session and advances to
+  Concept.
+- The UI shows the saved session id, revision, contract id, and workspace.
+- Restart restores the newest valid local session.
+- MCP can create, list, and read the same sessions.
+
+### Subscription-native generation handoff
+
+- Starting a desktop Concept automatically creates the first immutable
+  `generation-requests/<request-id>/request.json`.
+- The request records the exact compiled prompt, one through four separate
+  32 x 32 down-facing outputs, the immutable Concept import continuation, the
+  no-additional-cost rule, and user-only approval.
+- The desktop defaults to three outputs, displays the stable request id, and
+  may prepare another immutable request revision.
+- Restart restores the newest request; MCP can create, list, and read the same
+  document.
+- The request is a durable handoff, not a dispatcher or background job.
+  Creating it does not invoke Codex, Claude, Antigravity, or an image provider.
+- A connected client may fulfill it only when that client actually has an
+  included native image capability. Each PNG is imported separately through
+  `import_concept_candidate`.
+- Actor Studio has no provider API, API key, fulfillment worker, mutable
+  request status, or paid fallback.
+
+### Concept through Export
+
+- Concept intake preserves each original 32 x 32 transparent PNG as an
+  unreviewed immutable revision with provenance and SHA-256 identity.
+- Structural validation measures canvas, alpha, visible height, placement
+  contact, palette, clipping, and later ground luma without implying visual
+  approval.
+- Turnaround records the user's selected Concept receipt and atomically
+  preserves down/right/up/left views.
+- Walk Cycle records the user's accepted Turnaround receipt and preserves four
+  frames per direction at 300 ms. Frame 0 remains byte-identical to its
+  accepted Turnaround view.
+- Static Concept/Turnaround art must contact `(16, 28)`. Animated frames may
+  contact anywhere on row 28 so either foot can lift.
+- World Test binds an accepted Walk Cycle to the tracked SHA-256-pinned
+  TileForge reference pack, creates sixteen local scene/theme previews, and
+  computes 256 frame-to-ground measurements.
+- Export records the user's exact World Test approval receipt and prepares an
+  immutable 128 x 128 sheet, metadata, provenance, and export document.
+- Export validation reconstructs the sheet from all sixteen source frames.
+- Every Export remains `draft`; publishing stays `not_approved`.
+
+## Durable actor evidence
+
+The local workspace contains multiple preserved sessions. Do not delete,
+promote, or rewrite them during the next milestone.
+
+### Orc Vanguard - completed generality proof
 
 - session: `orc-vanguard-20260727012850-6bb50608`
-- brief: Orc Vanguard, a broad green-skinned front-liner with a horned helmet,
-  asymmetrical armor, and crimson cloth, shown unarmed for the v1 walk scope
-- stage: Export draft complete; publishing gate remains closed
-- immutable Concept candidates:
-  - A: `concept-r0001-20260727013308-fd1e91fe`
-  - B: `concept-r0002-20260727013308-e6d9ca44`
-  - C: `concept-r0003-20260727013308-18fe2f93`
-- structural evidence: each candidate reports 6 Pass / 0 Fail / 1 Not
-  assessed; ground luma remains pending until World Test
-- user-selected Concept: A,
+- selected Concept:
   `concept-r0001-20260727013308-fd1e91fe`
-- immutable Turnaround:
+- accepted Turnaround:
   `turnaround-r0001-20260727014752-775090c7`
-- source receipt: exact Concept A id and SHA-256
-  `95d3b5a484e700f8e266651ac55f85d23e2c305f6df7101f9fcb440509baf568`,
-  `selectedBy: user`
-- byte preservation: `down.png` exactly matches the selected Concept A hash;
-  right, up, and left are separate immutable sources
-- Turnaround structural evidence: 24 Pass / 0 Fail / 4 Not assessed, with one
-  ground-luma result pending per direction
-- identity consistency: explicitly accepted by the user in chat with "looks
-  good"; this unlocks animation only and is not final-art approval
-- preserved rejected Walk Cycle:
-  `walk-cycle-r0001-20260727015657-df64eb2e`
-- source receipt: exact Turnaround r1 id and all four direction hashes,
-  `acceptedBy: user`
-- clip: `walk`, four frames per down/right/up/left direction, 300 ms
-- r1 rejection: the user explicitly rejected motion/readability because the
-  actor only wiggled back and forth and its feet did not walk; the user said
-  the remaining motion was pretty good
-- preserved motion-improved Walk Cycle:
-  `walk-cycle-r0002-20260727020559-adbbcf52`
-- r2 motion: deterministic neutral/first-foot/neutral/opposite-foot rhythm;
-  down and up visibly lift and offset alternating boots, right and left move
-  the lower foot through a two-pixel forward/back arc, and the restrained
-  armored torso/arm sway from r1 remains
-- r2 feedback: the user confirmed the walking motion was better, then requested
-  cleanup of the thin planted-heel spikes and isolated side pixels
-- preserved silhouette-cleaned Walk Cycle:
-  `walk-cycle-r0003-20260727021420-5e86e86e`
-- r3 cleanup: preserves r2 foot motion, removes artificial arm-tip pixels and
-  redundant torso/hip seam nubs, and uses a connected three-pixel planted boot
-  core; every final frame is one four-connected visible component
-- r3 feedback: the user requested more vertical bob while walking
-- preserved heavier-bobbing Walk Cycle:
-  `walk-cycle-r0004-20260727021942-2ebffe25`
-- r4 bob: preserves r3's cleaned silhouettes and foot motion, adds a one-pixel
-  downward upper-body weight drop on both passing-foot poses, and returns to
-  the exact neutral on the alternating frames; every final frame remains one
-  four-connected visible component
-- r4 feedback: the user reported that the foot broke in some frames
-- preserved stable-ankle Walk Cycle:
-  `walk-cycle-r0005-20260727043425-305dceaf`
-- r5 foot repair: preserves r4's weight drop, keeps each ankle/lower-leg column
-  fixed and connected, and restricts motion to the bottom three foot rows;
-  every final frame remains one four-connected visible component
-- r5 feedback: the user reported that the side walk looked weird
-- preserved alternating-side-foot Walk Cycle:
-  `walk-cycle-r0006-20260727044208-11ae5cca`
-- r6 side repair: preserves all eight r5 down/up frames byte for byte; each
-  right/left passing pose keeps one half-foot planted at the anchor while the
-  opposite half lifts and advances one pixel, replacing the stretched-boot
-  read with alternating feet
-- r6 feedback: the user reported that the feet were broken again; the split
-  half-foot technique produced fragmented passing-pose silhouettes and was
-  abandoned
-- preserved rigid-foot Walk Cycle:
-  `walk-cycle-r0007-20260727060748-4bd86734`
-- r7 rigid-foot repair: preserves the one-pixel passing-pose weight drop but
-  moves a complete boot in down/up and a complete lower-leg-and-boot shape in
-  right/left as one connected unit; no foot is split into independently moving
-  halves
-- r7 feedback: the user reported that the feet no longer lifted; the
-  horizontal-only repair read as a grounded shuffle
-- preserved lifted-step Walk Cycle:
-  `walk-cycle-r0008-20260727061503-7be83825`
-- r8 lifted-step repair: raises the complete swing lower leg and boot one pixel
-  above the ground row in every passing pose; down/up retain the anchor-side
-  stance boot, while right/left use a separate three-pixel-wide grounded stance
-  leg and move the complete swing leg two pixels through the stride
-- r8 feedback: the user reported that one foot still did not move in the front
-  and back views because both passing poses animated only the non-anchor boot
-- preserved alternating front/back Walk Cycle:
-  `walk-cycle-r0009-20260727061941-a5c9bfc9`
-- r9 alternating front/back repair: preserves all eight r8 side-view frames
-  byte for byte; down/up frame 1 fully lifts the non-anchor boot, while frame 3
-  raises and advances the anchor-side lower leg into a toe-off pose with a
-  connected three-by-two heel contact at the required ground anchor
-- r9 feedback: the user reported that the motion was almost correct but one
-  right-foot pixel still appeared not to move
-- preserved one-pixel cleanup Walk Cycle:
-  `walk-cycle-r0010-20260727062615-7a408516`
-- r10 one-pixel cleanup: changes the anchor-side heel to a connected two-by-two
-  color-shifted pivot, then changes only up frame 3 pixel `(21, 27)` from the
-  coincident stationary-looking outline value to the adjacent boot-ramp value
-- r10 feedback: the user still saw one small stuck right-foot pixel; diagnosis
-  showed that the exact `(16, 28)` opacity requirement itself forced a visible
-  anchor-side support pixel in every animated frame
-- approved contract clarification: the user explicitly approved retaining
-  `(16, 28)` as the static Concept/Turnaround placement anchor while allowing
-  animated Walk Cycle frames to contact anywhere on foot-anchor row 28; frame
-  0 still must preserve its accepted Turnaround source byte for byte
-- active immutable Walk Cycle:
+- accepted Walk Cycle:
   `walk-cycle-r0011-20260727064901-0ebf795f`
-- r11 full alternating-foot lift: preserves every r10 right/left frame byte for
-  byte; down/up frame 1 fully lifts the left boot, while frame 3 raises and
-  advances the complete right lower leg and boot without restoring the old
-  exact-anchor support pixel
-- frames 0 and 2 are intentional neutral beats, and frame 0 in every direction
-  is byte-identical to Turnaround r1
-- lift and connectivity evidence: down/up frame 3 has transparent alpha at
-  `(16, 28)` while the opposite boot remains grounded on row 28; all sixteen
-  r11 frames use 15 visible colors and are exactly one
-  four-connected visible component
-- Walk Cycle structural evidence: 96 Pass / 0 Fail / 16 Not assessed, with one
-  ground-luma result pending per frame
-- motion and readability: the user explicitly accepted exact Walk Cycle r11
-  with "nice very good"; this unlocks World Test only and is not final-art or
-  publishing approval
-- active immutable World Test:
+- approved World Test:
   `world-test-r0001-20260727065711-23d42e04`
-- source receipt: exact Walk Cycle r11 id plus all sixteen frame hashes,
-  `acceptedBy: user`, accepted at `2026-07-27T06:57:11.028Z`
-- reference receipt: unchanged SHA-256-pinned
-  `tileforge-world-test-v1`, source checkout
-  `3eb01d0b5cc3a59a0327a26e3f8c416401fc3c4c`, generated engine `199ed7d`
-- World Test evidence: sixteen immutable 640 x 384 scene/theme previews and
-  256 Pass / 0 Fail / 0 Not assessed ground-luma measurements
-- final-art approval: the user explicitly approved exact World Test r1 with
-  "approved"; the immutable World Test document remains Not assessed, while
-  the approval receipt is recorded only in the next-stage Export
-- active immutable draft Export:
+- draft Export:
   `export-r0001-20260727070603-f9fe69a3`
-- approval receipt: exact World Test r1 document hash plus all sixteen preview
-  hashes, `approvedBy: user`, approved at `2026-07-27T07:06:03.446Z`
-- source receipt: exact Walk Cycle r11 id plus all sixteen frame hashes
-- package: 128 x 128 RGBA `sprite-sheet.png`, `metadata.json`,
-  `provenance.json`, and `export.json`; down/right/up/left rows, frame 0-3
-  columns, 32 x 32 cells, and 300 ms timing
-- sheet SHA-256:
+- Export sheet SHA-256:
   `c2884921f552992ce1339ff7b27b2ff8ce9e4e06a9f074d351ac8f9759e1c057`
-- Export evidence: 7 Pass / 0 Fail / 0 Not assessed; every sheet cell is
-  pixel-identical to its immutable r11 source
-- preparation: local deterministic sheet builder,
-  `additionalAiCost: false`
-- status: `draft`; publishing is `not_approved`, user authority, and no
-  publishing operation exists
-- generation boundary: sources used OpenAI built-in ImageGen through the
-  user's subscription; preparation and validation were local, with no API key,
-  paid add-on, or usage-metered service
-- preservation: the fourteen Concept evidence files remain under
-  `generated-source/orc-vanguard-20260727`; sixteen Turnaround identity
-  references, prompts, sources, prepared views, comparison, and import files
-  were copied byte-for-byte under
-  `generated-source/orc-vanguard-turnaround-20260727`; sixty-one r1 Walk Cycle
-  source, preparation, rejected-working-preview, final-frame, review, and
-  import files were copied byte-for-byte under
-  `generated-source/orc-vanguard-walk-cycle-20260727`; sixty-one r2 source,
-  planted-anchor repair, preserved working preview, final frame, review, and
-  import files were copied byte-for-byte under
-  `generated-source/orc-vanguard-walk-cycle-r2-20260727`; sixty-one r3 source,
-  silhouette-cleanup, preserved working preview, final frame, review, and
-  import files were copied byte-for-byte under
-  `generated-source/orc-vanguard-walk-cycle-r3-20260727`; twenty-five r4
-  source, bob-preparation, final-frame, review, and import files were copied
-  byte-for-byte under
-  `generated-source/orc-vanguard-walk-cycle-r4-20260727`; twenty-five r5
-  source, stable-ankle preparation, final-frame, review, and import files were
-  copied byte-for-byte under
-  `generated-source/orc-vanguard-walk-cycle-r5-20260727`; twenty-five r6
-  source, alternating-side-foot preparation, final-frame, review, and import
-  files were copied byte-for-byte under
-  `generated-source/orc-vanguard-walk-cycle-r6-20260727`; twenty-five r7
-  source, rigid-foot preparation, final-frame, review, and import files were
-  copied byte-for-byte under
-  `generated-source/orc-vanguard-walk-cycle-r7-20260727`; twenty-five r8
-  source, lifted-step preparation, final-frame, review, and import files were
-  copied byte-for-byte under
-  `generated-source/orc-vanguard-walk-cycle-r8-20260727`; twenty-five r9
-  source, alternating front/back preparation, final-frame, review, and import
-  files were copied byte-for-byte under
-  `generated-source/orc-vanguard-walk-cycle-r9-20260727`; twenty-four
-  pre-import r10 working files were preserved byte-for-byte under
-  `generated-source/orc-vanguard-walk-cycle-r10-20260727`; twenty-five final
-  r10 source, one-pixel cleanup, final-frame, review, and import files were
-  copied byte-for-byte under
-  `generated-source/orc-vanguard-walk-cycle-r10-final-20260727`; twenty-five
-  r11 source, full alternating-foot-lift preparation, final-frame, review, and
-  import files were copied byte-for-byte under
-  `generated-source/orc-vanguard-walk-cycle-r11-20260727`; twenty-three World
-  Test receipt, validation, immutable preview, overview, close-up, preparation,
-  and acceptance-note files were copied byte-for-byte under
-  `generated-source/orc-vanguard-world-test-20260727`; ten Export receipt,
-  sheet, metadata, provenance, validation, preparation, approval-note, and
-  review files were copied byte-for-byte under
-  `generated-source/orc-vanguard-export-20260727`
-- animation preparation: local deterministic pixel motion,
-  `additionalAiCost: false`; no AI service was used
-- scope translation: the user's larger eight-frame axe-swing reference informed
-  character language only; v1 keeps the actor at 32 px, empty-handed, and
-  limited to the four-direction walk workflow
+- final evidence: World Test 256 Pass / 0 Fail / 0 Not assessed; Export
+  7 Pass / 0 Fail / 0 Not assessed
+- publishing: `not_approved`
 
-The earlier Snowberry Courier session
-`snowberry-courier-20260727010001-2a512f14` and its three unselected immutable
-Concepts remain preserved and unchanged. It is paused rather than deleted or
-promoted so that only the Orc Vanguard is active.
+Walk Cycle r1 through r10 remain preserved as rejected or superseded
+diagnostic revisions. R11 is the user-accepted motion/readability revision.
+The user approved exact World Test r1 as final art for the draft Export, not
+for publishing.
 
-Ignored `.studio/` state currently contains the first real M04 Turnaround and
-its first immutable direction repair:
+### Mirelight Pilgrim - first complete workflow
 
 - session: `mirelight-pilgrim-20260726212353-df9dd645`
-- user-selected Concept:
+- selected Concept:
   `concept-r0004-20260726221830-633afb02`
-- preserved original Turnaround:
-  `turnaround-r0001-20260726224205-a558350a`
 - accepted Turnaround:
   `turnaround-r0002-20260726225909-696334cf`
-- repair scope: the user rejected the r1 right-facing outline/edge bleed; r2
-  replaces only `right.png` with a deterministic mirrored and re-anchored copy
-  of the user-accepted-good left profile
-- byte preservation: r2 down, up, and left SHA-256 identities exactly match r1;
-  r1 remains unchanged
-- structural evidence: 24 Pass / 0 Fail / 4 Not assessed, with one ground-luma
-  result pending per direction
-- identity consistency: explicitly accepted by the user in chat for animation
-
-The first immutable Animate-stage candidate is now:
-
-- Walk Cycle:
+- accepted Walk Cycle:
   `walk-cycle-r0001-20260726232040-8f002087`
-- source receipt: exact Turnaround r2 id and down/right/up/left hashes,
-  `acceptedBy: user`
-- clip: `walk`, four frames per direction, 300 ms
-- structural evidence: 96 Pass / 0 Fail / 16 Not assessed, with one
-  ground-luma result pending per frame
-- motion and readability: explicitly accepted by the user in chat for World
-  Test; this is not final-art approval
-
-The first immutable World Test candidate is now:
-
-- World Test:
+- approved World Test:
   `world-test-r0001-20260726235243-bb4e1c16`
-- source receipt: exact Walk Cycle r1 id plus all sixteen source hashes,
-  `acceptedBy: user`
-- reference receipt: `tileforge-world-test-v1`, manifest SHA-256
-  `91d2a7f50ba9626c5ba5b9b78802a750682f7958b52b65316147012caf87a535`,
-  source checkout `3eb01d0b5cc3a59a0327a26e3f8c416401fc3c4c`, generated
-  engine commit `199ed7d`
-- previews: Scale Lineup, Forest Clearing, Crownhold, and Tidewater across
-  forest, autumn, dusk, and winter; sixteen immutable 640 x 384 PNGs
-- ground evidence: 240 Pass / 16 Fail / 0 Not assessed across 256 ordered
-  frame/reference measurements
-- failure concentration: eight frames fail the mean-luma proxy on dusk Scale
-  Lineup and the same eight fail on dusk Forest Clearing; all other fourteen
-  references pass all sixteen frames
-- final art: explicitly approved by the user in chat for the exact first
-  Export; the immutable World Test remains unchanged and carries no mutable
-  approval field
+- draft Export:
+  `export-r0001-20260727001749-a13580f4`
+- World Test evidence: 240 Pass / 16 Fail / 0 Not assessed, with all
+  failures on dusk grass in Scale Lineup and Forest Clearing
+- Export evidence: 7 Pass / 0 Fail / 0 Not assessed
+- publishing: `not_approved`
 
-The first immutable draft Export is now:
+Turnaround r1 remains preserved because its right-facing outline was rejected.
+R2 changed only the right view and preserved the other three sources byte for
+byte.
 
-- Export: `export-r0001-20260727001749-a13580f4`
-- final-art receipt: exact World Test r1 id, `world-test.json` SHA-256
-  `6410e02e0df0e27d114d9ff4cf354bbc072962e1478edd36421504d5c5975a30`,
-  all sixteen preview identities, `approvedBy: user`, and approval time
-- source receipt: exact Walk Cycle r1 id and all sixteen source frame hashes
-- package: `export.json`, 128 x 128 `sprite-sheet.png`, `metadata.json`, and
-  `provenance.json`
-- sheet layout: down/right/up/left rows, frame 0–3 columns, 32 x 32 cells
-- sheet SHA-256:
-  `f2a6734a63b7d762b258f9dec9d56b0e0a152ed7f843eee40dff516d60a2ac4e`
-- package evidence: 7 Pass / 0 Fail / 0 Not assessed; every sheet cell is
-  pixel-identical to its immutable source
-- preparation: local deterministic sheet builder,
-  `additionalAiCost: false`
-- status: `draft`; publishing is `not_approved`, user authority, and no
-  publishing operation exists
+### Other preserved work
 
-The built-in ImageGen sources, deterministic Turnaround repair, and
-deterministic cloak-sway Walk Cycle and World Test review evidence are
-preserved in the shared local workspace. Neither r2, Walk Cycle r1, World Test
-r1, Export r1, nor release hardening used an AI API, additional AI service, or
-incremental billing.
+- Snowberry Courier is paused with three unselected immutable Concepts.
+- The isolated M07 native QA session under `C:\tmp\tfas-m07-ui-qa` was
+  intentionally temporary and removed after verification.
+- Ignored `generated-source/` evidence preserves prompts, sources, comparisons,
+  and review artifacts from the completed actor work.
 
-## Verification evidence
+## Source versus installed release
 
-The M04 through M07 slices were verified on Windows with Node 24.15.0,
+This distinction is important:
+
+- Source `main` contains M07 from implementation commit `81f443e`.
+- All package version fields are still `0.1.0`.
+- The existing installer
+  `src-tauri\target\release\bundle\nsis\TileForge Actor Studio_0.1.0_x64-setup.exe`
+  was built for the M06 release-hardening checkpoint before M07.
+- Its recorded SHA-256 is
+  `0c52a295c8966837a9a69cec518704c0a151e80a7cace087b071c708bf4c2dfb`.
+- Fresh-install and installed-restart QA proved M06 storage and Export restore,
+  but it does not prove that an installed app contains the M07 generation
+  request UI or behavior.
+
+Do not call `0.1.0` the current M07 installer. The next release proof must
+produce and test a new versioned package.
+
+## Verification baseline
+
+At commit `81f443e`, Windows verification passed with Node 24.15.0,
 npm 11.12.1, and Rust 1.95:
 
-- `npm run check` — 0 errors and 0 warnings
-- `npm run build` — production bundle built
-- `npm run test:mcp` — twenty-eight tools, locked approval and cost contracts,
-  shared session/generation-request/Concept/Turnaround/Walk Cycle/World
-  Test/Export/report compatibility,
-  exact transition-source preservation, immutable artifact reads, 256 ground
-  measurements, Export sheet reconstruction, JSON receipt checks, independent
-  failures, collisions, tamper detection, and atomic failure cleanup passed
-- `npm run test:mcp:stdio` — real stdio transport passed
-- `npm run test:mcp:http` — real localhost HTTP transport passed while server ran
-- `cargo fmt --manifest-path src-tauri/Cargo.toml --check` — passed
-- `cargo check --manifest-path src-tauri/Cargo.toml` — passed
-- `cargo test --manifest-path src-tauri/Cargo.toml` — twenty-two
-  session/generation-request/Concept/Turnaround/Walk Cycle/World Test/Export/validation
-  compatibility, workspace resolution, safe folder-opening, and failure-path
-  tests passed
-- `npm audit --audit-level=moderate` — 0 vulnerabilities
-- isolated native M07 QA — desktop Brief → Concept created durable session
-  `mirelight-pilgrim-20260727073811-e6c44d8a` under
-  `C:\tmp\tfas-m07-ui-qa`, displayed immutable request
-  `concept-gen-r0001-20260727073811-33734fa0`, requested three separate 32 x 32
-  candidates, showed `User only`, and stated that the connected AI must use its
-  included image tool; the temporary QA app was stopped without touching the
-  real per-user workspace
-- Orc Vanguard r11 ground-contact update: all six required check/build/test
-  commands above were rerun successfully; TypeScript and Rust both pass
-  animated frames with row-28 contact after clearing `(16, 28)`, reject a
-  fully ungrounded row, and keep static exact-anchor validation unchanged
-- r11 import idempotency: a second MCP import returned `created: false` and
-  the same `walk-cycle-r0011-20260727064901-0ebf795f` identity
-- Orc Vanguard World Test r1: the exact accepted r11 receipt produced sixteen
-  immutable pinned previews and 256 Pass / 0 Fail / 0 Not assessed ground
-  measurements with final-art judgment still user-owned
-- World Test import idempotency: a second MCP preparation returned
-  `created: false` and the same
-  `world-test-r0001-20260727065711-23d42e04` identity
-- Orc Vanguard Export r1: the exact approved World Test and r11 receipts
-  produced one immutable 128 x 128 package with 7 Pass / 0 Fail / 0 Not
-  assessed evidence and publishing still `not_approved`
-- Export import idempotency: a second MCP preparation returned `created: false`
-  and the same `export-r0001-20260727070603-f9fe69a3` identity
-- Native desktop QA — after a full app restart, the app restored the exact
-  Concept r4 selection receipt and Turnaround r1, displayed all four views,
-  reported 24 Pass / 0 Fail / 4 Not assessed, and kept identity consistency
-  Not assessed and user-only
-- Local r2 repair evidence — the rejected r1 right view was replaced in a new
-  atomic Turnaround; down, up, and left hashes remain exact; validation reports
-  6 Pass / 0 Fail / 1 Not assessed per direction and 24 / 0 / 4 in aggregate
-- Native Walk Cycle QA — after a full app restart, the desktop restored Animate
-  and Walk Cycle r1, displayed the exact Turnaround r2 acceptance receipt,
-  advanced all four direction previews at 300 ms, reported 96 Pass / 0 Fail /
-  16 Not assessed, and kept motion/readability Not assessed and user-only
-- Native World Test QA — after a full app restart, the desktop restored World
-  Test r1, displayed the exact accepted Walk Cycle receipt and real Scale
-  Lineup preview, reported 240 Pass / 16 Fail / 0 Not assessed, and kept final
-  art Not assessed and user-only
-- Native Export QA — after a full app restart, the desktop restored Export r1,
-  displayed the 4 x 4 sheet, user final-art receipt, 7 Pass / 0 Fail / 0 Not
-  assessed package evidence, and `not_approved` publishing boundary; a
-  subsequent native observation confirmed the full stable Export id is visibly
-  rendered
-- Release build — `npm run tauri -- build --bundles nsis` produced the standalone
-  release executable and
-  `TileForge Actor Studio_0.1.0_x64-setup.exe`
-- Final installer SHA-256:
-  `0c52a295c8966837a9a69cec518704c0a151e80a7cace087b071c708bf4c2dfb`
-- Fresh-install QA — the current-user NSIS installer exited successfully,
-  registered version 0.1.0, and the installed executable launched from
-  `%LOCALAPPDATA%\TileForge Actor Studio`
-- Installed-state QA — the packaged app restored Mirelight Pilgrim Export r1
-  from `%LOCALAPPDATA%\TileForge\Actor Studio\.studio`, displayed its full id,
-  7 Pass / 0 Fail / 0 Not assessed evidence, closed publishing gate, and Open
-  Folder control
+- `npm run check` - 0 errors and 0 warnings
+- `npm run build` - production bundle built
+- `npm run test:mcp` - 28 tools and all shared/failure-path suites passed
+- `npm run test:mcp:stdio` - passed
+- `npm run test:mcp:http` - passed against a separately running local server
+- `cargo fmt --manifest-path src-tauri/Cargo.toml --check` - passed
+- `cargo check --manifest-path src-tauri/Cargo.toml` - passed
+- `cargo test --manifest-path src-tauri/Cargo.toml` - 22 tests passed
+- `npm audit --audit-level=moderate` - 0 vulnerabilities
 
-Re-run checks relevant to any new change. For the HTTP smoke test, start
-`npm run mcp:http` in a separate terminal first.
+Native M07 QA used an isolated workspace and proved that Brief -> Concept
+created session `mirelight-pilgrim-20260727073811-e6c44d8a`, displayed request
+`concept-gen-r0001-20260727073811-33734fa0`, requested three separate
+candidates, showed user-only approval, and restored the durable request.
 
-## Recommended next milestone
+Re-run checks relevant to every change. Run `npm run mcp:http` in a separate
+terminal before `npm run test:mcp:http`.
 
-M07's provider-neutral generation bridge is implemented. A new desktop Concept
-now saves both its session and a stable generation request; Codex, Claude, and
-Antigravity can list and read that exact request through MCP, use an included
-native image capability when available, and import each output through the
-existing immutable candidate path. The app intentionally cannot trigger a
-provider subscription by itself because there is no client-neutral
-subscription API.
+## Recommended next milestone: M08
 
-The next useful proof is to run one fresh actor request end to end from another
-connected client, confirming its native image capability and generated
-provenance behavior without changing the protocol. If that client lacks an
-included image tool, leave the request intact and use another client or manual
-import. Never enable pay-as-you-go APIs, purchased credits, usage-metered
-billing, or paid add-ons.
+M08 is an installed cross-client generation proof, not a new provider
+integration.
 
-The completed Orc Vanguard draft Export
-`export-r0001-20260727070603-f9fe69a3` remains immutable. Publishing remains a
-separate user-owned scope decision and is not implemented in version 1.
+1. Bump the application package consistently from `0.1.0` to `0.1.1` in
+   `package.json`, the root `package-lock.json` entries,
+   `src-tauri/tauri.conf.json`, `src-tauri/Cargo.toml`, and the Actor Studio
+   package entry in `src-tauri/Cargo.lock`.
+2. Build a new current-user NSIS installer from the verified M07 source.
+3. Install it and prove that the installed desktop creates a generation
+   request, displays its stable identity, and restores it after a full app
+   restart.
+4. Verify that MCP reads the exact same installed-workspace request.
+5. Create one fresh, simple actor session for the cross-client proof.
+6. In an active connected client, read the newest request and confirm whether
+   that client actually has an included native image capability.
+7. If it does, generate the requested outputs separately and import each as an
+   immutable unreviewed Concept revision. If it does not, retain the request
+   and report the limitation; do not connect a paid API.
+8. Show the imported candidates in the installed desktop and stop for the
+   user's visual selection.
+
+M08 must not claim that request creation automatically wakes or controls an AI
+client. It must not add provider credentials, usage billing, autonomous
+approval, publishing, or broader art scope.
+
+The completed Orc Vanguard draft remains immutable during this proof.
 
 ## Handoff discipline
 
 When completing a milestone:
 
-1. update this file’s implemented/not-implemented sections;
+1. update this file's source, release, implemented, and next-milestone truth;
 2. update `docs/ROADMAP.md`;
-3. record architecture decisions in `docs/DECISIONS.md`;
-4. run and report the relevant checks;
-5. preserve unrelated user changes;
-6. do not commit or push unless the user explicitly requests it.
+3. record durable choices in `docs/DECISIONS.md`;
+4. update `docs/START_NEW_CHAT.md`;
+5. run and report the relevant checks;
+6. preserve unrelated user changes and every immutable artifact;
+7. commit and push only when the user has authorized it.
+
+The current user has authorized coherent verified commits and pushes for this
+project. Still report the exact commit and branch, and never treat that
+authorization as permission to publish art or use a paid service.

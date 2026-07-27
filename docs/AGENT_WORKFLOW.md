@@ -20,7 +20,7 @@ An agent may:
 - generate a new candidate with a connected client's native subscription
   image capability, or import a local candidate
 - compare candidates
-- run structural and visual validators
+- run structural validators and prepare visual comparison evidence
 - prepare a draft export
 
 An agent may not:
@@ -36,7 +36,7 @@ An agent may not:
 | Stage | Input | Agent output | Human gate |
 | --- | --- | --- | --- |
 | Brief | Name, mob/NPC, short description | Compiled constrained prompt | Brief remains editable |
-| Concept | Compiled prompt | Immutable front-view candidates | Select a concept |
+| Concept | Compiled prompt | Immutable down-facing candidates | Select a concept |
 | Turnaround | Selected concept | Down/right/up/left views | Accept identity consistency |
 | Animate | Accepted turnaround | Four walk frames per direction | Accept motion/readability |
 | World test | Candidate sheet | Scale and terrain previews plus validator report | Approve final art |
@@ -53,9 +53,11 @@ revision and preserve the evidence trail.
 4. Call `create_concept_generation_request`, or read the newest request from
    `list_concept_generation_requests`, before using image generation. Use the
    request's exact prompt separately for each requested output.
-5. Use only the connected client's native image capability covered by the
-   user's subscription. If that capability is unavailable, leave the request
-   intact and use manual PNG import; do not substitute a paid API.
+5. Treat the request as a durable handoff, not a dispatched job. It does not
+   invoke or wake a client. In an active client task, use only a native image
+   capability covered by the user's subscription. If that capability is
+   unavailable, leave the request intact and use manual PNG import; do not
+   substitute a paid API.
 6. Call `import_concept_candidate` to publish each new PNG as an immutable
    revision.
 7. Use `list_concept_candidates` and `get_concept_candidate` to compare saved

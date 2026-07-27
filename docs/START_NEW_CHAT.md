@@ -8,8 +8,14 @@ Continue TileForge Actor Studio in the exact repository:
 
 C:\Users\headc\Documents\TileForge-Actor-Studio
 
-Start with a read-only orientation. Verify Get-Location, git status -sb, the
-latest git log, and the configured remote. Then read these files completely:
+Begin with a read-only orientation. Verify:
+
+Get-Location
+git status -sb
+git log -5 --oneline --decorate
+git remote -v
+
+Then completely read:
 
 1. AGENTS.md
 2. HANDOFF.md
@@ -20,45 +26,84 @@ latest git log, and the configured remote. Then read these files completely:
 7. docs/ROADMAP.md
 8. docs/DECISIONS.md
 9. docs/MCP.md
+10. docs/START_NEW_CHAT.md
 
-Reconcile the documentation with the live code and Git state before editing.
-Preserve any existing dirty work and report anything that disagrees with the
-handoff.
+Reconcile the documentation with the live code, package versions, local
+artifacts, and Git state before editing. Preserve existing dirty work and
+report anything that disagrees with the handoff.
 
 Hard boundaries:
 
 - Do not modify C:\Users\headc\Documents\animation_editor_live.
-- Do not modify C:\Users\headc\Documents\Semantic tile generator design.
-- Treat both as read-only references only.
-- Keep version 1 limited to one 32 px mob or NPC at a time.
+- Do not modify
+  C:\Users\headc\Documents\Semantic tile generator design.
+- Treat both external repositories as read-only evidence.
+- Keep version 1 focused on one 32 px mob or NPC at a time.
 - Agents may create, compare, validate, and prepare candidates, but only I may
-  approve final art or publishing.
-- Never overwrite generated candidates; create immutable revisions.
+  select stage transitions, approve final art, or approve publishing.
+- Never overwrite a generated candidate; create a new immutable revision.
 - Keep Codex, Claude, and Antigravity on the same client-neutral MCP contract.
+- Do not add maps, tiles, bosses, effects, attacks, equipment, paperdolls,
+  batching, autonomous approval, or publishing.
+- Do not use any AI service that costs extra beyond my existing subscriptions.
+  No pay-as-you-go APIs, purchased credits, usage billing, or paid add-ons.
 
-After orientation, verify the completed M04 through M06 behavior against the
-live code and checks. The user accepted immutable Turnaround r2 for animation,
-Walk Cycle r1 for World Test, and World Test r1 as final art for the exact
-local draft Export r1. World Test r1 preserves sixteen pinned previews and
-reports 240 Pass / 16 Fail / 0 Not assessed across 256 ground checks; its
-failures are concentrated on dusk grass in Scale Lineup and Forest Clearing.
-Export `export-r0001-20260727001749-a13580f4` preserves the exact user approval
-receipt, a 128 x 128 4 x 4 sheet, metadata, and provenance and reports 7 Pass /
-0 Fail / 0 Not assessed. The Windows installer and installed launch are
-verified; desktop and MCP default to
-`%LOCALAPPDATA%\TileForge\Actor Studio\.studio`, and the desktop can reveal a
-validated package in Explorer. Export remains a local draft. Publishing is a
-separate unapproved user gate, and no publishing operation exists. Keep every
-repair immutable and keep structural evidence separate from human authority.
+Expected checkpoint, which you must verify live:
 
-Do not use any AI service that adds cost beyond my existing subscriptions. No
-pay-as-you-go APIs, purchased credits, usage billing, or paid add-ons.
+- main contains M07 implementation commit 81f443e
+  (Add subscription-native generation requests), followed only by a possible
+  documentation-audit checkpoint;
+- main is expected to be clean and synchronized with origin/main;
+- M07 is complete in source;
+- MCP exposes 28 tools;
+- desktop and MCP share immutable generation requests and later artifacts
+  under %LOCALAPPDATA%\TileForge\Actor Studio\.studio by default;
+- TFAS_WORKSPACE overrides that root for both adapters;
+- the existing TileForge Actor Studio_0.1.0_x64-setup.exe is the older verified
+  M06 package and does not contain M07;
+- publishing remains absent and every Export remains a local draft.
 
-Make reasonable implementation decisions within that scope and keep moving.
-Do not stop at a plan unless a choice would materially expand the product or
-requires my authority.
+Continue with M08: Installed cross-client generation proof.
 
-Before claiming completion, run the relevant checks:
+1. Verify and bump the application version consistently from 0.1.0 to 0.1.1
+   in package.json, the root package-lock.json entries,
+   src-tauri/tauri.conf.json, src-tauri/Cargo.toml, and the Actor Studio package
+   entry in src-tauri/Cargo.lock. Do not bulk-rewrite unrelated dependency
+   versions.
+2. Run the required source checks, then build a new current-user NSIS installer
+   from the M07 source and record its SHA-256.
+3. Install 0.1.1 and prove the installed desktop creates a Concept generation
+   request, shows its stable request id, and restores it after a full restart.
+4. Verify MCP reads that exact request from the installed per-user workspace.
+5. Create one fresh simple actor for the cross-client proof. Do not mutate or
+   promote the completed Orc Vanguard draft.
+6. In an active connected client, list and read the newest request. A request
+   is a durable handoff, not a dispatched job: creating one does not wake or
+   control Codex, Claude, Antigravity, or an image provider.
+7. Confirm whether that client actually has a native image capability included
+   in my subscription. If yes, use the exact request prompt separately for each
+   requested output and import every PNG through import_concept_candidate with
+   generated provenance. If not, retain the request and report the limitation;
+   do not connect a paid API.
+8. Show the immutable unreviewed candidates in the installed desktop and stop
+   for my visual selection.
+
+The completed Orc Vanguard checkpoint must remain immutable:
+
+- session: orc-vanguard-20260727012850-6bb50608
+- accepted Walk Cycle:
+  walk-cycle-r0011-20260727064901-0ebf795f
+- approved World Test:
+  world-test-r0001-20260727065711-23d42e04
+- draft Export:
+  export-r0001-20260727070603-f9fe69a3
+- publishing: not_approved
+
+Make reasonable implementation decisions within this scope and keep working.
+Do not stop at a plan unless a choice materially expands the product, requires
+new spending, or requires my visual/publishing authority.
+
+Before claiming completion, run:
 
 npm run check
 npm run build
@@ -69,9 +114,12 @@ cargo check --manifest-path src-tauri/Cargo.toml
 cargo test --manifest-path src-tauri/Cargo.toml
 npm audit --audit-level=moderate
 
-For the HTTP MCP smoke test, start npm run mcp:http separately and then run
-npm run test:mcp:http.
+For the HTTP MCP smoke test, start npm run mcp:http separately and then run:
 
-Update HANDOFF.md, docs/ROADMAP.md, and docs/DECISIONS.md to match the result.
-Do not commit or push unless I explicitly ask.
+npm run test:mcp:http
+
+Update HANDOFF.md, docs/ROADMAP.md, docs/DECISIONS.md, and
+docs/START_NEW_CHAT.md to match the verified result. You may commit and push a
+coherent verified checkpoint; report the exact commit and branch. That
+permission does not authorize publishing art or using a paid service.
 ```

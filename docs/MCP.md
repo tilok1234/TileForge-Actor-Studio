@@ -116,12 +116,15 @@ subscription-only execution rule, and human approval boundary are immutable.
 The desktop creates the first request automatically with a new session and
 shows its stable id after restart.
 
-To fulfill a request, read it with `get_concept_generation_request`, invoke the
-connected client's native image tool separately for each requested candidate,
-and pass every resulting PNG to `import_concept_candidate` with generated
-provider provenance. If the client has no included native image capability,
-leave the request intact and use another connected client or manual import.
-Never add an API key, metered endpoint, purchased credits, or usage billing.
+Creating the request does not wake a client, dispatch a background job, or call
+an image provider. In an active client task, list the session's requests, read
+the newest request with `get_concept_generation_request`, and verify that the
+client actually has a native image tool included in the user's subscription.
+Invoke that tool separately for each requested candidate and pass every PNG to
+`import_concept_candidate` with generated provider provenance. If the client
+has no included native image capability, leave the request intact and use
+another connected client or manual import. Never add an API key, metered
+endpoint, purchased credits, or usage billing.
 
 `import_concept_candidate` accepts PNG bytes with imported or generated
 provenance. Generated provenance must name its provider, but Actor Studio does

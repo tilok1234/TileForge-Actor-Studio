@@ -111,11 +111,15 @@ Generation requests deliberately stop at the filesystem/MCP boundary. They
 record the exact prompt, expected output, subscription-only cost rule, and
 human approval rule. The connected AI client may use its own included native
 image capability, but the core stores no provider credentials and calls no
-metered image API.
+metered image API. Creating a request does not dispatch a background job,
+invoke a client, or mutate a fulfillment status. Later immutable Concept
+imports are separate records; the request itself remains an unchanged work
+order.
 
 The JSON documents, identity rules, brief and intake limits, hashes, and
 directory layout form one local protocol; the Rust and TypeScript adapters are
 not separate stores. `tests/fixtures/session-v1.json`,
+`tests/fixtures/concept-generation-request-v1.json`,
 `tests/fixtures/concept-candidate-v1.json`,
 `tests/fixtures/turnaround-candidate-v1.json`, and
 `tests/fixtures/walk-cycle-candidate-v1.json`, and

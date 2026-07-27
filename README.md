@@ -5,16 +5,20 @@ The artist supplies the identity; the studio supplies the boundaries.
 
 Current status: **M07 subscription-native generation handoff is complete.**
 M06 release hardening and the full second-actor generality run remain complete.
-The desktop and MCP gateway share durable local sessions,
-provider-neutral generation requests, never-overwritten Concept, Turnaround,
-Walk Cycle, World Test, and Export
-revisions, user-owned transition receipts, and local deterministic validation
-reports. A current-user Windows installer is available, and the desktop can
-reveal a validated immutable Export in Explorer. Publishing remains a separate
-unapproved user gate. Image generation is now a built-in handoff: Actor Studio
-stores the exact request and every supported AI client can read it through MCP,
-while the image invocation stays inside that client's existing subscription.
-No image-generation provider API is integrated.
+The desktop and MCP gateway share durable local sessions, provider-neutral
+generation requests, never-overwritten Concept, Turnaround, Walk Cycle, World
+Test, and Export revisions, user-owned transition receipts, and local
+deterministic validation reports. Image generation is a durable handoff:
+Actor Studio stores the exact request and connected clients can read it through
+MCP, while an optional image invocation stays inside a client that actually
+provides an included native capability. Creating a request does not dispatch
+or wake an AI client. No image-generation provider API is integrated.
+
+The existing current-user `0.1.0` Windows installer is the verified M06 package
+and predates M07. It can restore and reveal a validated immutable Export, but
+it does not contain the M07 generation-request UI. M08 will build and test a
+new versioned installer before the packaged application is described as
+M07-current. Publishing remains a separate unapproved user gate.
 
 The initial workflow has six deliberate stages:
 
@@ -27,15 +31,16 @@ The initial workflow has six deliberate stages:
 
 This repository is a clean-room successor to a larger experimental animation
 editor. It does not modify or depend on that editor. TileForge is also treated
-as a read-only visual reference: Actor Studio may consume a future pinned
-reference pack, but it never writes into the TileForge repository.
+as a read-only visual reference: Actor Studio tracks one copied,
+SHA-256-pinned World Test reference pack, but it never writes into the
+TileForge repository.
 
 ## Documentation
 
 - [HANDOFF.md](HANDOFF.md) — verified continuation point and implementation truth
 - [docs/ROADMAP.md](docs/ROADMAP.md) — milestone sequence and acceptance criteria
 - [docs/ARCHITECTURE.md](docs/ARCHITECTURE.md) — system boundaries and layers
-- [docs/DECISIONS.md](docs/DECISIONS.md) — durable design decisions and open ADR
+- [docs/DECISIONS.md](docs/DECISIONS.md) — durable product and architecture decisions
 - [docs/AGENT_WORKFLOW.md](docs/AGENT_WORKFLOW.md) — authority and approval flow
 - [docs/MCP.md](docs/MCP.md) — Codex, Claude Code, and Antigravity setup
 - [docs/START_NEW_CHAT.md](docs/START_NEW_CHAT.md) — copy-paste continuation prompt
@@ -96,10 +101,10 @@ When the desktop starts a new Concept, it also saves an immutable AI generation
 request and shows the request id. A connected Codex, Claude, or Antigravity
 client can read the same request, use an included native image tool when
 available, and import each result as a separate candidate. The desktop requests
-three alternatives by default; MCP callers may request one through four. If no included image
-tool is available, the request remains safe for another client or manual PNG
-import. Actor Studio never asks for an API key and never falls back to metered
-image generation.
+three alternatives by default; MCP callers may request one through four. If no
+included image tool is available, the request remains safe for another client
+or manual PNG import. Actor Studio never asks for an API key, automatically
+invokes a client, or falls back to metered image generation.
 
 ## Verify
 
@@ -153,10 +158,12 @@ publishing remains unavailable and user-only. M06 gives the packaged desktop
 and MCP gateway the same uninstall-safe per-user workspace, keeps
 `TFAS_WORKSPACE` as an explicit override, adds a validated Open Export Folder
 action, and produces a current-user NSIS installer without administrator
-rights. The post-M06 generation bridge adds immutable
+rights. That verified `0.1.0` package predates M07. M07 adds immutable
 `generation-requests/<request-id>/request.json` work orders shared by desktop
 and MCP, including the exact prompt, output count, no-additional-cost rule, and
-user-only approval boundary.
+user-only approval boundary. M08 will package M07 as `0.1.1` and prove the
+installed request survives restart and is readable from another connected
+client.
 
 Future AI integrations may use only capabilities already covered by the user's
 subscriptions. Pay-as-you-go APIs, purchased credits, usage billing, and paid

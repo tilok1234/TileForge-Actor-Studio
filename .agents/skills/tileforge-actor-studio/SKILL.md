@@ -9,6 +9,8 @@ description: Work on one constrained 32px TileForge mob or NPC through brief, co
    `contracts/tileforge-actor-32-v1.json`.
 2. Use the Actor Studio MCP tools when connected.
 3. Read or create the newest Concept generation request before image work.
+   Treat it as a durable handoff, not a dispatched job; it does not invoke a
+   client automatically.
    Use its exact prompt with a native image tool included in the connected
    client's subscription, then import each output as a separate immutable
    candidate. Never connect a paid API or request credentials.
