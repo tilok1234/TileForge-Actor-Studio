@@ -210,18 +210,29 @@ The post-release generality run is active with a deliberately different mob:
   fixed and connected, and restricts motion to the bottom three foot rows;
   every final frame remains one four-connected visible component
 - r5 feedback: the user reported that the side walk looked weird
-- active immutable Walk Cycle:
+- preserved alternating-side-foot Walk Cycle:
   `walk-cycle-r0006-20260727044208-11ae5cca`
 - r6 side repair: preserves all eight r5 down/up frames byte for byte; each
   right/left passing pose keeps one half-foot planted at the anchor while the
   opposite half lifts and advances one pixel, replacing the stretched-boot
   read with alternating feet
+- r6 feedback: the user reported that the feet were broken again; the split
+  half-foot technique produced fragmented passing-pose silhouettes and was
+  abandoned
+- active immutable Walk Cycle:
+  `walk-cycle-r0007-20260727060748-4bd86734`
+- r7 rigid-foot repair: preserves the one-pixel passing-pose weight drop but
+  moves a complete boot in down/up and a complete lower-leg-and-boot shape in
+  right/left as one connected unit; no foot is split into independently moving
+  halves
 - frames 0 and 2 are intentional neutral beats, and frame 0 in every direction
   is byte-identical to Turnaround r1
+- connectivity evidence: every r7 frame is exactly one four-connected visible
+  component, including all four passing poses
 - Walk Cycle structural evidence: 96 Pass / 0 Fail / 16 Not assessed, with one
   ground-luma result pending per frame
 - motion and readability: Not assessed with user authority; the next action is
-  the user's acceptance or rejection of exact Walk Cycle r6,
+  the user's acceptance or rejection of exact Walk Cycle r7,
   and no World Test may be created before that decision
 - generation boundary: sources used OpenAI built-in ImageGen through the
   user's subscription; preparation and validation were local, with no API key,
@@ -248,7 +259,10 @@ The post-release generality run is active with a deliberately different mob:
   `generated-source/orc-vanguard-walk-cycle-r5-20260727`; twenty-five r6
   source, alternating-side-foot preparation, final-frame, review, and import
   files were copied byte-for-byte under
-  `generated-source/orc-vanguard-walk-cycle-r6-20260727`
+  `generated-source/orc-vanguard-walk-cycle-r6-20260727`; twenty-five r7
+  source, rigid-foot preparation, final-frame, review, and import files were
+  copied byte-for-byte under
+  `generated-source/orc-vanguard-walk-cycle-r7-20260727`
 - animation preparation: local deterministic pixel motion,
   `additionalAiCost: false`; no AI service was used
 - scope translation: the user's larger eight-frame axe-swing reference informed
@@ -399,7 +413,7 @@ Re-run checks relevant to any new change. For the HTTP smoke test, start
 M06 release hardening is complete. The second-actor generality test is now at
 the Orc Vanguard Animate motion/readability gate. The next action is the user's
 acceptance or rejection of
-`walk-cycle-r0006-20260727044208-11ae5cca`. If accepted, create a World Test
+`walk-cycle-r0007-20260727060748-4bd86734`. If accepted, create a World Test
 tied to that exact sixteen-frame receipt and the pinned reference pack. If
 rejected, create a new immutable Walk Cycle revision and preserve the current
 candidate. Keep this one mob active and preserve every revision. Publishing

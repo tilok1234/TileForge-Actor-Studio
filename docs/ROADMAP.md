@@ -308,13 +308,21 @@ Current evidence:
   preserves all eight r5 down/up frames byte for byte and replaces the
   stretched side boot with one planted half-foot plus one half-foot that lifts
   and advances by one pixel;
+- the user reported that r6's feet were broken again; its split half-foot
+  technique produced fragmented passing-pose silhouettes and was abandoned;
+- rigid-foot Walk Cycle `walk-cycle-r0007-20260727060748-4bd86734` preserves
+  the passing-pose weight drop while moving each animated boot or
+  lower-leg-and-boot shape as one connected unit, with no independently moving
+  foot fragments;
+- frames 0 and 2 remain exact neutral beats, and every r7 frame is exactly one
+  four-connected visible component;
 - Walk Cycle validation reports 96 Pass / 0 Fail / 16 Not assessed, while
   motion and readability remain Not assessed with user authority;
 - generation used built-in subscription ImageGen outside the provider-neutral
   core; transparency preparation and validation were local and incurred no
   additional AI-service cost;
 - the next transition is blocked only on the user's acceptance or rejection of
-  exact Walk Cycle r6 motion/readability; no World Test may be created before
+  exact Walk Cycle r7 motion/readability; no World Test may be created before
   that decision;
 - the larger attack-animation reference was translated only into original
   32 px character language; attacks, weapons, and equipment remain outside the
