@@ -257,12 +257,12 @@ Implemented:
 Status: in progress at the user-owned Concept selection gate.
 
 Goal: exercise the unchanged version 1 workflow with a visually and
-semantically different NPC, exposing any remaining assumptions tied to the
+semantically different actor, exposing any remaining assumptions tied to the
 first Mirelight Pilgrim mob without widening product scope.
 
 Current evidence:
 
-- durable NPC session `snowberry-courier-20260727010001-2a512f14` is shared by
+- durable mob session `orc-vanguard-20260727012850-6bb50608` is shared by
   desktop and MCP in the per-user workspace;
 - three immutable down-facing Concept candidates were imported through MCP;
 - all three report 6 Pass / 0 Fail / 1 Not assessed, with ground luma correctly
@@ -272,6 +272,11 @@ Current evidence:
   additional AI-service cost;
 - the next transition is blocked only on the user's selection of one exact
   Concept identity; no Turnaround may be created before that decision.
+- the larger attack-animation reference was translated only into original
+  32 px character language; attacks, weapons, and equipment remain outside the
+  v1 workflow;
+- the paused Snowberry Courier session and all three of its unselected
+  Concepts remain preserved without mutation.
 
 ## Deferred beyond version 1
 

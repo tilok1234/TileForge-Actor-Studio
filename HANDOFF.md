@@ -150,16 +150,16 @@ publishing boundary;
 
 ## Current local artifact and publishing gate
 
-The post-release generality run is active with a deliberately different NPC:
+The post-release generality run is active with a deliberately different mob:
 
-- session: `snowberry-courier-20260727010001-2a512f14`
-- brief: Snowberry Courier, a small village courier in an indigo hooded coat,
-  berry-red scarf, and tan cross-body mail satchel
+- session: `orc-vanguard-20260727012850-6bb50608`
+- brief: Orc Vanguard, a broad green-skinned front-liner with a horned helmet,
+  asymmetrical armor, and crimson cloth, shown unarmed for the v1 walk scope
 - stage: Concept; no candidate has been selected
 - immutable Concept candidates:
-  - A: `concept-r0001-20260727010550-4a5f2ed7`
-  - B: `concept-r0002-20260727010550-a3cb97a7`
-  - C: `concept-r0003-20260727010550-b75debf8`
+  - A: `concept-r0001-20260727013308-fd1e91fe`
+  - B: `concept-r0002-20260727013308-e6d9ca44`
+  - C: `concept-r0003-20260727013308-18fe2f93`
 - structural evidence: each candidate reports 6 Pass / 0 Fail / 1 Not
   assessed; ground luma remains pending until World Test
 - visual judgment: Not assessed with user authority; the next action requires
@@ -169,7 +169,15 @@ The post-release generality run is active with a deliberately different NPC:
   paid add-on, or usage-metered service
 - preservation: fourteen source, prompt, preparation, comparison, and import
   evidence files were copied byte-for-byte into the shared per-user workspace
-  under `generated-source/snowberry-courier-20260727`
+  under `generated-source/orc-vanguard-20260727`
+- scope translation: the user's larger eight-frame axe-swing reference informed
+  character language only; v1 keeps the actor at 32 px, empty-handed, and
+  limited to the four-direction walk workflow
+
+The earlier Snowberry Courier session
+`snowberry-courier-20260727010001-2a512f14` and its three unselected immutable
+Concepts remain preserved and unchanged. It is paused rather than deleted or
+promoted so that only the Orc Vanguard is active.
 
 Ignored `.studio/` state currently contains the first real M04 Turnaround and
 its first immutable direction repair:
@@ -308,10 +316,10 @@ Re-run checks relevant to any new change. For the HTTP smoke test, start
 ## Recommended next milestone
 
 M06 release hardening is complete. The second-actor generality test is now at
-the Snowberry Courier Concept gate. The next action is the user's visual
+the Orc Vanguard Concept gate. The next action is the user's visual
 selection of candidate A, B, or C (or a request for another immutable
 candidate), followed by a four-direction Turnaround tied to that exact selected
-Concept. Keep this one NPC active and preserve every revision. Publishing
+Concept. Keep this one mob active and preserve every revision. Publishing
 remains a separate user-owned scope decision and is not implemented in version
 1; do not add a destination or publish without explicit authority.
 
