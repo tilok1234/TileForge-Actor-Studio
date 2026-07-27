@@ -326,16 +326,22 @@ Current evidence:
   `walk-cycle-r0009-20260727061941-a5c9bfc9` preserves all eight r8 side frames
   byte for byte, fully lifts the non-anchor boot in one passing pose, and moves
   the anchor-side boot into a connected heel-pivot/toe-off pose in the other;
-- frames 0 and 2 remain exact neutral beats; both front/back feet now change on
-  alternating passing poses, and every r9 frame is exactly one four-connected
-  visible component;
+- the user reported that r9 was almost correct but one right-foot pixel still
+  appeared not to move;
+- one-pixel cleanup Walk Cycle `walk-cycle-r0010-20260727062615-7a408516`
+  reshapes the anchor heel as a connected two-by-two color-shifted pivot and
+  changes the one coincident up-facing outline value at `(21, 27)` to the
+  adjacent boot-ramp value;
+- frames 0 and 2 remain exact neutral beats; no down/up anchor-side lower-foot
+  pixel retains its neutral-source RGBA value, and every r10 frame is exactly
+  one four-connected visible component;
 - Walk Cycle validation reports 96 Pass / 0 Fail / 16 Not assessed, while
   motion and readability remain Not assessed with user authority;
 - generation used built-in subscription ImageGen outside the provider-neutral
   core; transparency preparation and validation were local and incurred no
   additional AI-service cost;
 - the next transition is blocked only on the user's acceptance or rejection of
-  exact Walk Cycle r9 motion/readability; no World Test may be created before
+  exact Walk Cycle r10 motion/readability; no World Test may be created before
   that decision;
 - the larger attack-animation reference was translated only into original
   32 px character language; attacks, weapons, and equipment remain outside the
