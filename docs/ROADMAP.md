@@ -428,36 +428,47 @@ image invocation.
 
 ## M08 - Installed cross-client generation proof
 
-Status: next.
+Status: complete at the intended user Concept-selection gate.
 
 Goal: package the completed M07 source and prove that one durable Concept
 request can cross the installed desktop/MCP boundary without adding a provider
 API or extra-cost service.
 
-Acceptance criteria:
+Implemented and verified:
 
 - the application version advances consistently from `0.1.0` to `0.1.1` in
-  `package.json`, the root `package-lock.json` entries,
-  `src-tauri/tauri.conf.json`, `src-tauri/Cargo.toml`, and the Actor Studio
+  `package.json`, the two root `package-lock.json` entries,
+  `src-tauri/tauri.conf.json`, `src-tauri/Cargo.toml`, and only the Actor Studio
   package entry in `src-tauri/Cargo.lock`;
-- a new current-user NSIS installer is built from the verified M07 source and
-  recorded with its SHA-256;
-- the installed desktop creates a durable generation request, displays its
-  stable identity, and restores it after a full app restart;
-- MCP reads the exact same request from the installed per-user workspace;
-- one fresh simple actor is used for the proof without changing or promoting
-  the completed Orc Vanguard draft;
-- an active connected client confirms whether it actually has a native image
-  capability included in the user's subscription;
-- when that capability exists, it produces the requested outputs separately
-  and imports each PNG as an immutable unreviewed Concept revision;
-- when it does not exist, the request remains durable and the limitation is
-  reported without connecting a paid API;
-- the installed desktop shows the imported revisions and stops for the user's
-  visual selection;
-- no request is described as a dispatched job, no client is claimed to have
-  image generation without a live proof, and no autonomous approval or
-  publishing capability is added.
+- current-user NSIS installer
+  `TileForge Actor Studio_0.1.1_x64-setup.exe` was built from verified M07
+  source with SHA-256
+  `b9686db13d425083a9c8d55cf558c2796dd18d7c40c6ccd19bfea1292a97ff96`;
+- the installer completed successfully, and its installed executable reports
+  product/file version `0.1.1`;
+- the installed desktop created Mosscap Scout session
+  `mosscap-scout-20260727225718-dc51655e` plus immutable request
+  `concept-gen-r0001-20260727225718-749783a6`, displayed both identities, and
+  restored them after a full close and restart;
+- a separately connected HTTP MCP client listed that request as newest and read
+  the exact prompt, three-output contract, no-additional-cost boundary, and
+  user-only approval boundary from the shared per-user workspace;
+- Codex's built-in subscription ImageGen was confirmed live and invoked three
+  separate times with the exact request prompt;
+- local deterministic background removal, contract sizing, hard-alpha
+  conversion, placement, and palette limiting produced three 32 x 32 PNGs
+  without another AI service;
+- MCP preserved those outputs with generated provenance as immutable unreviewed
+  Concepts r1-r3; each validates at 6 Pass / 0 Fail / 1 Not assessed, with
+  visual judgment still user-owned;
+- after another full installed restart, the desktop exposed r1, r2, and r3 at
+  the Concept comparison surface and loaded each revision at 8x;
+- the completed Orc Vanguard draft and its publishing lock remained unchanged;
+- no provider API, credential, metered service, autonomous approval, publishing
+  operation, or wider art scope was added.
+
+The next action is not another autonomous milestone: the user must visually
+select one Mosscap Scout Concept or reject all three before Turnaround work.
 
 ## Deferred beyond version 1
 

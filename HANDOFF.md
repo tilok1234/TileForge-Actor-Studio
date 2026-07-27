@@ -44,10 +44,14 @@ As of 2026-07-28:
 - branch: `main`
 - M07 implementation commit: `81f443e`
   (`Add subscription-native generation requests`)
+- documentation audit commit: `0a54b33`
+  (`Refresh handoff for installed M07 proof`)
+- the containing checkpoint completes the M08 installed proof and application
+  version `0.1.1`
 - expected remote: `https://github.com/tilok1234/TileForge-Actor-Studio.git`
-- a later documentation-only audit commit may be at HEAD
-- expected state after the audit: clean and synchronized with `origin/main`
-- source milestone: M07 complete
+- expected state after the M08 checkpoint: clean and synchronized with
+  `origin/main`
+- source and installed milestone: M08 complete at the Concept selection gate
 - MCP surface: 28 tools
 
 These are orientation expectations, not permission to skip live verification.
@@ -112,7 +116,7 @@ Complete records are written to hidden same-parent temporary directories and
 published with one rename. Readers rehash stored artifacts. Identity
 collisions fail instead of overwriting.
 
-## Implemented through M07
+## Implemented through M08
 
 ### Brief and durable session
 
@@ -141,6 +145,28 @@ collisions fail instead of overwriting.
 - Actor Studio has no provider API, API key, fulfillment worker, mutable
   request status, or paid fallback.
 
+### Installed cross-client generation proof
+
+- All application version fields are `0.1.1`, including only the root
+  JavaScript lock entries and the Actor Studio Rust package entry.
+- A new current-user NSIS package was built from M07 source, installed over the
+  historical `0.1.0` package, and verified from its installed executable.
+- The installed desktop created a fresh Concept session and generation request,
+  displayed both stable identities, and restored the exact request after a
+  full close and restart.
+- A separately connected MCP HTTP client listed that request as newest and
+  read the exact immutable prompt and three-output contract from the shared
+  per-user workspace.
+- Codex's built-in subscription ImageGen was confirmed live and invoked three
+  separate times with the exact stored prompt. The large returned previews
+  were converted locally into three hard-alpha, contract-sized PNGs without an
+  additional AI service.
+- MCP imported all three results with generated provenance as immutable
+  unreviewed Concept revisions. Each reports 6 Pass / 0 Fail / 1 Not assessed;
+  ground contrast waits for World Test and visual judgment remains user-only.
+- After another installed restart, the desktop restored all three revisions,
+  displayed each at 8x, and kept the workflow at Concept.
+
 ### Concept through Export
 
 - Concept intake preserves each original 32 x 32 transparent PNG as an
@@ -167,6 +193,29 @@ collisions fail instead of overwriting.
 
 The local workspace contains multiple preserved sessions. Do not delete,
 promote, or rewrite them during the next milestone.
+
+### Mosscap Scout - installed cross-client proof
+
+- session: `mosscap-scout-20260727225718-dc51655e`
+- generation request:
+  `concept-gen-r0001-20260727225718-749783a6`
+- requested outputs: three separate 32 x 32 down-facing candidates
+- immutable Concept r1:
+  `concept-r0001-20260727230409-aa483745`
+  (`6abe270ea4c7c12668cbf9d0205fddd618c5117e5e5510bce34013077edbd116`)
+- immutable Concept r2:
+  `concept-r0002-20260727230409-e9e46a75`
+  (`46b0dbd06cc32e1d3013302f54daca6d87477290108d301e7dfcbd3983fdc8af`)
+- immutable Concept r3:
+  `concept-r0003-20260727230409-b9b4f0de`
+  (`a94de8554d5a8c2c2ea199b193f9b73d5cac9f3b2ada3dda49d2adc41f0ec10e`)
+- every candidate is 32 x 32, 27 visible pixels tall, hard-alpha, uses 16
+  visible colors, contacts `(16, 28)`, avoids frame-edge clipping, and remains
+  `unreviewed`
+- every structural report is 6 Pass / 0 Fail / 1 Not assessed; visual judgment
+  is `not_assessed` with user authority
+- the installed desktop currently exposes r1, r2, and r3 for comparison; the
+  user has not selected a Concept or authorized Turnaround
 
 ### Orc Vanguard - completed generality proof
 
@@ -221,28 +270,36 @@ byte.
   intentionally temporary and removed after verification.
 - Ignored `generated-source/` evidence preserves prompts, sources, comparisons,
   and review artifacts from the completed actor work.
+- `C:\tmp\tfas-m08-mosscap` preserves the three locally prepared M08 inputs and
+  their comparison sheet for the current visual-selection gate. The durable
+  candidate copies live in the shared per-user workspace.
 
-## Source versus installed release
+## Installed release proof
 
-This distinction is important:
-
-- Source `main` contains M07 from implementation commit `81f443e`.
-- All package version fields are still `0.1.0`.
-- The existing installer
-  `src-tauri\target\release\bundle\nsis\TileForge Actor Studio_0.1.0_x64-setup.exe`
-  was built for the M06 release-hardening checkpoint before M07.
-- Its recorded SHA-256 is
+- Source `main` retains M07 implementation commit `81f443e` and adds the M08
+  release/version checkpoint.
+- `package.json`, the two root `package-lock.json` entries,
+  `src-tauri/tauri.conf.json`, `src-tauri/Cargo.toml`, and the Actor Studio
+  package entry in `src-tauri/Cargo.lock` are consistently `0.1.1`.
+- Current installer:
+  `src-tauri\target\release\bundle\nsis\TileForge Actor Studio_0.1.1_x64-setup.exe`
+- installer bytes: `3295196`
+- installer SHA-256:
+  `b9686db13d425083a9c8d55cf558c2796dd18d7c40c6ccd19bfea1292a97ff96`
+- installed executable:
+  `%LOCALAPPDATA%\TileForge Actor Studio\tileforge-actor-studio.exe`
+- installed executable product/file version: `0.1.1`
+- installed executable bytes: `11508736`
+- installed executable SHA-256:
+  `78e965b8c6adc392f385967043ca28156af1390097760c8cc6c59d92f374be5f`
+- the current-user installer completed with exit code 0, restored the existing
+  uninstall-safe workspace, and contains the M07 request UI and behavior.
+- The historical `0.1.0` M06 installer remains beside it with SHA-256
   `0c52a295c8966837a9a69cec518704c0a151e80a7cace087b071c708bf4c2dfb`.
-- Fresh-install and installed-restart QA proved M06 storage and Export restore,
-  but it does not prove that an installed app contains the M07 generation
-  request UI or behavior.
-
-Do not call `0.1.0` the current M07 installer. The next release proof must
-produce and test a new versioned package.
 
 ## Verification baseline
 
-At commit `81f443e`, Windows verification passed with Node 24.15.0,
+For the M08 `0.1.1` checkpoint, Windows verification passed with Node 24.15.0,
 npm 11.12.1, and Rust 1.95:
 
 - `npm run check` - 0 errors and 0 warnings
@@ -255,42 +312,33 @@ npm 11.12.1, and Rust 1.95:
 - `cargo test --manifest-path src-tauri/Cargo.toml` - 22 tests passed
 - `npm audit --audit-level=moderate` - 0 vulnerabilities
 
-Native M07 QA used an isolated workspace and proved that Brief -> Concept
-created session `mirelight-pilgrim-20260727073811-e6c44d8a`, displayed request
-`concept-gen-r0001-20260727073811-33734fa0`, requested three separate
-candidates, showed user-only approval, and restored the durable request.
+The separately hosted HTTP smoke passed with all 28 tools. Installed QA created
+Mosscap Scout session `mosscap-scout-20260727225718-dc51655e`, displayed
+request `concept-gen-r0001-20260727225718-749783a6`, restored both after a full
+restart, and exposed the exact request through MCP. A live connected Codex
+ImageGen capability fulfilled all three requested outputs separately; the MCP
+gateway imported r1-r3 with generated provenance and the installed desktop
+displayed every revision after restart.
 
 Re-run checks relevant to every change. Run `npm run mcp:http` in a separate
 terminal before `npm run test:mcp:http`.
 
-## Recommended next milestone: M08
+## Current human gate
 
-M08 is an installed cross-client generation proof, not a new provider
-integration.
+M08 is complete and paused at the intended visual-selection boundary. The user
+must compare Mosscap Scout Concept r1, r2, and r3 in the installed desktop and
+explicitly select one or reject all three.
 
-1. Bump the application package consistently from `0.1.0` to `0.1.1` in
-   `package.json`, the root `package-lock.json` entries,
-   `src-tauri/tauri.conf.json`, `src-tauri/Cargo.toml`, and the Actor Studio
-   package entry in `src-tauri/Cargo.lock`.
-2. Build a new current-user NSIS installer from the verified M07 source.
-3. Install it and prove that the installed desktop creates a generation
-   request, displays its stable identity, and restores it after a full app
-   restart.
-4. Verify that MCP reads the exact same installed-workspace request.
-5. Create one fresh, simple actor session for the cross-client proof.
-6. In an active connected client, read the newest request and confirm whether
-   that client actually has an included native image capability.
-7. If it does, generate the requested outputs separately and import each as an
-   immutable unreviewed Concept revision. If it does not, retain the request
-   and report the limitation; do not connect a paid API.
-8. Show the imported candidates in the installed desktop and stop for the
-   user's visual selection.
+Do not create a Turnaround until that exact selection is explicit. If the user
+selects a Concept, continue through the existing unchanged workflow:
 
-M08 must not claim that request creation automatically wakes or controls an AI
-client. It must not add provider credentials, usage billing, autonomous
-approval, publishing, or broader art scope.
+```text
+selected Concept -> Turnaround -> accepted identity -> Walk Cycle
+```
 
-The completed Orc Vanguard draft remains immutable during this proof.
+This gate does not authorize final-art approval, publishing, a provider API,
+additional paid services, or broader version 1 scope. Keep the Orc Vanguard
+draft and all Mosscap Scout revisions immutable.
 
 ## Handoff discipline
 

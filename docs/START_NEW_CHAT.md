@@ -51,42 +51,48 @@ Hard boundaries:
 Expected checkpoint, which you must verify live:
 
 - main contains M07 implementation commit 81f443e
-  (Add subscription-native generation requests), followed only by a possible
-  documentation-audit checkpoint;
+  (Add subscription-native generation requests), documentation audit 0a54b33,
+  and the containing M08 verification checkpoint;
 - main is expected to be clean and synchronized with origin/main;
-- M07 is complete in source;
+- M08 installed cross-client generation proof is complete;
+- all application version fields are 0.1.1;
 - MCP exposes 28 tools;
 - desktop and MCP share immutable generation requests and later artifacts
   under %LOCALAPPDATA%\TileForge\Actor Studio\.studio by default;
 - TFAS_WORKSPACE overrides that root for both adapters;
-- the existing TileForge Actor Studio_0.1.0_x64-setup.exe is the older verified
-  M06 package and does not contain M07;
+- current installer TileForge Actor Studio_0.1.1_x64-setup.exe has SHA-256
+  b9686db13d425083a9c8d55cf558c2796dd18d7c40c6ccd19bfea1292a97ff96;
+- installed tileforge-actor-studio.exe reports version 0.1.1 and SHA-256
+  78e965b8c6adc392f385967043ca28156af1390097760c8cc6c59d92f374be5f;
 - publishing remains absent and every Export remains a local draft.
 
-Continue with M08: Installed cross-client generation proof.
+Continue from the Mosscap Scout human Concept-selection gate.
 
-1. Verify and bump the application version consistently from 0.1.0 to 0.1.1
-   in package.json, the root package-lock.json entries,
-   src-tauri/tauri.conf.json, src-tauri/Cargo.toml, and the Actor Studio package
-   entry in src-tauri/Cargo.lock. Do not bulk-rewrite unrelated dependency
-   versions.
-2. Run the required source checks, then build a new current-user NSIS installer
-   from the M07 source and record its SHA-256.
-3. Install 0.1.1 and prove the installed desktop creates a Concept generation
-   request, shows its stable request id, and restores it after a full restart.
-4. Verify MCP reads that exact request from the installed per-user workspace.
-5. Create one fresh simple actor for the cross-client proof. Do not mutate or
-   promote the completed Orc Vanguard draft.
-6. In an active connected client, list and read the newest request. A request
-   is a durable handoff, not a dispatched job: creating one does not wake or
-   control Codex, Claude, Antigravity, or an image provider.
-7. Confirm whether that client actually has a native image capability included
-   in my subscription. If yes, use the exact request prompt separately for each
-   requested output and import every PNG through import_concept_candidate with
-   generated provenance. If not, retain the request and report the limitation;
-   do not connect a paid API.
-8. Show the immutable unreviewed candidates in the installed desktop and stop
-   for my visual selection.
+Installed proof evidence:
+
+- session: mosscap-scout-20260727225718-dc51655e
+- request: concept-gen-r0001-20260727225718-749783a6
+- Concept r1: concept-r0001-20260727230409-aa483745
+- Concept r2: concept-r0002-20260727230409-e9e46a75
+- Concept r3: concept-r0003-20260727230409-b9b4f0de
+- all three are immutable, generated, unreviewed, and report
+  6 Pass / 0 Fail / 1 Not assessed
+- the installed desktop restores and displays all three at the Concept stage
+- no Concept has been selected and no Turnaround is authorized
+
+1. Verify the live Git state, `0.1.1` package fields, installer identity, and
+   exact Mosscap Scout session/request/candidate records before acting.
+2. Open the installed desktop only when needed for visual comparison and show
+   r1, r2, and r3 without changing stage.
+3. Stop for my explicit choice: select one exact Concept id or reject all
+   three. Never infer selection from structural validation.
+4. If I select one, create a new immutable Turnaround through the existing
+   contract, preserving the selected down PNG byte for byte and waiting again
+   for my identity-consistency acceptance.
+5. If I reject all three, preserve them and wait for an explicit new generation
+   or import request. Do not silently create replacements.
+6. Do not add a provider API, paid fallback, new scope, autonomous approval, or
+   publishing.
 
 The completed Orc Vanguard checkpoint must remain immutable:
 
@@ -99,11 +105,12 @@ The completed Orc Vanguard checkpoint must remain immutable:
   export-r0001-20260727070603-f9fe69a3
 - publishing: not_approved
 
-Make reasonable implementation decisions within this scope and keep working.
-Do not stop at a plan unless a choice materially expands the product, requires
-new spending, or requires my visual/publishing authority.
+The current blocker is intentionally my visual authority, so stop after
+presenting the three Concepts unless I have explicitly selected one or rejected
+all three. After an explicit selection, make reasonable implementation
+decisions within the unchanged workflow.
 
-Before claiming completion, run:
+If source or package files change before claiming another milestone, run:
 
 npm run check
 npm run build
@@ -118,8 +125,9 @@ For the HTTP MCP smoke test, start npm run mcp:http separately and then run:
 
 npm run test:mcp:http
 
-Update HANDOFF.md, docs/ROADMAP.md, docs/DECISIONS.md, and
-docs/START_NEW_CHAT.md to match the verified result. You may commit and push a
-coherent verified checkpoint; report the exact commit and branch. That
-permission does not authorize publishing art or using a paid service.
+Keep HANDOFF.md, docs/ROADMAP.md, docs/DECISIONS.md, and
+docs/START_NEW_CHAT.md synchronized with any verified behavior change. You may
+commit and push a coherent verified checkpoint; report the exact commit and
+branch. That permission does not authorize publishing art or using a paid
+service.
 ```

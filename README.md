@@ -3,8 +3,10 @@
 A narrow desktop workflow for creating **32 px TileForge mobs and NPCs with AI**.
 The artist supplies the identity; the studio supplies the boundaries.
 
-Current status: **M07 subscription-native generation handoff is complete.**
-M06 release hardening and the full second-actor generality run remain complete.
+Current status: **M08 installed cross-client generation proof is complete.**
+The current-user Windows package is version `0.1.1`; M06 release hardening,
+M07 subscription-native generation, and the full second-actor generality run
+remain complete.
 The desktop and MCP gateway share durable local sessions, provider-neutral
 generation requests, never-overwritten Concept, Turnaround, Walk Cycle, World
 Test, and Export revisions, user-owned transition receipts, and local
@@ -14,11 +16,12 @@ MCP, while an optional image invocation stays inside a client that actually
 provides an included native capability. Creating a request does not dispatch
 or wake an AI client. No image-generation provider API is integrated.
 
-The existing current-user `0.1.0` Windows installer is the verified M06 package
-and predates M07. It can restore and reveal a validated immutable Export, but
-it does not contain the M07 generation-request UI. M08 will build and test a
-new versioned installer before the packaged application is described as
-M07-current. Publishing remains a separate unapproved user gate.
+The verified current-user `0.1.1` Windows installer contains the M07 generation
+request UI. M08 proved installed creation and restart restore, an exact MCP
+cross-client read from the shared per-user workspace, and three separately
+generated immutable unreviewed Concept candidates in the installed desktop.
+The older `0.1.0` installer remains historical M06 evidence. Publishing remains
+a separate unapproved user gate.
 
 The initial workflow has six deliberate stages:
 
@@ -161,9 +164,10 @@ action, and produces a current-user NSIS installer without administrator
 rights. That verified `0.1.0` package predates M07. M07 adds immutable
 `generation-requests/<request-id>/request.json` work orders shared by desktop
 and MCP, including the exact prompt, output count, no-additional-cost rule, and
-user-only approval boundary. M08 will package M07 as `0.1.1` and prove the
-installed request survives restart and is readable from another connected
-client.
+user-only approval boundary. M08 packages M07 as `0.1.1` and proves the
+installed request survives restart, is readable from another connected client,
+and can be fulfilled through that client's included native image capability
+without adding a provider API or paid fallback.
 
 Future AI integrations may use only capabilities already covered by the user's
 subscriptions. Pay-as-you-go APIs, purchased credits, usage billing, and paid

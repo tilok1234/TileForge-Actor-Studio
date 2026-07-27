@@ -476,3 +476,32 @@ the generation request UI and shares those requests with MCP.
 Reason: source checks, native development QA, package creation, and installed
 restart QA prove different boundaries. Keeping them distinct prevents a stale
 binary from being presented as current and makes release claims reproducible.
+
+## 2026-07-28 - Installed generation proof ends at immutable Concept selection
+
+M08 advances the current-user application to `0.1.1` and treats package build,
+installation, installed restart, MCP cross-client read, subscription-native
+image execution, immutable import, structural validation, and installed
+candidate display as separate evidence boundaries.
+
+The proof actor is Mosscap Scout session
+`mosscap-scout-20260727225718-dc51655e`. The installed desktop created request
+`concept-gen-r0001-20260727225718-749783a6`; a separately connected MCP client
+read the exact request from the shared per-user workspace. Codex then invoked
+its built-in subscription ImageGen three separate times with that exact prompt.
+Because the native tool returned large preview canvases rather than direct
+contract PNGs, each output was converted locally and deterministically to a
+hard-alpha 32 x 32, 16-color, foot-anchor-correct derivative before MCP import.
+The large source output and the immutable imported bytes remain distinct
+evidence.
+
+Concept revisions r1, r2, and r3 all pass the six currently measurable
+structural rules and leave ground contrast and visual judgment unresolved at
+their proper later/human gates. Showing those revisions in the installed
+desktop completes M08 but does not select one, create a Turnaround, approve
+final art, or authorize publishing.
+
+Reason: an installed binary, a durable work request, native client capability,
+and imported art are different claims. Preserving each boundary makes the
+cross-client workflow honest while the user retains the first visual selection
+and every later approval decision.
