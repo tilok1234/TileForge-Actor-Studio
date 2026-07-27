@@ -298,13 +298,18 @@ Current evidence:
   cleaned silhouette and foot motion, adds a one-pixel upper-body weight drop
   on both passing-foot poses, returns to the exact neutral on alternating
   frames, and keeps every frame in one four-connected silhouette;
+- the user reported that the foot broke in some r4 frames;
+- stable-ankle Walk Cycle `walk-cycle-r0005-20260727043425-305dceaf` preserves
+  r4's weight drop, keeps each ankle/lower-leg column fixed and connected, and
+  restricts movement to the bottom three foot rows while keeping every frame
+  in one four-connected silhouette;
 - Walk Cycle validation reports 96 Pass / 0 Fail / 16 Not assessed, while
   motion and readability remain Not assessed with user authority;
 - generation used built-in subscription ImageGen outside the provider-neutral
   core; transparency preparation and validation were local and incurred no
   additional AI-service cost;
 - the next transition is blocked only on the user's acceptance or rejection of
-  exact Walk Cycle r4 motion/readability; no World Test may be created before
+  exact Walk Cycle r5 motion/readability; no World Test may be created before
   that decision;
 - the larger attack-animation reference was translated only into original
   32 px character language; attacks, weapons, and equipment remain outside the
