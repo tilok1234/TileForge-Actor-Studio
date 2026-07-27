@@ -3,7 +3,9 @@ use serde::{Deserialize, Serialize};
 use sha2::{Digest, Sha256};
 use std::{
     collections::{HashMap, HashSet},
-    env, fs,
+    env,
+    ffi::OsString,
+    fs,
     io::Cursor,
     path::{Path, PathBuf},
 };
@@ -39,6 +41,8 @@ const EXPORT_SHEET_FILE: &str = "sprite-sheet.png";
 const EXPORT_METADATA_FILE: &str = "metadata.json";
 const EXPORT_PROVENANCE_FILE: &str = "provenance.json";
 const EXPORT_SHEET_LAYOUT: &str = "direction-rows-frame-columns-v1";
+const WINDOWS_VENDOR_DIRECTORY: &str = "TileForge";
+const WINDOWS_PRODUCT_DIRECTORY: &str = "Actor Studio";
 const WORLD_TEST_SCENES: [&str; 4] = ["scale-lineup", "forest-clearing", "crownhold", "tidewater"];
 const WORLD_TEST_THEMES: [&str; 4] = ["forest", "autumn", "dusk", "winter"];
 const WORLD_TEST_REFERENCE_MANIFEST: &[u8] =
@@ -795,16 +799,33 @@ struct DecodedPng {
     pixels: Vec<[u8; 4]>,
 }
 
+fn repository_workspace_root() -> PathBuf {
+    Path::new(env!("CARGO_MANIFEST_DIR"))
+        .parent()
+        .expect("src-tauri must have a repository parent")
+        .join(".studio")
+}
+
+fn workspace_root_from(
+    override_root: Option<OsString>,
+    local_app_data: Option<OsString>,
+) -> PathBuf {
+    if let Some(root) = override_root.filter(|value| !value.is_empty()) {
+        return PathBuf::from(root);
+    }
+    if cfg!(target_os = "windows") {
+        if let Some(root) = local_app_data.filter(|value| !value.is_empty()) {
+            return PathBuf::from(root)
+                .join(WINDOWS_VENDOR_DIRECTORY)
+                .join(WINDOWS_PRODUCT_DIRECTORY)
+                .join(".studio");
+        }
+    }
+    repository_workspace_root()
+}
+
 fn workspace_root() -> PathBuf {
-    env::var_os("TFAS_WORKSPACE").map_or_else(
-        || {
-            Path::new(env!("CARGO_MANIFEST_DIR"))
-                .parent()
-                .expect("src-tauri must have a repository parent")
-                .join(".studio")
-        },
-        PathBuf::from,
-    )
+    workspace_root_from(env::var_os("TFAS_WORKSPACE"), env::var_os("LOCALAPPDATA"))
 }
 
 fn validate_brief(mut brief: ActorBrief) -> Result<ActorBrief, String> {
@@ -3356,6 +3377,43 @@ fn read_export_payload(
     })
 }
 
+fn validated_export_directory(
+    root: &Path,
+    session_id: &str,
+    export_id: &str,
+) -> Result<PathBuf, String> {
+    read_export_payload(root, session_id, export_id)?;
+    export_directory(root, session_id, export_id)
+}
+
+fn open_export_folder_at<F>(
+    root: &Path,
+    session_id: &str,
+    export_id: &str,
+    open_folder: F,
+) -> Result<String, String>
+where
+    F: FnOnce(&Path) -> Result<(), String>,
+{
+    let directory = validated_export_directory(root, session_id, export_id)?;
+    open_folder(&directory)?;
+    Ok(directory.to_string_lossy().into_owned())
+}
+
+#[cfg(target_os = "windows")]
+fn launch_export_folder(directory: &Path) -> Result<(), String> {
+    std::process::Command::new("explorer.exe")
+        .arg(directory)
+        .spawn()
+        .map(|_| ())
+        .map_err(|error| format!("Could not open the Export folder: {error}"))
+}
+
+#[cfg(not(target_os = "windows"))]
+fn launch_export_folder(_directory: &Path) -> Result<(), String> {
+    Err("Open Export Folder is currently available only on Windows.".to_owned())
+}
+
 fn validate_export_package(
     root: &Path,
     payload: &ExportCandidatePayload,
@@ -4089,6 +4147,16 @@ fn validate_export_candidate(
     validate_export_package(&root, &payload)
 }
 
+#[tauri::command]
+fn open_export_folder(session_id: String, export_id: String) -> Result<String, String> {
+    open_export_folder_at(
+        &workspace_root(),
+        &session_id,
+        &export_id,
+        launch_export_folder,
+    )
+}
+
 #[cfg_attr(mobile, tauri::mobile_entry_point)]
 pub fn run() {
     tauri::Builder::default()
@@ -4116,7 +4184,8 @@ pub fn run() {
             create_export_candidate,
             list_export_candidates,
             get_export_candidate,
-            validate_export_candidate
+            validate_export_candidate,
+            open_export_folder
         ])
         .run(tauri::generate_context!())
         .expect("error while running TileForge Actor Studio");
@@ -4228,6 +4297,31 @@ mod tests {
         assert_eq!(reread.id, fixture_session.id);
         assert_eq!(reread.contract_id, CONTRACT_ID);
         fs::remove_dir_all(root).unwrap();
+    }
+
+    #[test]
+    fn workspace_root_prefers_override_then_windows_local_app_data() {
+        let override_root = PathBuf::from(r"D:\TileForge Workspace");
+        let local_app_data = PathBuf::from(r"C:\Users\artist\AppData\Local");
+
+        assert_eq!(
+            workspace_root_from(
+                Some(override_root.clone().into_os_string()),
+                Some(local_app_data.clone().into_os_string()),
+            ),
+            override_root
+        );
+        assert_eq!(
+            workspace_root_from(None, Some(local_app_data.clone().into_os_string())),
+            if cfg!(target_os = "windows") {
+                local_app_data
+                    .join(WINDOWS_VENDOR_DIRECTORY)
+                    .join(WINDOWS_PRODUCT_DIRECTORY)
+                    .join(".studio")
+            } else {
+                repository_workspace_root()
+            }
+        );
     }
 
     #[test]
@@ -5228,6 +5322,39 @@ mod tests {
         )
         .unwrap();
         let payload = read_export_payload(&root, &session.id, &export.id).unwrap();
+        assert_eq!(
+            validated_export_directory(&root, &session.id, &export.id).unwrap(),
+            root.join("sessions")
+                .join(&session.id)
+                .join("exports")
+                .join(&export.id)
+        );
+        let expected_export_directory = root
+            .join("sessions")
+            .join(&session.id)
+            .join("exports")
+            .join(&export.id);
+        assert_eq!(
+            open_export_folder_at(&root, &session.id, &export.id, |directory| {
+                assert_eq!(directory, expected_export_directory);
+                Ok(())
+            })
+            .unwrap(),
+            expected_export_directory.to_string_lossy()
+        );
+        let mut launched_missing_export = false;
+        assert!(
+            open_export_folder_at(&root, &session.id, "missing-export", |_| {
+                launched_missing_export = true;
+                Ok(())
+            },)
+            .is_err(),
+            "Folder resolution accepted a missing Export."
+        );
+        assert!(
+            !launched_missing_export,
+            "Folder launcher ran before Export validation."
+        );
         let report = validate_export_package(&root, &payload).unwrap();
         let sheet = decode_png_rgba(&payload.sprite_sheet_png_bytes).unwrap();
         assert_eq!(

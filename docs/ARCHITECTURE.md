@@ -42,7 +42,12 @@ evidence while remaining the eventual human approval surface.
 
 ### Local workspace
 
-`.studio/` is the shared persistence boundary. Both adapters use
+`.studio/` is the shared persistence protocol. On packaged Windows builds, both
+adapters default its root to
+`%LOCALAPPDATA%\TileForge\Actor Studio\.studio`; this keeps durable art outside
+the current-user NSIS installation directory. `TFAS_WORKSPACE` has highest
+precedence, and non-Windows source development falls back to the ignored
+repository `.studio/`. Both adapters use
 `.studio/sessions/<session-id>/session.json`, immutable Concept directories at
 `candidates/<candidate-id>/`, and immutable Turnaround directories:
 
@@ -92,8 +97,7 @@ exports/<export-id>/
 Concept directories contain `candidate.json` and the original `source.png`.
 A complete session, Concept, Turnaround, Walk Cycle, World Test, or Export is first
 written to a hidden same-parent temporary directory, then published with one
-rename so readers never observe a partial record. `TFAS_WORKSPACE` redirects
-the root for either adapter and for tests.
+rename so readers never observe a partial record.
 
 The JSON documents, identity rules, brief and intake limits, hashes, and
 directory layout form one local protocol; the Rust and TypeScript adapters are
@@ -181,6 +185,9 @@ Walk Cycle, and compares both JSON documents semantically.
 
 Every Export remains `draft`; its publishing record is fixed to
 `not_approved` with user authority. No adapter exposes a publishing operation.
+The Windows desktop may reveal a package in Explorer only after re-reading and
+validating its immutable document, sheet, metadata, and provenance. This action
+does not copy, modify, approve, or publish files.
 
 ## Reference boundary
 

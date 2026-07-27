@@ -333,3 +333,44 @@ Reason: one small engine-neutral package completes the Brief-to-Export
 workflow without coupling Actor Studio to a game runtime, paid service, or
 publishing destination. Keeping publishing as a distinct absent capability
 preserves the user's second approval gate.
+
+## 2026-07-27 - Packaged Windows storage is per-user and uninstall-safe
+
+The shared `.studio` protocol does not change, but its packaged Windows default
+is `%LOCALAPPDATA%\TileForge\Actor Studio\.studio`. Both the Rust desktop
+adapter and TypeScript MCP adapter use the same resolution order:
+
+1. non-empty `TFAS_WORKSPACE`;
+2. the Windows per-user location;
+3. the ignored repository `.studio` fallback for non-Windows source work.
+
+The data directory is deliberately separate from the current-user NSIS install
+directory at `%LOCALAPPDATA%\TileForge Actor Studio`.
+
+Reason: a compile-time repository path is not portable, and storing user art
+inside an application installation risks coupling durable sessions to upgrade
+or uninstall behavior. A shared per-user default preserves standalone
+packaging and MCP compatibility without administrator access.
+
+## 2026-07-27 - Open Export Folder validates before revealing
+
+The Windows desktop may open an Export directory in Explorer only after the
+native adapter successfully re-reads the candidate and verifies the immutable
+sheet, metadata, and provenance receipts. Missing, malformed, or tampered
+packages fail before the OS launcher runs. Revealing a directory does not
+copy, modify, approve, or publish its contents, and no equivalent MCP mutation
+is needed.
+
+Reason: local file access makes a completed draft package usable while keeping
+the immutable and publishing boundaries intact. Validation prevents a stale UI
+identity from opening an unrelated path.
+
+## 2026-07-27 - Version 1 ships as a current-user NSIS package
+
+Tauri bundling is active for the NSIS target with `currentUser` install mode.
+The installer does not require administrator rights and keeps publishing,
+automatic updates, code signing, and paid distribution services out of scope.
+
+Reason: a normal executable and installer let the user run the completed
+six-stage workflow without a development terminal while avoiding a broader
+deployment or publishing system.

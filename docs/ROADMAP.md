@@ -226,6 +226,32 @@ Export implemented:
   `export-r0001-20260727001749-a13580f4`; it remains `draft` and no publishing
   operation exists.
 
+## M06 - Windows release hardening
+
+Status: complete.
+
+Goal: make the finished version 1 workflow safe and usable from an installed
+Windows application without changing the art or publishing scope.
+
+Implemented:
+
+- desktop and MCP now default to the same uninstall-safe per-user workspace at
+  `%LOCALAPPDATA%\TileForge\Actor Studio\.studio`;
+- `TFAS_WORKSPACE` keeps highest precedence, while non-Windows source
+  development retains the repository `.studio` fallback;
+- a focused compatibility test locks the override, packaged Windows default,
+  and repository-fallback resolution order;
+- the Export panel exposes Open Folder, but the native command first re-reads
+  the exact immutable package and refuses missing or tampered identities before
+  launching Explorer;
+- Rust positive and missing-Export tests prove that validation occurs before
+  the OS folder launcher is called;
+- Tauri builds a current-user NSIS installer without administrator rights;
+- a fresh installation of version 0.1.0 launched from its installed path and
+  restored Mirelight Pilgrim Export r1 from the shared per-user workspace;
+- release hardening adds no AI provider, publishing operation, paid service, or
+  incremental billing.
+
 ## Deferred beyond version 1
 
 - tiles and map editing

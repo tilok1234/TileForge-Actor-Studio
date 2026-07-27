@@ -117,14 +117,16 @@ Use these distinct outcomes:
 
 ## Local state
 
-Sessions live in `.studio/sessions` by default. Set `TFAS_WORKSPACE` to redirect
-local state. The desktop and MCP gateway read the same immutable session,
-Concept, Turnaround, Walk Cycle, World Test, and Export documents; creation
-publishes complete directories atomically rather than exposing partial
-records. Original PNG bytes are rehash-verified on read and never overwritten.
-Draft Export directories preserve `export.json`, `sprite-sheet.png`,
-`metadata.json`, and `provenance.json`. `.studio/` and generated exports are
-ignored by Git.
+On Windows, sessions live under
+`%LOCALAPPDATA%\TileForge\Actor Studio\.studio\sessions` by default. Set
+`TFAS_WORKSPACE` to redirect local state for both desktop and MCP; non-Windows
+source development falls back to the ignored repository `.studio/`. The
+desktop and MCP gateway read the same immutable session, Concept, Turnaround,
+Walk Cycle, World Test, and Export documents; creation publishes complete
+directories atomically rather than exposing partial records. Original PNG
+bytes are rehash-verified on read and never overwritten. Draft Export
+directories preserve `export.json`, `sprite-sheet.png`, `metadata.json`, and
+`provenance.json`.
 
 ## Cost boundary
 

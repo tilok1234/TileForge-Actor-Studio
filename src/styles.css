@@ -1041,7 +1041,7 @@ small {
 
 .export-package-summary {
   display: grid;
-  grid-template-columns: repeat(4, minmax(0, 1fr));
+  grid-template-columns: repeat(5, minmax(0, 1fr));
   gap: 8px;
 }
 
@@ -1080,6 +1080,25 @@ small {
 
 .export-package-summary strong.closed {
   color: #d5b66f;
+}
+
+.export-package-summary .export-folder-card {
+  align-content: space-between;
+}
+
+.export-folder-card button {
+  width: 100%;
+  padding: 6px 8px;
+  border: 1px solid #657463;
+  border-radius: 4px;
+  background: #263128;
+  color: #d6dfd6;
+  font-size: 9px;
+}
+
+.export-folder-card button:hover:not(:disabled) {
+  border-color: #91a28e;
+  background: #334035;
 }
 
 .world-controls {

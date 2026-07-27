@@ -161,8 +161,11 @@ verifies that publishing remains `not_approved` with user authority.
 
 ## Shared desktop state
 
-MCP session tools and the Tauri desktop use the same local workspace:
-`.studio/sessions` by default, or `TFAS_WORKSPACE` when redirected. Session
+MCP session tools and the Tauri desktop use the same local workspace. On
+Windows the default is
+`%LOCALAPPDATA%\TileForge\Actor Studio\.studio\sessions`; `TFAS_WORKSPACE`
+retains highest precedence, and non-Windows source development falls back to
+the repository `.studio/sessions`. Session
 directories are published atomically and are never overwritten. A session
 created from the desktop can therefore be listed and read through MCP without a
 conversion or copy step. Concept candidate directories use the same rule and

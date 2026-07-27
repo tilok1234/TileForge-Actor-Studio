@@ -50,7 +50,10 @@ but only the user may approve final art or publishing.
 - Remote: `https://github.com/tilok1234/TileForge-Actor-Studio`
 - Default branch: `main`
 - Initial baseline commit: `595da2d`
-- Local generated state: `.studio/` (ignored)
+- Windows local generated state:
+  `%LOCALAPPDATA%\TileForge\Actor Studio\.studio`
+- Source-checkout `.studio/`: ignored migration backup, not the packaged
+  default
 - External `animation_editor_live`: read-only reference; never edit it
 - External `Semantic tile generator design`: read-only reference; never edit it
 
@@ -91,6 +94,9 @@ runtime dependency or write generated assets back into them.
 | Export storage | Atomically preserves one immutable draft with `export.json`, `sprite-sheet.png`, `metadata.json`, and `provenance.json` |
 | Export restore | Desktop restart opens Export r1, shows its full stable id and 4 x 4 sheet, and keeps publishing visibly unapproved |
 | Export evidence | Rehashes all package files, reconstructs sheet pixels from sixteen sources, and verifies metadata, provenance, and publishing boundary |
+| Export access | Desktop validates the exact immutable package before opening its directory in Windows Explorer |
+| Packaged storage | Desktop and MCP default to the same uninstall-safe `%LOCALAPPDATA%\TileForge\Actor Studio\.studio`; `TFAS_WORKSPACE` retains precedence |
+| Windows release | Current-user NSIS installer builds without administrator rights |
 | Contract | JSON Schema, versioned JSON instance, and TypeScript representation |
 | Approval | Human-only approval boundary shown in UI, contract, prompt, and MCP |
 | MCP | Stdio and localhost Streamable HTTP transports |
@@ -106,7 +112,6 @@ runtime dependency or write generated assets back into them.
 - Earlier-stage ground-luma validation remains Not assessed because those
   artifacts have no pinned placement; World Test resolves it with real grounds.
 - No publishing operation exists; every prepared Export remains a local draft.
-- Tauri bundling/installers are disabled in `tauri.conf.json`.
 - The contract JSON import is typed, but full JSON-Schema validation is not yet
   an automated test.
 
@@ -121,8 +126,10 @@ and verification evidence.
 - `mcp/` exposes the domain over MCP and uses the shared filesystem protocol.
 - `reference-packs/` contains the copied, tracked, SHA-256-pinned TileForge
   World Test input.
-- `.studio/` is the ignored local workspace for sessions, immutable Concepts,
-  Turnarounds, Walk Cycles, World Tests, Exports, and generation evidence.
+- `%LOCALAPPDATA%\TileForge\Actor Studio\.studio` is the packaged Windows
+  workspace for sessions, immutable Concepts, Turnarounds, Walk Cycles, World
+  Tests, Exports, and generation evidence. `TFAS_WORKSPACE` redirects both
+  adapters. The source-checkout `.studio/` remains an ignored migration backup.
 
 The shared boundary is documented in `docs/DECISIONS.md`: both thin adapters
 use the same session, Concept, Turnaround, Walk Cycle, World Test, and Export
@@ -216,13 +223,13 @@ The first immutable draft Export is now:
 
 The built-in ImageGen sources, deterministic Turnaround repair, and
 deterministic cloak-sway Walk Cycle and World Test review evidence are
-preserved under `.studio/generated-source/`. Neither r2, Walk Cycle r1, World
-Test r1, nor Export r1 used an AI API, additional AI service, or incremental
-billing.
+preserved in the shared local workspace. Neither r2, Walk Cycle r1, World Test
+r1, Export r1, nor release hardening used an AI API, additional AI service, or
+incremental billing.
 
 ## Verification evidence
 
-The M04 and M05 slices were verified on Windows with Node 24.15.0,
+The M04 through M06 slices were verified on Windows with Node 24.15.0,
 npm 11.12.1, and Rust 1.95:
 
 - `npm run check` — 0 errors and 0 warnings
@@ -236,9 +243,10 @@ npm 11.12.1, and Rust 1.95:
 - `npm run test:mcp:http` — real localhost HTTP transport passed while server ran
 - `cargo fmt --manifest-path src-tauri/Cargo.toml --check` — passed
 - `cargo check --manifest-path src-tauri/Cargo.toml` — passed
-- `cargo test --manifest-path src-tauri/Cargo.toml` — nineteen
+- `cargo test --manifest-path src-tauri/Cargo.toml` — twenty
   session/Concept/Turnaround/Walk Cycle/World Test/Export/validation
-  compatibility and failure-path tests passed
+  compatibility, workspace resolution, safe folder-opening, and failure-path
+  tests passed
 - `npm audit --audit-level=moderate` — 0 vulnerabilities
 - Native desktop QA — after a full app restart, the app restored the exact
   Concept r4 selection receipt and Turnaround r1, displayed all four views,
@@ -260,18 +268,30 @@ npm 11.12.1, and Rust 1.95:
   assessed package evidence, and `not_approved` publishing boundary; a
   subsequent native observation confirmed the full stable Export id is visibly
   rendered
+- Release build — `npm run tauri -- build --bundles nsis` produced the standalone
+  release executable and
+  `TileForge Actor Studio_0.1.0_x64-setup.exe`
+- Final installer SHA-256:
+  `0c52a295c8966837a9a69cec518704c0a151e80a7cace087b071c708bf4c2dfb`
+- Fresh-install QA — the current-user NSIS installer exited successfully,
+  registered version 0.1.0, and the installed executable launched from
+  `%LOCALAPPDATA%\TileForge Actor Studio`
+- Installed-state QA — the packaged app restored Mirelight Pilgrim Export r1
+  from `%LOCALAPPDATA%\TileForge\Actor Studio\.studio`, displayed its full id,
+  7 Pass / 0 Fail / 0 Not assessed evidence, closed publishing gate, and Open
+  Folder control
 
 Re-run checks relevant to any new change. For the HTTP smoke test, start
 `npm run mcp:http` in a separate terminal first.
 
 ## Recommended next milestone
 
-M05 is complete through a reviewable local draft Export. Present Export r1 and
-its exact package evidence to the user. Publishing is a second explicit
-user-owned decision and is not implemented in version 1; do not add a
-destination or publish without a separate scope decision and explicit
-authority. If visual changes are requested instead, create new immutable
-upstream revisions and a new World Test and Export; never overwrite r1.
+M06 release hardening is complete. The best next product test is a second,
+new 32 px mob or NPC session taken through the same six stages to expose any
+remaining assumptions tied to Mirelight Pilgrim. Keep one actor active at a
+time and preserve every revision. Publishing remains a separate user-owned
+scope decision and is not implemented in version 1; do not add a destination
+or publish without explicit authority.
 
 Any future AI integration must be included in the user's existing
 subscriptions. Do not enable pay-as-you-go APIs, purchased credits,

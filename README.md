@@ -3,13 +3,14 @@
 A narrow desktop workflow for creating **32 px TileForge mobs and NPCs with AI**.
 The artist supplies the identity; the studio supplies the boundaries.
 
-Current status: **M05 is complete through a local draft Export.** The user
-accepted Turnaround r2 for animation, Walk Cycle r1 for World Test, and World
-Test r1 as final art for Export. The desktop and MCP gateway share durable
-local sessions, never-overwritten Concept, Turnaround, Walk Cycle, World Test,
-and Export revisions, user-owned transition receipts, and local deterministic
-validation reports. Publishing remains a separate unapproved user gate. No
-image-generation provider adapter is integrated.
+Current status: **M06 release hardening is complete.** The user accepted
+Turnaround r2 for animation, Walk Cycle r1 for World Test, and World Test r1 as
+final art for Export. The desktop and MCP gateway share durable local sessions,
+never-overwritten Concept, Turnaround, Walk Cycle, World Test, and Export
+revisions, user-owned transition receipts, and local deterministic validation
+reports. A current-user Windows installer is available, and the desktop can
+reveal a validated immutable Export in Explorer. Publishing remains a separate
+unapproved user gate. No image-generation provider adapter is integrated.
 
 The initial workflow has six deliberate stages:
 
@@ -68,6 +69,14 @@ For a browser-only UI pass:
 npm run dev
 ```
 
+Build the current-user Windows installer:
+
+```powershell
+npm run tauri -- build --bundles nsis
+```
+
+The installer is written under `src-tauri/target/release/bundle/nsis/`.
+
 ## Start the agent gateway
 
 Run one local Streamable HTTP server:
@@ -101,7 +110,8 @@ For the HTTP transport smoke test, run `npm run mcp:http` in one terminal and
 - `src-tauri/` — native Tauri 2 shell
 - `contracts/` — versioned machine-readable world contract
 - `mcp/` — client-neutral MCP gateway
-- `.studio/` — ignored local sessions and generated artifacts
+- `%LOCALAPPDATA%\TileForge\Actor Studio\.studio` — default shared local
+  sessions and generated artifacts on Windows
 - `docs/` — architecture and agent workflow
 
 The completed M02 milestone extends the shared `.studio` protocol with
@@ -124,7 +134,11 @@ Walk Cycle, and measures all sixteen frames against all sixteen pinned ground
 samples. The user-approved World Test receipt unlocks one immutable local draft
 Export containing a 128 x 128 PNG sheet, consumer metadata, and provenance.
 The package is validated against the exact sixteen source frames, while
-publishing remains unavailable and user-only.
+publishing remains unavailable and user-only. M06 gives the packaged desktop
+and MCP gateway the same uninstall-safe per-user workspace, keeps
+`TFAS_WORKSPACE` as an explicit override, adds a validated Open Export Folder
+action, and produces a current-user NSIS installer without administrator
+rights.
 
 Future AI integrations may use only capabilities already covered by the user's
 subscriptions. Pay-as-you-go APIs, purchased credits, usage billing, and paid

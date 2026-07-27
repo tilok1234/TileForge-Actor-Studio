@@ -7,21 +7,16 @@ import {
   rm,
   writeFile,
 } from "node:fs/promises";
-import { dirname, join, resolve } from "node:path";
-import { fileURLToPath } from "node:url";
+import { join } from "node:path";
 import type { ActorBrief, StudioSession } from "../../src/lib/studio/types.js";
 import {
   createStudioSession,
   parseStudioSession,
   SESSION_ID_MAX_LENGTH,
 } from "../../src/lib/studio/session.js";
+import { workspaceRoot } from "./workspace.js";
 
-const moduleDir = dirname(fileURLToPath(import.meta.url));
-const repositoryRoot = resolve(moduleDir, "../..");
-
-export const workspaceRoot = resolve(
-  process.env.TFAS_WORKSPACE ?? join(repositoryRoot, ".studio"),
-);
+export { workspaceRoot };
 
 function sessionsRoot(root: string): string {
   return join(root, "sessions");

@@ -163,6 +163,7 @@
   let exportValidation: ExportValidationReport | null = null;
   let validatingExport = false;
   let creatingExport = false;
+  let openingExportFolder = false;
 
   $: compiledPrompt = compileActorPrompt(brief);
   $: selectedWorldPreviewKey = `${sceneIds[selectedScene]}/${themeIds[selectedTheme]}`;
@@ -921,6 +922,26 @@
     }
   }
 
+  async function openExportFolder() {
+    if (!session || !selectedExport || !isTauri()) {
+      return;
+    }
+    openingExportFolder = true;
+    exportError = "";
+    try {
+      const path = await invoke<string>("open_export_folder", {
+        sessionId: session.id,
+        exportId: selectedExport.id,
+      });
+      exportMessage = `Opened the immutable Export folder: ${path}`;
+    } catch (error) {
+      exportError = actorBriefError(error);
+      exportMessage = "The Export folder could not be opened.";
+    } finally {
+      openingExportFolder = false;
+    }
+  }
+
   async function prepareExport() {
     if (!session || !selectedWorldTest || !isTauri()) {
       return;
@@ -1400,6 +1421,15 @@
             <div>
               <span>Publishing</span>
               <strong class="closed">Not approved</strong>
+            </div>
+            <div class="export-folder-card">
+              <span>Local files</span>
+              <button
+                disabled={openingExportFolder}
+                onclick={openExportFolder}
+              >
+                {openingExportFolder ? "Opening…" : "Open folder"}
+              </button>
             </div>
           </div>
         {:else}
