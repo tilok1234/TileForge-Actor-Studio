@@ -593,3 +593,23 @@ is authorized until the user explicitly accepts exact Walk Cycle r3.
 
 Reason: a positive reaction followed by a requested change is repair feedback,
 not approval to cross the motion gate.
+
+## 2026-07-28 - Mosscap Scout Walk Cycle r3 accepted for World Test
+
+The user explicitly accepted motion/readability for immutable Walk Cycle
+`walk-cycle-r0003-20260727234230-e8a9aac5`. Immutable World Test
+`world-test-r0001-20260727234612-4d20426a` records that user acceptance,
+the exact r3 identity and all sixteen frame hashes, and the unchanged
+SHA-256-pinned `tileforge-world-test-v1` reference pack.
+
+The local deterministic compositor prepared sixteen immutable scene/theme
+previews without another AI service or desktop control. MCP re-read every
+preview against its stored provenance; validation reports 256 Pass / 0 Fail /
+0 Not assessed across the frame-to-ground luma measurements.
+
+Final-art judgment remains Not assessed with user authority. No Export is
+authorized until the user explicitly approves exact World Test r1 as final
+art.
+
+Reason: accepting animation motion authorizes World Test creation, not
+final-art approval, Export preparation, or publishing.

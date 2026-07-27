@@ -428,8 +428,8 @@ image invocation.
 
 ## M08 - Installed cross-client generation proof
 
-Status: complete. The post-proof actor has advanced to the user-owned Walk
-Cycle motion/readability gate.
+Status: complete. The post-proof actor has advanced to the user-owned World
+Test final-art gate.
 
 Goal: package the completed M07 source and prove that one durable Concept
 request can cross the installed desktop/MCP boundary without adding a provider
@@ -488,8 +488,14 @@ repair plus MCP creation published immutable Walk Cycle
 `walk-cycle-r0003-20260727234230-e8a9aac5`: r3 preserves r2's bob, footwork,
 timing, and neutral frames while adding a one-pixel opposing forearm/hand shift
 on frames 1 and 3 in every direction. R3 also validates at 96 Pass / 0 Fail /
-16 Not assessed. The next action is not autonomous: the user must accept or
-reject r3 motion/readability before World Test.
+16 Not assessed. The user explicitly accepted exact r3 motion/readability.
+Headless MCP creation then published immutable World Test
+`world-test-r0001-20260727234612-4d20426a`, binding exact r3, all sixteen frame
+hashes, user acceptance authority, and the unchanged pinned TileForge
+reference pack. Its sixteen locally composited scene/theme previews validate
+at 256 Pass / 0 Fail / 0 Not assessed. The next action is not autonomous: the
+user must approve or reject exact World Test r1 as final art before any draft
+Export.
 
 ## Deferred beyond version 1
 

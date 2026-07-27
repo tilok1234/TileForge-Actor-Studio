@@ -66,7 +66,7 @@ Expected checkpoint, which you must verify live:
   78e965b8c6adc392f385967043ca28156af1390097760c8cc6c59d92f374be5f;
 - publishing remains absent and every Export remains a local draft.
 
-Continue from the Mosscap Scout Walk Cycle motion/readability gate.
+Continue from the Mosscap Scout World Test final-art gate.
 
 Installed proof evidence:
 
@@ -99,25 +99,30 @@ Installed proof evidence:
   forearm/hand shift on frames 1 and 3 in every direction
 - timing: 300 ms; neutral / step / neutral / opposite step
 - r3 Walk Cycle validation: 96 Pass / 0 Fail / 16 Not assessed
-- motion/readability remains Not assessed with user authority
-- no World Test is authorized
+- the user explicitly accepted exact r3 motion/readability
+- immutable World Test r1:
+  world-test-r0001-20260727234612-4d20426a
+- World Test r1 binds exact r3, all sixteen frame hashes, user acceptance, and
+  the unchanged pinned TileForge reference pack
+- World Test validation: 256 Pass / 0 Fail / 0 Not assessed
+- final-art judgment remains Not assessed with user authority
+- no Export is authorized
 
 1. Verify the live Git state, `0.1.1` package fields, installer identity, and
-   exact Mosscap Scout Concept, Turnaround, and Walk Cycle records before
-   acting.
+   exact Mosscap Scout Concept, Turnaround, Walk Cycle, and World Test records
+   before acting.
 2. Work headlessly through MCP and local review artifacts. Do not use Computer
    Use or take control of my desktop unless I explicitly request UI-specific
    QA.
 3. Present
-   .studio\mosscap-r3-walk\walk-cycle-all-directions.gif and
-   .studio\mosscap-r3-walk\walk-cycle-review.png in canonical
-   down/right/up/left order.
-4. Stop for my explicit motion/readability decision: accept exact Walk Cycle r3
-   or reject it. Never infer acceptance from structural validation.
-5. If I accept it, create a new immutable World Test through the existing
-   contract and wait again for my final-art approval.
-6. If I reject it, preserve it and wait for an explicit repair or new Walk
-   Cycle request. Do not silently replace it.
+   .studio\mosscap-r3-world-test\mosscap-world-test-r1-overview.png and
+   .studio\mosscap-r3-world-test\mosscap-world-test-r1-closeups.png.
+4. Stop for my explicit final-art decision: approve exact World Test r1 or
+   reject it. Never infer approval from structural validation.
+5. If I approve it, create a new immutable draft Export through the existing
+   contract and keep publishing not approved.
+6. If I reject it, preserve it and wait for an explicit repair request. Do not
+   silently replace it or alter an earlier-stage candidate.
 7. Do not add a provider API, paid fallback, new scope, autonomous approval, or
    publishing.
 
@@ -133,9 +138,9 @@ The completed Orc Vanguard checkpoint must remain immutable:
 - publishing: not_approved
 
 The current blocker is intentionally my visual authority, so stop after
-presenting Walk Cycle r3 unless I have explicitly accepted or rejected its
-motion/readability. After explicit acceptance, make reasonable implementation
-decisions within the unchanged workflow.
+presenting World Test r1 unless I have explicitly approved or rejected its
+final art. After explicit approval, make reasonable implementation decisions
+within the unchanged workflow.
 
 If source or package files change before claiming another milestone, run:
 

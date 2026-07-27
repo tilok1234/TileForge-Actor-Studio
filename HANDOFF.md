@@ -52,7 +52,7 @@ As of 2026-07-28:
 - expected state after the M08 checkpoint: clean and synchronized with
   `origin/main`
 - source and installed milestone: M08 complete; the post-proof actor is at the
-  Walk Cycle motion/readability gate
+  World Test final-art gate
 - MCP surface: 28 tools
 
 These are orientation expectations, not permission to skip live verification.
@@ -251,8 +251,17 @@ promote, or rewrite them during the next milestone.
   grounded on row 28, unclipped, and one connected silhouette
 - r3 validation reports 96 Pass / 0 Fail / 16 Not assessed; motion and
   readability remain `not_assessed` with user authority
-- no World Test is authorized until the user explicitly accepts this exact
-  Walk Cycle r3
+- the user explicitly accepted exact Walk Cycle r3 motion/readability
+- immutable World Test r1:
+  `world-test-r0001-20260727234612-4d20426a`
+- World Test r1 records exact r3, all sixteen frame hashes, `acceptedBy: user`,
+  the unchanged SHA-256-pinned `tileforge-world-test-v1` reference pack, and
+  sixteen locally composited scene/theme previews
+- World Test validation reports 256 Pass / 0 Fail / 0 Not assessed across all
+  frame-to-ground luma measurements; final-art judgment remains
+  `not_assessed` with user authority
+- no Export is authorized until the user explicitly approves this exact World
+  Test r1 as final art
 
 ### Orc Vanguard - completed generality proof
 
@@ -323,8 +332,12 @@ byte.
   candidate
 - ignored repository-local `.studio\mosscap-r3-walk` preserves all sixteen
   arm-swing repair inputs, structural preparation evidence, the MCP publication
-  receipt, a static review sheet, and the animated GIF for the current
-  motion/readability gate
+  receipt, a static review sheet, and the animated GIF for the accepted r3
+  motion candidate
+- ignored repository-local `.studio\mosscap-r3-world-test` preserves all
+  sixteen immutable preview copies, the World Test and validation documents,
+  the MCP receipt, and overview/close-up review sheets for the current
+  final-art gate
 
 ## Installed release proof
 
@@ -379,19 +392,20 @@ terminal before `npm run test:mcp:http`.
 
 M08 remains complete. The user explicitly accepted Mosscap Scout Turnaround r1,
 rejected feet-only Walk Cycle r1, requested a slight walking bob for r2, then
-requested slight arm movement as well. Immutable Walk Cycle
-`walk-cycle-r0003-20260727234230-e8a9aac5` preserves the r2 bob and footwork,
-adds a one-pixel opposing arm/hand shift on frames 1 and 3, and now waits at
-the motion/readability gate.
+requested slight arm movement as well. The user explicitly accepted immutable
+Walk Cycle `walk-cycle-r0003-20260727234230-e8a9aac5` motion/readability.
+Immutable World Test `world-test-r0001-20260727234612-4d20426a` binds that
+exact r3 and now waits at the final-art gate.
 
 Present the animated and static four-direction evidence from
-`.studio\mosscap-r3-walk` without controlling the user's desktop. Do not create
-a World Test until the user explicitly accepts motion and readability for this
-exact Walk Cycle r3. If accepted, continue through the existing unchanged
-workflow:
+`.studio\mosscap-r3-world-test` without controlling the user's desktop. Use
+`mosscap-world-test-r1-overview.png` and
+`mosscap-world-test-r1-closeups.png`. Do not create an Export until the user
+explicitly approves final art for this exact World Test r1. If approved,
+continue through the existing unchanged workflow:
 
 ```text
-accepted Walk Cycle -> World Test -> approved final art -> draft Export
+approved World Test -> draft Export -> publishing still not approved
 ```
 
 This gate does not authorize final-art approval, publishing, a provider API,

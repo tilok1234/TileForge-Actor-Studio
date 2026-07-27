@@ -24,7 +24,8 @@ The user selected Mosscap Scout Concept r1 and accepted its immutable
 four-view Turnaround after that proof. The feet-only Walk Cycle r1 remains
 preserved as rejected evidence; Walk Cycle r2 added a one-pixel body bob, and
 Walk Cycle r3 keeps that bob while adding a slight opposing arm swing on the
-two step frames. R3 now waits at the user-owned motion/readability gate.
+two step frames. The user accepted r3 motion/readability; its immutable World
+Test r1 now waits at the user-owned final-art gate.
 The older `0.1.0` installer remains historical M06 evidence. Publishing remains
 a separate unapproved user gate.
 
