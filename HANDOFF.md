@@ -204,17 +204,24 @@ The post-release generality run is active with a deliberately different mob:
   the exact neutral on the alternating frames; every final frame remains one
   four-connected visible component
 - r4 feedback: the user reported that the foot broke in some frames
-- active immutable Walk Cycle:
+- preserved stable-ankle Walk Cycle:
   `walk-cycle-r0005-20260727043425-305dceaf`
 - r5 foot repair: preserves r4's weight drop, keeps each ankle/lower-leg column
   fixed and connected, and restricts motion to the bottom three foot rows;
   every final frame remains one four-connected visible component
+- r5 feedback: the user reported that the side walk looked weird
+- active immutable Walk Cycle:
+  `walk-cycle-r0006-20260727044208-11ae5cca`
+- r6 side repair: preserves all eight r5 down/up frames byte for byte; each
+  right/left passing pose keeps one half-foot planted at the anchor while the
+  opposite half lifts and advances one pixel, replacing the stretched-boot
+  read with alternating feet
 - frames 0 and 2 are intentional neutral beats, and frame 0 in every direction
   is byte-identical to Turnaround r1
 - Walk Cycle structural evidence: 96 Pass / 0 Fail / 16 Not assessed, with one
   ground-luma result pending per frame
 - motion and readability: Not assessed with user authority; the next action is
-  the user's acceptance or rejection of exact Walk Cycle r5,
+  the user's acceptance or rejection of exact Walk Cycle r6,
   and no World Test may be created before that decision
 - generation boundary: sources used OpenAI built-in ImageGen through the
   user's subscription; preparation and validation were local, with no API key,
@@ -238,7 +245,10 @@ The post-release generality run is active with a deliberately different mob:
   `generated-source/orc-vanguard-walk-cycle-r4-20260727`; twenty-five r5
   source, stable-ankle preparation, final-frame, review, and import files were
   copied byte-for-byte under
-  `generated-source/orc-vanguard-walk-cycle-r5-20260727`
+  `generated-source/orc-vanguard-walk-cycle-r5-20260727`; twenty-five r6
+  source, alternating-side-foot preparation, final-frame, review, and import
+  files were copied byte-for-byte under
+  `generated-source/orc-vanguard-walk-cycle-r6-20260727`
 - animation preparation: local deterministic pixel motion,
   `additionalAiCost: false`; no AI service was used
 - scope translation: the user's larger eight-frame axe-swing reference informed
@@ -389,7 +399,7 @@ Re-run checks relevant to any new change. For the HTTP smoke test, start
 M06 release hardening is complete. The second-actor generality test is now at
 the Orc Vanguard Animate motion/readability gate. The next action is the user's
 acceptance or rejection of
-`walk-cycle-r0005-20260727043425-305dceaf`. If accepted, create a World Test
+`walk-cycle-r0006-20260727044208-11ae5cca`. If accepted, create a World Test
 tied to that exact sixteen-frame receipt and the pinned reference pack. If
 rejected, create a new immutable Walk Cycle revision and preserve the current
 candidate. Keep this one mob active and preserve every revision. Publishing

@@ -303,13 +303,18 @@ Current evidence:
   r4's weight drop, keeps each ankle/lower-leg column fixed and connected, and
   restricts movement to the bottom three foot rows while keeping every frame
   in one four-connected silhouette;
+- the user reported that r5's side walk looked weird;
+- alternating-side-foot Walk Cycle `walk-cycle-r0006-20260727044208-11ae5cca`
+  preserves all eight r5 down/up frames byte for byte and replaces the
+  stretched side boot with one planted half-foot plus one half-foot that lifts
+  and advances by one pixel;
 - Walk Cycle validation reports 96 Pass / 0 Fail / 16 Not assessed, while
   motion and readability remain Not assessed with user authority;
 - generation used built-in subscription ImageGen outside the provider-neutral
   core; transparency preparation and validation were local and incurred no
   additional AI-service cost;
 - the next transition is blocked only on the user's acceptance or rejection of
-  exact Walk Cycle r5 motion/readability; no World Test may be created before
+  exact Walk Cycle r6 motion/readability; no World Test may be created before
   that decision;
 - the larger attack-animation reference was translated only into original
   32 px character language; attacks, weapons, and equipment remain outside the
