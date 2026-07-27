@@ -17,6 +17,17 @@ http://127.0.0.1:7331/mcp
 The shared HTTP transport is the preferred setup because Codex, Claude Code,
 and Antigravity can use the same running gateway.
 
+## Headless workflow
+
+The desktop does not need to be open for agent progression. Agents should use
+the MCP tools, shared immutable workspace, local validators, and generated
+review sheets, then return visual evidence to the conversation for each human
+gate. Do not use Computer Use or take control of the user's desktop unless the
+user explicitly requests UI-specific QA.
+
+The desktop remains available as a user-operated review surface and will read
+the same stored records the next time the user opens or refreshes it.
+
 ## Codex
 
 Add the local endpoint:

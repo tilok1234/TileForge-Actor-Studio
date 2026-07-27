@@ -20,6 +20,8 @@ The verified current-user `0.1.1` Windows installer contains the M07 generation
 request UI. M08 proved installed creation and restart restore, an exact MCP
 cross-client read from the shared per-user workspace, and three separately
 generated immutable unreviewed Concept candidates in the installed desktop.
+The user selected Mosscap Scout Concept r1 after that proof; its immutable
+four-view Turnaround now waits at the user-owned identity-consistency gate.
 The older `0.1.0` installer remains historical M06 evidence. Publishing remains
 a separate unapproved user gate.
 

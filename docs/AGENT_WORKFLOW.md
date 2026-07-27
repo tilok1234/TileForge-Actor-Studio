@@ -31,6 +31,20 @@ An agent may not:
 - alter source reference repositories
 - publish an export
 
+## Headless agent operation
+
+Agent work is headless by default. Use the shared MCP tools, immutable
+filesystem records, local validators, and generated comparison sheets without
+taking control of the user's desktop. Return review artifacts in the
+conversation so the user can make each visual decision without losing control
+of their computer.
+
+The installed desktop is a user-operated review surface, not a prerequisite
+for normal agent progression. Use Computer Use or another interactive desktop
+controller only when the user explicitly requests UI-specific QA. A required
+desktop-only check must be explained before requesting that access; it must not
+be treated as permission for later stages or approval.
+
 ## Stage contract
 
 | Stage | Input | Agent output | Human gate |

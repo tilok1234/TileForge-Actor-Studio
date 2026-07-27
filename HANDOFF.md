@@ -214,8 +214,16 @@ promote, or rewrite them during the next milestone.
   `unreviewed`
 - every structural report is 6 Pass / 0 Fail / 1 Not assessed; visual judgment
   is `not_assessed` with user authority
-- the installed desktop currently exposes r1, r2, and r3 for comparison; the
-  user has not selected a Concept or authorized Turnaround
+- the user explicitly selected Concept r1:
+  `concept-r0001-20260727230409-aa483745`
+- immutable Turnaround r1:
+  `turnaround-r0001-20260727231939-6d597fb3`
+- Turnaround r1 preserves the selected down PNG byte for byte and stores new
+  right, up, and left views with generated provenance
+- Turnaround validation reports 24 Pass / 0 Fail / 4 Not assessed; identity
+  consistency is `not_assessed` with user authority
+- no Walk Cycle is authorized until the user explicitly accepts this exact
+  Turnaround
 
 ### Orc Vanguard - completed generality proof
 
@@ -273,6 +281,10 @@ byte.
 - `C:\tmp\tfas-m08-mosscap` preserves the three locally prepared M08 inputs and
   their comparison sheet for the current visual-selection gate. The durable
   candidate copies live in the shared per-user workspace.
+- ignored repository-local
+  `.studio\mosscap-r1-turnaround\turnaround-comparison.png` preserves the
+  down/right/up/left review sheet and headless preparation evidence for the
+  current identity gate
 
 ## Installed release proof
 
@@ -325,15 +337,18 @@ terminal before `npm run test:mcp:http`.
 
 ## Current human gate
 
-M08 is complete and paused at the intended visual-selection boundary. The user
-must compare Mosscap Scout Concept r1, r2, and r3 in the installed desktop and
-explicitly select one or reject all three.
+M08 remains complete. The user explicitly selected Mosscap Scout Concept r1,
+and immutable Turnaround
+`turnaround-r0001-20260727231939-6d597fb3` now waits at the identity-consistency
+gate.
 
-Do not create a Turnaround until that exact selection is explicit. If the user
-selects a Concept, continue through the existing unchanged workflow:
+Present the down/right/up/left comparison without controlling the user's
+desktop. Do not create a Walk Cycle until the user explicitly accepts identity
+consistency for this exact Turnaround. If accepted, continue through the
+existing unchanged workflow:
 
 ```text
-selected Concept -> Turnaround -> accepted identity -> Walk Cycle
+accepted Turnaround -> Walk Cycle -> accepted motion -> World Test
 ```
 
 This gate does not authorize final-art approval, publishing, a provider API,

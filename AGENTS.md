@@ -25,6 +25,9 @@ creative brief to an approved four-direction walk-cycle export.
 - Keep shared domain behavior in `src/lib/studio/`, not inside one AI client.
 - Expose agent operations through `mcp/` so Codex, Claude, and Antigravity get
   equivalent capabilities.
+- Prefer MCP, direct local validation, and generated review sheets for agent
+  work. Do not use Computer Use or take control of the user's desktop unless
+  the user explicitly requests interactive desktop QA.
 - Store local work under `.studio/`; it is intentionally ignored by Git.
 - Keep the human approval boundary visible in both the UI and tool descriptions.
 - Treat a generation request as a durable handoff, not a dispatched AI job.

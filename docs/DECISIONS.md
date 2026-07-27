@@ -505,3 +505,32 @@ Reason: an installed binary, a durable work request, native client capability,
 and imported art are different claims. Preserving each boundary makes the
 cross-client workflow honest while the user retains the first visual selection
 and every later approval decision.
+
+## 2026-07-28 - Agent progression is headless by default
+
+Agents use the shared MCP tools, immutable filesystem records, local
+validators, and generated comparison sheets without controlling the user's
+desktop. The installed application remains a user-operated review surface.
+Computer Use or another interactive desktop controller is reserved for a
+user-explicit request for UI-specific QA.
+
+Reason: the MCP and desktop adapters already share the same protocol, so normal
+workflow progression does not require taking focus, locking user input, or
+interrupting the user's computer. Review sheets keep the visual gates available
+in conversation while preserving user authority.
+
+## 2026-07-28 - Mosscap Scout Concept r1 selected for Turnaround
+
+The user explicitly selected
+`concept-r0001-20260727230409-aa483745`. Immutable Turnaround
+`turnaround-r0001-20260727231939-6d597fb3` records that user selection,
+preserves the selected down PNG byte for byte, and adds separately generated
+right, up, and left views prepared locally against the selected Concept's
+16-color palette.
+
+MCP re-read all four stored PNGs byte for byte and structural validation reports
+24 Pass / 0 Fail / 4 Not assessed. Identity consistency remains Not assessed
+with user authority; no Walk Cycle is authorized.
+
+Reason: Concept selection authorizes one immutable four-view candidate, not
+identity acceptance or a later-stage transition.

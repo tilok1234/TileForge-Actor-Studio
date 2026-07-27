@@ -66,7 +66,7 @@ Expected checkpoint, which you must verify live:
   78e965b8c6adc392f385967043ca28156af1390097760c8cc6c59d92f374be5f;
 - publishing remains absent and every Export remains a local draft.
 
-Continue from the Mosscap Scout human Concept-selection gate.
+Continue from the Mosscap Scout Turnaround identity-consistency gate.
 
 Installed proof evidence:
 
@@ -77,21 +77,30 @@ Installed proof evidence:
 - Concept r3: concept-r0003-20260727230409-b9b4f0de
 - all three are immutable, generated, unreviewed, and report
   6 Pass / 0 Fail / 1 Not assessed
-- the installed desktop restores and displays all three at the Concept stage
-- no Concept has been selected and no Turnaround is authorized
+- the user explicitly selected Concept r1
+- immutable Turnaround r1:
+  turnaround-r0001-20260727231939-6d597fb3
+- its down PNG is byte-identical to selected Concept r1
+- Turnaround validation: 24 Pass / 0 Fail / 4 Not assessed
+- identity consistency remains Not assessed with user authority
+- no Walk Cycle is authorized
 
 1. Verify the live Git state, `0.1.1` package fields, installer identity, and
-   exact Mosscap Scout session/request/candidate records before acting.
-2. Open the installed desktop only when needed for visual comparison and show
-   r1, r2, and r3 without changing stage.
-3. Stop for my explicit choice: select one exact Concept id or reject all
-   three. Never infer selection from structural validation.
-4. If I select one, create a new immutable Turnaround through the existing
-   contract, preserving the selected down PNG byte for byte and waiting again
-   for my identity-consistency acceptance.
-5. If I reject all three, preserve them and wait for an explicit new generation
-   or import request. Do not silently create replacements.
-6. Do not add a provider API, paid fallback, new scope, autonomous approval, or
+   exact Mosscap Scout Concept and Turnaround records before acting.
+2. Work headlessly through MCP and local review artifacts. Do not use Computer
+   Use or take control of my desktop unless I explicitly request UI-specific
+   QA.
+3. Present
+   .studio\mosscap-r1-turnaround\turnaround-comparison.png in canonical
+   down/right/up/left order.
+4. Stop for my explicit identity decision: accept exact Turnaround r1 or reject
+   it. Never infer acceptance from structural validation.
+5. If I accept it, create a new immutable Walk Cycle through the existing
+   contract, preserving each Turnaround direction byte for byte as frame 0 and
+   waiting again for my motion/readability acceptance.
+6. If I reject it, preserve it and wait for an explicit repair or new
+   Turnaround request. Do not silently replace it.
+7. Do not add a provider API, paid fallback, new scope, autonomous approval, or
    publishing.
 
 The completed Orc Vanguard checkpoint must remain immutable:
@@ -106,9 +115,9 @@ The completed Orc Vanguard checkpoint must remain immutable:
 - publishing: not_approved
 
 The current blocker is intentionally my visual authority, so stop after
-presenting the three Concepts unless I have explicitly selected one or rejected
-all three. After an explicit selection, make reasonable implementation
-decisions within the unchanged workflow.
+presenting Turnaround r1 unless I have explicitly accepted or rejected its
+identity consistency. After explicit acceptance, make reasonable
+implementation decisions within the unchanged workflow.
 
 If source or package files change before claiming another milestone, run:
 

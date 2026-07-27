@@ -428,7 +428,8 @@ image invocation.
 
 ## M08 - Installed cross-client generation proof
 
-Status: complete at the intended user Concept-selection gate.
+Status: complete. The post-proof actor has advanced to the user-owned
+Turnaround identity-consistency gate.
 
 Goal: package the completed M07 source and prove that one durable Concept
 request can cross the installed desktop/MCP boundary without adding a provider
@@ -467,8 +468,13 @@ Implemented and verified:
 - no provider API, credential, metered service, autonomous approval, publishing
   operation, or wider art scope was added.
 
-The next action is not another autonomous milestone: the user must visually
-select one Mosscap Scout Concept or reject all three before Turnaround work.
+After M08 completion, the user explicitly selected Mosscap Scout Concept r1
+`concept-r0001-20260727230409-aa483745`. Headless MCP creation published
+immutable Turnaround
+`turnaround-r0001-20260727231939-6d597fb3`, preserving that exact down PNG and
+adding right/up/left views. Validation reports 24 Pass / 0 Fail / 4 Not
+assessed. The next action is not autonomous: the user must accept or reject
+identity consistency before any Walk Cycle work.
 
 ## Deferred beyond version 1
 
