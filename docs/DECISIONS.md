@@ -413,3 +413,18 @@ Reason: a visually different second mob should prove that the existing
 contract generalizes, not introduce another World Test path. Reusing the same
 pinned evidence boundary keeps version 1 small and leaves final-art approval
 with the user.
+
+## 2026-07-27 - Second actor reuses the unchanged draft Export boundary
+
+After the user explicitly approved Orc Vanguard World Test r1, Export
+`export-r0001-20260727070603-f9fe69a3` was prepared through the existing
+provider-neutral Export path. It uses the unchanged 4 x 4 sheet layout,
+metadata, provenance, exact source receipts, local deterministic preparation,
+and seven-check validator without actor-specific code.
+
+The package remains `draft`; publishing remains `not_approved` with user
+authority, and no publishing operation was added.
+
+Reason: completing a second visually distinct actor through the same package
+contract proves the version 1 workflow generalizes end to end. Final-art
+approval authorizes a local package, not a new publishing capability.

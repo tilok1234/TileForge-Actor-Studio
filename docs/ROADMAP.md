@@ -259,7 +259,8 @@ Implemented:
 
 ## Post-M06 - Second-actor generality run
 
-Status: in progress at the user-owned World Test final-art gate.
+Status: complete through one immutable local draft Export. Publishing remains
+unapproved and outside version 1.
 
 Goal: exercise the unchanged version 1 workflow with a visually and
 semantically different actor, exposing any remaining assumptions tied to the
@@ -360,11 +361,23 @@ Current evidence:
 - World Test validation reports 256 Pass / 0 Fail / 0 Not assessed across all
   frame-to-ground measurements, while final-art judgment remains Not assessed
   with user authority;
+- the user explicitly approved exact World Test r1 as final art with
+  "approved"; the World Test remains immutable and its next-stage Export
+  records the approval receipt;
+- immutable draft Export `export-r0001-20260727070603-f9fe69a3` binds the exact
+  World Test document, all sixteen previews, Walk Cycle r11, and all sixteen
+  frame hashes;
+- the 128 x 128 RGBA sheet uses down/right/up/left rows and frame 0-3 columns
+  with 32 x 32 cells and 300 ms timing;
+- Export validation reports 7 Pass / 0 Fail / 0 Not assessed, including exact
+  sheet reconstruction, metadata, provenance, source receipts, and publishing
+  boundary checks;
+- Export preparation is local deterministic work with no additional AI cost;
+  the package remains `draft` and publishing remains `not_approved` with user
+  authority;
 - generation used built-in subscription ImageGen outside the provider-neutral
   core; transparency preparation and validation were local and incurred no
   additional AI-service cost;
-- the next transition is blocked only on the user's approval or rejection of
-  exact World Test r1 final art; no Export may be created before that decision;
 - the larger attack-animation reference was translated only into original
   32 px character language; attacks, weapons, and equipment remain outside the
   v1 workflow;

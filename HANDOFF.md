@@ -155,7 +155,7 @@ The post-release generality run is active with a deliberately different mob:
 - session: `orc-vanguard-20260727012850-6bb50608`
 - brief: Orc Vanguard, a broad green-skinned front-liner with a horned helmet,
   asymmetrical armor, and crimson cloth, shown unarmed for the v1 walk scope
-- stage: World Test final-art gate
+- stage: Export draft complete; publishing gate remains closed
 - immutable Concept candidates:
   - A: `concept-r0001-20260727013308-fd1e91fe`
   - B: `concept-r0002-20260727013308-e6d9ca44`
@@ -281,8 +281,25 @@ The post-release generality run is active with a deliberately different mob:
   `3eb01d0b5cc3a59a0327a26e3f8c416401fc3c4c`, generated engine `199ed7d`
 - World Test evidence: sixteen immutable 640 x 384 scene/theme previews and
   256 Pass / 0 Fail / 0 Not assessed ground-luma measurements
-- final-art judgment: Not assessed with user authority; Export remains blocked
-  until the user explicitly approves or rejects this exact World Test
+- final-art approval: the user explicitly approved exact World Test r1 with
+  "approved"; the immutable World Test document remains Not assessed, while
+  the approval receipt is recorded only in the next-stage Export
+- active immutable draft Export:
+  `export-r0001-20260727070603-f9fe69a3`
+- approval receipt: exact World Test r1 document hash plus all sixteen preview
+  hashes, `approvedBy: user`, approved at `2026-07-27T07:06:03.446Z`
+- source receipt: exact Walk Cycle r11 id plus all sixteen frame hashes
+- package: 128 x 128 RGBA `sprite-sheet.png`, `metadata.json`,
+  `provenance.json`, and `export.json`; down/right/up/left rows, frame 0-3
+  columns, 32 x 32 cells, and 300 ms timing
+- sheet SHA-256:
+  `c2884921f552992ce1339ff7b27b2ff8ce9e4e06a9f074d351ac8f9759e1c057`
+- Export evidence: 7 Pass / 0 Fail / 0 Not assessed; every sheet cell is
+  pixel-identical to its immutable r11 source
+- preparation: local deterministic sheet builder,
+  `additionalAiCost: false`
+- status: `draft`; publishing is `not_approved`, user authority, and no
+  publishing operation exists
 - generation boundary: sources used OpenAI built-in ImageGen through the
   user's subscription; preparation and validation were local, with no API key,
   paid add-on, or usage-metered service
@@ -328,7 +345,10 @@ The post-release generality run is active with a deliberately different mob:
   `generated-source/orc-vanguard-walk-cycle-r11-20260727`; twenty-three World
   Test receipt, validation, immutable preview, overview, close-up, preparation,
   and acceptance-note files were copied byte-for-byte under
-  `generated-source/orc-vanguard-world-test-20260727`
+  `generated-source/orc-vanguard-world-test-20260727`; ten Export receipt,
+  sheet, metadata, provenance, validation, preparation, approval-note, and
+  review files were copied byte-for-byte under
+  `generated-source/orc-vanguard-export-20260727`
 - animation preparation: local deterministic pixel motion,
   `additionalAiCost: false`; no AI service was used
 - scope translation: the user's larger eight-frame axe-swing reference informed
@@ -450,6 +470,11 @@ npm 11.12.1, and Rust 1.95:
 - World Test import idempotency: a second MCP preparation returned
   `created: false` and the same
   `world-test-r0001-20260727065711-23d42e04` identity
+- Orc Vanguard Export r1: the exact approved World Test and r11 receipts
+  produced one immutable 128 x 128 package with 7 Pass / 0 Fail / 0 Not
+  assessed evidence and publishing still `not_approved`
+- Export import idempotency: a second MCP preparation returned `created: false`
+  and the same `export-r0001-20260727070603-f9fe69a3` identity
 - Native desktop QA — after a full app restart, the app restored the exact
   Concept r4 selection receipt and Turnaround r1, displayed all four views,
   reported 24 Pass / 0 Fail / 4 Not assessed, and kept identity consistency
@@ -488,16 +513,13 @@ Re-run checks relevant to any new change. For the HTTP smoke test, start
 
 ## Recommended next milestone
 
-M06 release hardening is complete. The second-actor generality test is now at
-the Orc Vanguard World Test final-art gate. The next action is the user's
-approval or rejection of
-`world-test-r0001-20260727065711-23d42e04`. If approved, create one local draft
-Export tied to that exact World Test receipt; this still does not approve
-publishing. If rejected, return to the relevant earlier stage and create a new
-immutable revision without changing r11 or World Test r1. Keep this one mob
-active and preserve every revision. Publishing remains a separate user-owned
-scope decision and is not implemented in version 1; do not add a destination
-or publish without explicit authority.
+M06 release hardening and the second-actor generality run are complete through
+immutable local draft Export
+`export-r0001-20260727070603-f9fe69a3`. The user may now consume or inspect
+that local package. Publishing remains a separate user-owned scope decision
+and is not implemented in version 1; do not add a destination or publish
+without explicit authority. Any future actor must start a separate durable
+session and preserve the completed Orc Vanguard evidence unchanged.
 
 Any future AI integration must be included in the user's existing
 subscriptions. Do not enable pay-as-you-go APIs, purchased credits,
