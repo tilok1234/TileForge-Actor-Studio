@@ -396,3 +396,20 @@ right-foot lift.
 Reason: `(16, 28)` is a stable placement reference, not a mandate that the same
 foot pixel stay planted throughout an animation. Row contact preserves stable
 grounding while permitting a genuine alternating walk.
+
+## 2026-07-27 - Second actor reuses the unchanged World Test boundary
+
+The Orc Vanguard generality run uses the existing
+`tileforge-world-test-v1` reference pack, local deterministic compositor,
+accepted-Walk-Cycle receipt, sixteen-preview layout, and 256-measurement report
+without actor-specific code or a new reference format.
+
+World Test `world-test-r0001-20260727065711-23d42e04` binds exact Walk Cycle
+r11 after the user's motion/readability acceptance. Its 256 structural
+measurements pass, but its final-art judgment remains Not assessed with user
+authority.
+
+Reason: a visually different second mob should prove that the existing
+contract generalizes, not introduce another World Test path. Reusing the same
+pinned evidence boundary keeps version 1 small and leaves final-art approval
+with the user.

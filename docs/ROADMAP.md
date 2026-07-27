@@ -259,7 +259,7 @@ Implemented:
 
 ## Post-M06 - Second-actor generality run
 
-Status: in progress at the user-owned Animate motion/readability gate.
+Status: in progress at the user-owned World Test final-art gate.
 
 Goal: exercise the unchanged version 1 workflow with a visually and
 semantically different actor, exposing any remaining assumptions tied to the
@@ -350,13 +350,21 @@ Current evidence:
   alpha at `(16, 28)` while the opposite boot remains grounded on row 28, and
   every r11 frame is exactly one four-connected visible component;
 - Walk Cycle validation reports 96 Pass / 0 Fail / 16 Not assessed, while
-  motion and readability remain Not assessed with user authority;
+  structural evidence remains separate from user-owned motion judgment;
+- the user explicitly accepted exact Walk Cycle r11 motion/readability with
+  "nice very good", unlocking World Test but not final art or publishing;
+- immutable World Test `world-test-r0001-20260727065711-23d42e04` records the
+  exact r11 id, all sixteen frame hashes, user authority, and acceptance time;
+- the unchanged pinned TileForge reference pack produced sixteen immutable
+  640 x 384 scene/theme previews through the local deterministic compositor;
+- World Test validation reports 256 Pass / 0 Fail / 0 Not assessed across all
+  frame-to-ground measurements, while final-art judgment remains Not assessed
+  with user authority;
 - generation used built-in subscription ImageGen outside the provider-neutral
   core; transparency preparation and validation were local and incurred no
   additional AI-service cost;
-- the next transition is blocked only on the user's acceptance or rejection of
-  exact Walk Cycle r11 motion/readability; no World Test may be created before
-  that decision;
+- the next transition is blocked only on the user's approval or rejection of
+  exact World Test r1 final art; no Export may be created before that decision;
 - the larger attack-animation reference was translated only into original
   32 px character language; attacks, weapons, and equipment remain outside the
   v1 workflow;

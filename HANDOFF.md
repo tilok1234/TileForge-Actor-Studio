@@ -155,7 +155,7 @@ The post-release generality run is active with a deliberately different mob:
 - session: `orc-vanguard-20260727012850-6bb50608`
 - brief: Orc Vanguard, a broad green-skinned front-liner with a horned helmet,
   asymmetrical armor, and crimson cloth, shown unarmed for the v1 walk scope
-- stage: Animate motion/readability gate
+- stage: World Test final-art gate
 - immutable Concept candidates:
   - A: `concept-r0001-20260727013308-fd1e91fe`
   - B: `concept-r0002-20260727013308-e6d9ca44`
@@ -269,9 +269,20 @@ The post-release generality run is active with a deliberately different mob:
   four-connected visible component
 - Walk Cycle structural evidence: 96 Pass / 0 Fail / 16 Not assessed, with one
   ground-luma result pending per frame
-- motion and readability: Not assessed with user authority; the next action is
-  the user's acceptance or rejection of exact Walk Cycle r11,
-  and no World Test may be created before that decision
+- motion and readability: the user explicitly accepted exact Walk Cycle r11
+  with "nice very good"; this unlocks World Test only and is not final-art or
+  publishing approval
+- active immutable World Test:
+  `world-test-r0001-20260727065711-23d42e04`
+- source receipt: exact Walk Cycle r11 id plus all sixteen frame hashes,
+  `acceptedBy: user`, accepted at `2026-07-27T06:57:11.028Z`
+- reference receipt: unchanged SHA-256-pinned
+  `tileforge-world-test-v1`, source checkout
+  `3eb01d0b5cc3a59a0327a26e3f8c416401fc3c4c`, generated engine `199ed7d`
+- World Test evidence: sixteen immutable 640 x 384 scene/theme previews and
+  256 Pass / 0 Fail / 0 Not assessed ground-luma measurements
+- final-art judgment: Not assessed with user authority; Export remains blocked
+  until the user explicitly approves or rejects this exact World Test
 - generation boundary: sources used OpenAI built-in ImageGen through the
   user's subscription; preparation and validation were local, with no API key,
   paid add-on, or usage-metered service
@@ -314,7 +325,10 @@ The post-release generality run is active with a deliberately different mob:
   `generated-source/orc-vanguard-walk-cycle-r10-final-20260727`; twenty-five
   r11 source, full alternating-foot-lift preparation, final-frame, review, and
   import files were copied byte-for-byte under
-  `generated-source/orc-vanguard-walk-cycle-r11-20260727`
+  `generated-source/orc-vanguard-walk-cycle-r11-20260727`; twenty-three World
+  Test receipt, validation, immutable preview, overview, close-up, preparation,
+  and acceptance-note files were copied byte-for-byte under
+  `generated-source/orc-vanguard-world-test-20260727`
 - animation preparation: local deterministic pixel motion,
   `additionalAiCost: false`; no AI service was used
 - scope translation: the user's larger eight-frame axe-swing reference informed
@@ -430,6 +444,12 @@ npm 11.12.1, and Rust 1.95:
   fully ungrounded row, and keep static exact-anchor validation unchanged
 - r11 import idempotency: a second MCP import returned `created: false` and
   the same `walk-cycle-r0011-20260727064901-0ebf795f` identity
+- Orc Vanguard World Test r1: the exact accepted r11 receipt produced sixteen
+  immutable pinned previews and 256 Pass / 0 Fail / 0 Not assessed ground
+  measurements with final-art judgment still user-owned
+- World Test import idempotency: a second MCP preparation returned
+  `created: false` and the same
+  `world-test-r0001-20260727065711-23d42e04` identity
 - Native desktop QA — after a full app restart, the app restored the exact
   Concept r4 selection receipt and Turnaround r1, displayed all four views,
   reported 24 Pass / 0 Fail / 4 Not assessed, and kept identity consistency
@@ -469,14 +489,15 @@ Re-run checks relevant to any new change. For the HTTP smoke test, start
 ## Recommended next milestone
 
 M06 release hardening is complete. The second-actor generality test is now at
-the Orc Vanguard Animate motion/readability gate. The next action is the user's
-acceptance or rejection of
-`walk-cycle-r0011-20260727064901-0ebf795f`. If accepted, create a World Test
-tied to that exact sixteen-frame receipt and the pinned reference pack. If
-rejected, create a new immutable Walk Cycle revision and preserve the current
-candidate. Keep this one mob active and preserve every revision. Publishing
-remains a separate user-owned scope decision and is not implemented in version
-1; do not add a destination or publish without explicit authority.
+the Orc Vanguard World Test final-art gate. The next action is the user's
+approval or rejection of
+`world-test-r0001-20260727065711-23d42e04`. If approved, create one local draft
+Export tied to that exact World Test receipt; this still does not approve
+publishing. If rejected, return to the relevant earlier stage and create a new
+immutable revision without changing r11 or World Test r1. Keep this one mob
+active and preserve every revision. Publishing remains a separate user-owned
+scope decision and is not implemented in version 1; do not add a destination
+or publish without explicit authority.
 
 Any future AI integration must be included in the user's existing
 subscriptions. Do not enable pay-as-you-go APIs, purchased credits,
