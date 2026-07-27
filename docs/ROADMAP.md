@@ -320,16 +320,22 @@ Current evidence:
   complete swing lower leg and boot one pixel in every passing pose, retains a
   sturdy stance foot at the contract anchor, and moves the side-view swing leg
   two pixels through the stride;
-- frames 0 and 2 remain exact neutral beats; every passing pose has a visible
-  one-pixel ground gap below the swing foot, and every r8 frame is exactly one
-  four-connected visible component;
+- the user reported that r8 still left one foot unmoving in front/back because
+  both passing poses animated only the non-anchor boot;
+- alternating front/back Walk Cycle
+  `walk-cycle-r0009-20260727061941-a5c9bfc9` preserves all eight r8 side frames
+  byte for byte, fully lifts the non-anchor boot in one passing pose, and moves
+  the anchor-side boot into a connected heel-pivot/toe-off pose in the other;
+- frames 0 and 2 remain exact neutral beats; both front/back feet now change on
+  alternating passing poses, and every r9 frame is exactly one four-connected
+  visible component;
 - Walk Cycle validation reports 96 Pass / 0 Fail / 16 Not assessed, while
   motion and readability remain Not assessed with user authority;
 - generation used built-in subscription ImageGen outside the provider-neutral
   core; transparency preparation and validation were local and incurred no
   additional AI-service cost;
 - the next transition is blocked only on the user's acceptance or rejection of
-  exact Walk Cycle r8 motion/readability; no World Test may be created before
+  exact Walk Cycle r9 motion/readability; no World Test may be created before
   that decision;
 - the larger attack-animation reference was translated only into original
   32 px character language; attacks, weapons, and equipment remain outside the

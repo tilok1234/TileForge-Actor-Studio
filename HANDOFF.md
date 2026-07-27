@@ -227,21 +227,29 @@ The post-release generality run is active with a deliberately different mob:
   halves
 - r7 feedback: the user reported that the feet no longer lifted; the
   horizontal-only repair read as a grounded shuffle
-- active immutable Walk Cycle:
+- preserved lifted-step Walk Cycle:
   `walk-cycle-r0008-20260727061503-7be83825`
 - r8 lifted-step repair: raises the complete swing lower leg and boot one pixel
   above the ground row in every passing pose; down/up retain the anchor-side
   stance boot, while right/left use a separate three-pixel-wide grounded stance
   leg and move the complete swing leg two pixels through the stride
+- r8 feedback: the user reported that one foot still did not move in the front
+  and back views because both passing poses animated only the non-anchor boot
+- active immutable Walk Cycle:
+  `walk-cycle-r0009-20260727061941-a5c9bfc9`
+- r9 alternating front/back repair: preserves all eight r8 side-view frames
+  byte for byte; down/up frame 1 fully lifts the non-anchor boot, while frame 3
+  raises and advances the anchor-side lower leg into a toe-off pose with a
+  connected three-by-two heel contact at the required ground anchor
 - frames 0 and 2 are intentional neutral beats, and frame 0 in every direction
   is byte-identical to Turnaround r1
-- lift and connectivity evidence: every r8 passing pose has swing-foot pixels
-  on row 27 with empty row 28 directly below, the stance foot occupies row 28,
-  and all sixteen frames are exactly one four-connected visible component
+- lift and connectivity evidence: both front/back feet now change on
+  alternating passing poses, every lifted toe has empty row 28 directly below,
+  and all sixteen r9 frames are exactly one four-connected visible component
 - Walk Cycle structural evidence: 96 Pass / 0 Fail / 16 Not assessed, with one
   ground-luma result pending per frame
 - motion and readability: Not assessed with user authority; the next action is
-  the user's acceptance or rejection of exact Walk Cycle r8,
+  the user's acceptance or rejection of exact Walk Cycle r9,
   and no World Test may be created before that decision
 - generation boundary: sources used OpenAI built-in ImageGen through the
   user's subscription; preparation and validation were local, with no API key,
@@ -274,7 +282,10 @@ The post-release generality run is active with a deliberately different mob:
   `generated-source/orc-vanguard-walk-cycle-r7-20260727`; twenty-five r8
   source, lifted-step preparation, final-frame, review, and import files were
   copied byte-for-byte under
-  `generated-source/orc-vanguard-walk-cycle-r8-20260727`
+  `generated-source/orc-vanguard-walk-cycle-r8-20260727`; twenty-five r9
+  source, alternating front/back preparation, final-frame, review, and import
+  files were copied byte-for-byte under
+  `generated-source/orc-vanguard-walk-cycle-r9-20260727`
 - animation preparation: local deterministic pixel motion,
   `additionalAiCost: false`; no AI service was used
 - scope translation: the user's larger eight-frame axe-swing reference informed
@@ -425,7 +436,7 @@ Re-run checks relevant to any new change. For the HTTP smoke test, start
 M06 release hardening is complete. The second-actor generality test is now at
 the Orc Vanguard Animate motion/readability gate. The next action is the user's
 acceptance or rejection of
-`walk-cycle-r0008-20260727061503-7be83825`. If accepted, create a World Test
+`walk-cycle-r0009-20260727061941-a5c9bfc9`. If accepted, create a World Test
 tied to that exact sixteen-frame receipt and the pinned reference pack. If
 rejected, create a new immutable Walk Cycle revision and preserve the current
 candidate. Keep this one mob active and preserve every revision. Publishing
