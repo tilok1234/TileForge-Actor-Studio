@@ -293,13 +293,18 @@ Current evidence:
   foot motion, removes artificial arm-tip and torso/hip seam nubs, replaces the
   narrow planted heel with a connected three-pixel boot core, and keeps each
   final frame in one four-connected silhouette;
+- the user requested more vertical bob after reviewing r3;
+- heavier Walk Cycle `walk-cycle-r0004-20260727021942-2ebffe25` preserves r3's
+  cleaned silhouette and foot motion, adds a one-pixel upper-body weight drop
+  on both passing-foot poses, returns to the exact neutral on alternating
+  frames, and keeps every frame in one four-connected silhouette;
 - Walk Cycle validation reports 96 Pass / 0 Fail / 16 Not assessed, while
   motion and readability remain Not assessed with user authority;
 - generation used built-in subscription ImageGen outside the provider-neutral
   core; transparency preparation and validation were local and incurred no
   additional AI-service cost;
 - the next transition is blocked only on the user's acceptance or rejection of
-  exact Walk Cycle r3 motion/readability; no World Test may be created before
+  exact Walk Cycle r4 motion/readability; no World Test may be created before
   that decision;
 - the larger attack-animation reference was translated only into original
   32 px character language; attacks, weapons, and equipment remain outside the
