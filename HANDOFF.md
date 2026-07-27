@@ -75,7 +75,7 @@ runtime dependency or write generated assets back into them.
 | Candidate restore | Reopens, lists, and reads saved candidates through either adapter |
 | Candidate comparison | Switches revisions and previews them at 1x, 8x, and 16x |
 | Candidate evidence | Shows provenance, SHA-256 identity, and structural-intake status without implying visual acceptance |
-| Contract validation | Measures six PNG rules locally; earlier stages keep ground luma Not assessed until World Test supplies a pinned placement |
+| Contract validation | Measures six PNG rules locally; static art requires exact `(16, 28)` placement contact, walk frames require contact on row 28, and ground luma stays Not assessed until World Test |
 | Validation UI | Shows Pass, Fail, and Not assessed totals plus per-rule evidence for the selected revision |
 | Concept selection | Turnaround records the exact selected Concept id, SHA-256, user authority, and selection time |
 | Turnaround storage | Atomically preserves canonical down/right/up/left PNGs as one immutable revision |
@@ -243,21 +243,34 @@ The post-release generality run is active with a deliberately different mob:
   connected three-by-two heel contact at the required ground anchor
 - r9 feedback: the user reported that the motion was almost correct but one
   right-foot pixel still appeared not to move
-- active immutable Walk Cycle:
+- preserved one-pixel cleanup Walk Cycle:
   `walk-cycle-r0010-20260727062615-7a408516`
 - r10 one-pixel cleanup: changes the anchor-side heel to a connected two-by-two
   color-shifted pivot, then changes only up frame 3 pixel `(21, 27)` from the
   coincident stationary-looking outline value to the adjacent boot-ramp value
+- r10 feedback: the user still saw one small stuck right-foot pixel; diagnosis
+  showed that the exact `(16, 28)` opacity requirement itself forced a visible
+  anchor-side support pixel in every animated frame
+- approved contract clarification: the user explicitly approved retaining
+  `(16, 28)` as the static Concept/Turnaround placement anchor while allowing
+  animated Walk Cycle frames to contact anywhere on foot-anchor row 28; frame
+  0 still must preserve its accepted Turnaround source byte for byte
+- active immutable Walk Cycle:
+  `walk-cycle-r0011-20260727064901-0ebf795f`
+- r11 full alternating-foot lift: preserves every r10 right/left frame byte for
+  byte; down/up frame 1 fully lifts the left boot, while frame 3 raises and
+  advances the complete right lower leg and boot without restoring the old
+  exact-anchor support pixel
 - frames 0 and 2 are intentional neutral beats, and frame 0 in every direction
   is byte-identical to Turnaround r1
-- lift and connectivity evidence: no down/up anchor-side lower-foot pixel
-  retains the same RGBA value as the neutral source; every lifted toe has empty
-  row 28 directly below, and all sixteen r10 frames are exactly one
+- lift and connectivity evidence: down/up frame 3 has transparent alpha at
+  `(16, 28)` while the opposite boot remains grounded on row 28; all sixteen
+  r11 frames use 15 visible colors and are exactly one
   four-connected visible component
 - Walk Cycle structural evidence: 96 Pass / 0 Fail / 16 Not assessed, with one
   ground-luma result pending per frame
 - motion and readability: Not assessed with user authority; the next action is
-  the user's acceptance or rejection of exact Walk Cycle r10,
+  the user's acceptance or rejection of exact Walk Cycle r11,
   and no World Test may be created before that decision
 - generation boundary: sources used OpenAI built-in ImageGen through the
   user's subscription; preparation and validation were local, with no API key,
@@ -298,7 +311,10 @@ The post-release generality run is active with a deliberately different mob:
   `generated-source/orc-vanguard-walk-cycle-r10-20260727`; twenty-five final
   r10 source, one-pixel cleanup, final-frame, review, and import files were
   copied byte-for-byte under
-  `generated-source/orc-vanguard-walk-cycle-r10-final-20260727`
+  `generated-source/orc-vanguard-walk-cycle-r10-final-20260727`; twenty-five
+  r11 source, full alternating-foot-lift preparation, final-frame, review, and
+  import files were copied byte-for-byte under
+  `generated-source/orc-vanguard-walk-cycle-r11-20260727`
 - animation preparation: local deterministic pixel motion,
   `additionalAiCost: false`; no AI service was used
 - scope translation: the user's larger eight-frame axe-swing reference informed
@@ -408,6 +424,12 @@ npm 11.12.1, and Rust 1.95:
   compatibility, workspace resolution, safe folder-opening, and failure-path
   tests passed
 - `npm audit --audit-level=moderate` — 0 vulnerabilities
+- Orc Vanguard r11 ground-contact update: all six required check/build/test
+  commands above were rerun successfully; TypeScript and Rust both pass
+  animated frames with row-28 contact after clearing `(16, 28)`, reject a
+  fully ungrounded row, and keep static exact-anchor validation unchanged
+- r11 import idempotency: a second MCP import returned `created: false` and
+  the same `walk-cycle-r0011-20260727064901-0ebf795f` identity
 - Native desktop QA — after a full app restart, the app restored the exact
   Concept r4 selection receipt and Turnaround r1, displayed all four views,
   reported 24 Pass / 0 Fail / 4 Not assessed, and kept identity consistency
@@ -449,7 +471,7 @@ Re-run checks relevant to any new change. For the HTTP smoke test, start
 M06 release hardening is complete. The second-actor generality test is now at
 the Orc Vanguard Animate motion/readability gate. The next action is the user's
 acceptance or rejection of
-`walk-cycle-r0010-20260727062615-7a408516`. If accepted, create a World Test
+`walk-cycle-r0011-20260727064901-0ebf795f`. If accepted, create a World Test
 tied to that exact sixteen-frame receipt and the pinned reference pack. If
 rejected, create a new immutable Walk Cycle revision and preserve the current
 candidate. Keep this one mob active and preserve every revision. Publishing

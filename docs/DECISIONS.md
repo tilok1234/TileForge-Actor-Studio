@@ -374,3 +374,25 @@ automatic updates, code signing, and paid distribution services out of scope.
 Reason: a normal executable and installer let the user run the completed
 six-stage workflow without a development terminal while avoiding a broader
 deployment or publishing system.
+
+## 2026-07-27 - Walk animation ground contact uses the foot-anchor row
+
+The contract keeps `frame.footAnchor: [16, 28]` as the placement origin and
+exact static contact for Concept and Turnaround candidates. It separately
+declares `animation.groundContact` as `foot-anchor-row` on row 28. TypeScript
+and Rust therefore apply exact-anchor validation to static art and row-contact
+validation to all Walk Cycle frames. The existing `foot_anchor` rule id,
+validator version, report shape, and Pass/Fail totals remain compatible.
+
+Walk frame 0 retains the stronger invariant that its PNG bytes exactly match
+the accepted Turnaround direction. Other frames may ground either foot
+anywhere on row 28, so an alternating foot can leave `(16, 28)` completely
+transparent without allowing the actor to float.
+
+The user explicitly approved this narrow contract clarification after the
+exact-anchor rule forced a stationary support pixel into the Orc Vanguard's
+right-foot lift.
+
+Reason: `(16, 28)` is a stable placement reference, not a mandate that the same
+foot pixel stay planted throughout an animation. Row contact preserves stable
+grounding while permitting a genuine alternating walk.

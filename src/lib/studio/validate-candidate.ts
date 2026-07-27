@@ -50,9 +50,14 @@ interface StructuralArtifactIdentity {
   contractId: string;
 }
 
+export type StructuralContactMode = "exact-anchor" | "foot-anchor-row";
+
 export function validatePngStructuralEvidence(
   identity: StructuralArtifactIdentity,
   pngBytes: Uint8Array,
+  options: {
+    contactMode?: StructuralContactMode;
+  } = {},
 ): ValidationReport {
   const sourceSha256 = createHash("sha256").update(pngBytes).digest("hex");
   if (
@@ -77,7 +82,8 @@ export function validatePngStructuralEvidence(
   let visiblePixelCount = 0;
   let minY = decoded.height;
   let maxY = -1;
-  let footAnchorContact = false;
+  let exactFootAnchorContact = false;
+  let footAnchorRowContact = false;
 
   for (let y = 0; y < decoded.height; y += 1) {
     for (let x = 0; x < decoded.width; x += 1) {
@@ -99,7 +105,10 @@ export function validatePngStructuralEvidence(
       minY = Math.min(minY, y);
       maxY = Math.max(maxY, y);
       if (x === contract.frame.footAnchor[0] && y === contract.frame.footAnchor[1]) {
-        footAnchorContact = true;
+        exactFootAnchorContact = true;
+      }
+      if (y === contract.animation.groundContact.row) {
+        footAnchorRowContact = true;
       }
       if (
         x === 0 ||
@@ -132,6 +141,24 @@ export function validatePngStructuralEvidence(
   const edgeObserved = edgePass
     ? "No edge contact"
     : `${pixelLabel(edgePixelCount)} on ${orderedEdgeSides.join(", ")}`;
+  const contactMode = options.contactMode ?? "exact-anchor";
+  const footContact =
+    contactMode === "foot-anchor-row"
+      ? footAnchorRowContact
+      : exactFootAnchorContact;
+  const contactExpected =
+    contactMode === "foot-anchor-row"
+      ? `Visible pixel on foot-anchor row y=${contract.animation.groundContact.row}`
+      : `Visible pixel at (${contract.frame.footAnchor.join(", ")})`;
+  const contactObserved = footContact ? "Contact" : "No contact";
+  const contactMessage =
+    contactMode === "foot-anchor-row"
+      ? footContact
+        ? "The walk frame contacts the contract foot-anchor row."
+        : "The contract foot-anchor row has no visible contact."
+      : exactFootAnchorContact
+        ? "The actor contacts the contract foot anchor."
+        : "The contract foot anchor is transparent.";
 
   const results: ValidationRuleResult[] = [
     ruleResult(
@@ -163,12 +190,10 @@ export function validatePngStructuralEvidence(
     ),
     ruleResult(
       "foot_anchor",
-      footAnchorContact ? "pass" : "fail",
-      `Visible pixel at (${contract.frame.footAnchor.join(", ")})`,
-      footAnchorContact ? "Contact" : "No contact",
-      footAnchorContact
-        ? "The actor contacts the contract foot anchor."
-        : "The contract foot anchor is transparent.",
+      footContact ? "pass" : "fail",
+      contactExpected,
+      contactObserved,
+      contactMessage,
     ),
     ruleResult(
       "palette_max_colors",

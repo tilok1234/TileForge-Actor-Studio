@@ -18,8 +18,8 @@ export const BOUNDARY_RULES: BoundaryRule[] = [
   },
   {
     id: "anchor",
-    label: "Foot anchor",
-    value: "16, 28",
+    label: "Placement / walk contact",
+    value: `${TILEFORGE_ACTOR_CONTRACT.frame.footAnchor.join(", ")}; walk row ${TILEFORGE_ACTOR_CONTRACT.animation.groundContact.row}`,
     severity: "locked",
   },
   {

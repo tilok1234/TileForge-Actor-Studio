@@ -31,6 +31,7 @@ const ACTOR_HEIGHT_MIN: u32 = 22;
 const ACTOR_HEIGHT_MAX: u32 = 30;
 const FOOT_ANCHOR_X: u32 = 16;
 const FOOT_ANCHOR_Y: u32 = 28;
+const WALK_GROUND_CONTACT_Y: u32 = FOOT_ANCHOR_Y;
 const PALETTE_MAX_COLORS: usize = 16;
 const MINIMUM_GROUND_LUMA_DISTANCE: u32 = 15;
 const WORLD_TEST_PREVIEW_WIDTH: u32 = 640;
@@ -47,6 +48,12 @@ const WORLD_TEST_SCENES: [&str; 4] = ["scale-lineup", "forest-clearing", "crownh
 const WORLD_TEST_THEMES: [&str; 4] = ["forest", "autumn", "dusk", "winter"];
 const WORLD_TEST_REFERENCE_MANIFEST: &[u8] =
     include_bytes!("../../reference-packs/tileforge-world-test-v1/manifest.json");
+
+#[derive(Debug, Clone, Copy)]
+enum StructuralContactMode {
+    ExactAnchor,
+    FootAnchorRow,
+}
 
 #[derive(Debug, Clone, Serialize, Deserialize)]
 #[serde(rename_all = "lowercase")]
@@ -1652,6 +1659,7 @@ fn validate_turnaround_pngs(
             source.byte_length,
             &payload.candidate.contract_id,
             payload.png_bytes.get(source.direction),
+            StructuralContactMode::ExactAnchor,
         )?;
         summary.pass += report.summary.pass;
         summary.fail += report.summary.fail;
@@ -2077,6 +2085,7 @@ fn validate_walk_cycle_pngs(
             source.byte_length,
             &payload.candidate.contract_id,
             bytes,
+            StructuralContactMode::FootAnchorRow,
         )?;
         summary.pass += report.summary.pass;
         summary.fail += report.summary.fail;
@@ -3641,6 +3650,7 @@ fn validate_candidate_png(
         candidate.byte_length,
         &candidate.contract_id,
         png_bytes,
+        StructuralContactMode::ExactAnchor,
     )
 }
 
@@ -3650,6 +3660,7 @@ fn validate_png_structural_evidence(
     byte_length: usize,
     contract_id: &str,
     png_bytes: &[u8],
+    contact_mode: StructuralContactMode,
 ) -> Result<ValidationReport, String> {
     validate_candidate_id(artifact_id)?;
     if png_bytes.len() != byte_length || format!("{:x}", Sha256::digest(png_bytes)) != sha256 {
@@ -3665,7 +3676,8 @@ fn validate_png_structural_evidence(
     let mut visible_pixel_count = 0usize;
     let mut min_y = decoded.height;
     let mut max_y = 0u32;
-    let mut foot_anchor_contact = false;
+    let mut exact_foot_anchor_contact = false;
+    let mut foot_anchor_row_contact = false;
 
     for (index, pixel) in decoded.pixels.iter().enumerate() {
         let x = index as u32 % decoded.width;
@@ -3684,7 +3696,10 @@ fn validate_png_structural_evidence(
         min_y = min_y.min(y);
         max_y = max_y.max(y);
         if x == FOOT_ANCHOR_X && y == FOOT_ANCHOR_Y {
-            foot_anchor_contact = true;
+            exact_foot_anchor_contact = true;
+        }
+        if y == WALK_GROUND_CONTACT_Y {
+            foot_anchor_row_contact = true;
         }
         if x == 0 || y == 0 || x == decoded.width - 1 || y == decoded.height - 1 {
             edge_pixel_count += 1;
@@ -3723,6 +3738,34 @@ fn validate_png_structural_evidence(
             .collect::<Vec<_>>()
             .join(", ");
         format!("{} on {names}", pixel_label(edge_pixel_count))
+    };
+    let foot_contact = match contact_mode {
+        StructuralContactMode::ExactAnchor => exact_foot_anchor_contact,
+        StructuralContactMode::FootAnchorRow => foot_anchor_row_contact,
+    };
+    let contact_expected = match contact_mode {
+        StructuralContactMode::ExactAnchor => {
+            format!("Visible pixel at ({FOOT_ANCHOR_X}, {FOOT_ANCHOR_Y})")
+        }
+        StructuralContactMode::FootAnchorRow => {
+            format!("Visible pixel on foot-anchor row y={WALK_GROUND_CONTACT_Y}")
+        }
+    };
+    let contact_message = match contact_mode {
+        StructuralContactMode::ExactAnchor => {
+            if foot_contact {
+                "The actor contacts the contract foot anchor."
+            } else {
+                "The contract foot anchor is transparent."
+            }
+        }
+        StructuralContactMode::FootAnchorRow => {
+            if foot_contact {
+                "The walk frame contacts the contract foot-anchor row."
+            } else {
+                "The contract foot-anchor row has no visible contact."
+            }
+        }
     };
 
     let results = vec![
@@ -3776,25 +3819,21 @@ fn validate_png_structural_evidence(
         ),
         validation_rule(
             ValidationRuleId::FootAnchor,
-            if foot_anchor_contact {
+            if foot_contact {
                 ValidationStatus::Pass
             } else {
                 ValidationStatus::Fail
             },
-            format!("Visible pixel at ({FOOT_ANCHOR_X}, {FOOT_ANCHOR_Y})"),
+            contact_expected,
             Some(
-                if foot_anchor_contact {
+                if foot_contact {
                     "Contact"
                 } else {
                     "No contact"
                 }
                 .to_owned(),
             ),
-            if foot_anchor_contact {
-                "The actor contacts the contract foot anchor."
-            } else {
-                "The contract foot anchor is transparent."
-            },
+            contact_message,
         ),
         validation_rule(
             ValidationRuleId::PaletteMaxColors,
@@ -4282,6 +4321,19 @@ mod tests {
                 .unwrap();
         }
         bytes
+    }
+
+    fn walk_frame_png(source: &[u8], include_ground_contact: bool) -> Vec<u8> {
+        let mut decoded = decode_png_rgba(source).unwrap();
+        let anchor_index = (FOOT_ANCHOR_Y * decoded.width + FOOT_ANCHOR_X) as usize;
+        decoded.pixels[anchor_index][3] = 0;
+        if !include_ground_contact {
+            for x in 0..decoded.width {
+                let index = (WALK_GROUND_CONTACT_Y * decoded.width + x) as usize;
+                decoded.pixels[index][3] = 0;
+            }
+        }
+        encode_png_rgba(decoded.width, decoded.height, &decoded.pixels).unwrap()
     }
 
     #[test]
@@ -4863,24 +4915,29 @@ mod tests {
         )
         .unwrap();
         let frames = WalkCyclePngBytes {
-            down: vec![down.clone(), down.clone(), down.clone(), down.clone()],
+            down: vec![
+                down.clone(),
+                walk_frame_png(&down, true),
+                walk_frame_png(&down, true),
+                walk_frame_png(&down, true),
+            ],
             right: vec![
                 views.right.clone(),
-                views.right.clone(),
-                views.right.clone(),
-                views.right.clone(),
+                walk_frame_png(&views.right, true),
+                walk_frame_png(&views.right, true),
+                walk_frame_png(&views.right, true),
             ],
             up: vec![
                 views.up.clone(),
-                views.up.clone(),
-                views.up.clone(),
-                views.up.clone(),
+                walk_frame_png(&views.up, true),
+                walk_frame_png(&views.up, true),
+                walk_frame_png(&views.up, true),
             ],
             left: vec![
                 views.left.clone(),
-                views.left.clone(),
-                views.left.clone(),
-                views.left.clone(),
+                walk_frame_png(&views.left, true),
+                walk_frame_png(&views.left, true),
+                walk_frame_png(&views.left, true),
             ],
         };
         let walk_cycle = create_walk_cycle_candidate_at(
@@ -4916,6 +4973,39 @@ mod tests {
                 fail: 0,
                 not_assessed: 16,
             }
+        );
+        for frame in report.frames.iter().filter(|frame| frame.frame_index > 0) {
+            let contact = frame
+                .report
+                .results
+                .iter()
+                .find(|result| result.id == ValidationRuleId::FootAnchor)
+                .unwrap();
+            assert_eq!(contact.status, ValidationStatus::Pass);
+            assert_eq!(
+                contact.expected,
+                format!("Visible pixel on foot-anchor row y={WALK_GROUND_CONTACT_Y}")
+            );
+        }
+
+        let ungrounded = walk_frame_png(&down, false);
+        let ungrounded_report = validate_png_structural_evidence(
+            "walk-ground-contact",
+            &format!("{:x}", Sha256::digest(&ungrounded)),
+            ungrounded.len(),
+            CONTRACT_ID,
+            &ungrounded,
+            StructuralContactMode::FootAnchorRow,
+        )
+        .unwrap();
+        assert_eq!(
+            ungrounded_report
+                .results
+                .iter()
+                .find(|result| result.id == ValidationRuleId::FootAnchor)
+                .unwrap()
+                .status,
+            ValidationStatus::Fail
         );
         assert_eq!(
             fs::read_dir(

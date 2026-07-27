@@ -119,6 +119,9 @@ They are keyed by candidate id, candidate SHA-256, contract id, and validator
 version but are not stored in `.studio/`. Desktop and MCP clients recompute the
 same seven ordered rule results. Six rules inspect decoded pixels; ground luma
 returns Not assessed until World Test adds a pinned reference and placement.
+The shared `foot_anchor` rule is context-sensitive without changing the report
+shape: Concept and Turnaround art require exact contact at `(16, 28)`, while
+Walk Cycle frames require visible contact anywhere on contract row 28.
 
 The report has no approval field. Its separate visual-judgment record is fixed
 to Not assessed with user authority, so a structural Pass cannot become visual
@@ -148,9 +151,11 @@ silently changing an approved pose.
 
 All sixteen original frame PNGs are rehash-verified on every read. Walk Cycle
 validation recomputes the M03 structural report for every frame and aggregates
-the totals. Its motion/readability judgment is fixed to Not assessed with user
-authority. Structural success therefore cannot accept animation, approve final
-art, or authorize World Test work.
+the totals. Each frame must contact foot-anchor row 28, but no individual foot
+or x coordinate is forced to remain planted; frame 0 still has the stronger
+byte-identical accepted-source invariant. Its motion/readability judgment is
+fixed to Not assessed with user authority. Structural success therefore cannot
+accept animation, approve final art, or authorize World Test work.
 
 ### World Test acceptance and ground evidence
 

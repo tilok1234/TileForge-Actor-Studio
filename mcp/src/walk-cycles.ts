@@ -315,6 +315,7 @@ export async function validateWalkCycleCandidate(
         contractId: payload.candidate.contractId,
       },
       payload.pngBytes[source.direction][source.frameIndex]!,
+      { contactMode: "foot-anchor-row" },
     ),
   }));
   const summary = frames.reduce(

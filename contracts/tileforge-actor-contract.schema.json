@@ -67,7 +67,8 @@
         "directions",
         "initialClip",
         "framesPerDirection",
-        "frameDurationMs"
+        "frameDurationMs",
+        "groundContact"
       ],
       "properties": {
         "directions": {
@@ -77,7 +78,16 @@
         },
         "initialClip": { "type": "string" },
         "framesPerDirection": { "type": "integer", "minimum": 1 },
-        "frameDurationMs": { "type": "integer", "minimum": 1 }
+        "frameDurationMs": { "type": "integer", "minimum": 1 },
+        "groundContact": {
+          "type": "object",
+          "additionalProperties": false,
+          "required": ["mode", "row"],
+          "properties": {
+            "mode": { "const": "foot-anchor-row" },
+            "row": { "type": "integer", "minimum": 0 }
+          }
+        }
       }
     },
     "approval": {

@@ -45,6 +45,10 @@ export interface StudioContract {
     initialClip: string;
     framesPerDirection: number;
     frameDurationMs: number;
+    groundContact: {
+      mode: "foot-anchor-row";
+      row: number;
+    };
   };
   approval: {
     agentsMayApprove: boolean;

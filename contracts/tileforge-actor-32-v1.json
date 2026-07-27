@@ -22,7 +22,11 @@
     "directions": ["down", "right", "up", "left"],
     "initialClip": "walk",
     "framesPerDirection": 4,
-    "frameDurationMs": 300
+    "frameDurationMs": 300,
+    "groundContact": {
+      "mode": "foot-anchor-row",
+      "row": 28
+    }
   },
   "approval": {
     "agentsMayApprove": false,

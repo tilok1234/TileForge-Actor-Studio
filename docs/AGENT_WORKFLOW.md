@@ -96,14 +96,17 @@ atomically publishing the four directions. Ground luma remains Not assessed
 until a pinned ground reference exists; visual and identity acceptance remain
 user-only decisions. The Walk Cycle slice records the user's accepted
 Turnaround receipt, requires exact frame-zero bytes for all four directions,
-and atomically preserves sixteen frames at 300 ms. Motion and readability
-remain user-only. The World Test slice binds the accepted Walk Cycle to a
-copied SHA-256-pinned TileForge pack, atomically preserves sixteen previews,
-and resolves ground luma for every frame/reference pairing. Final-art judgment
-stays Not assessed inside the World Test document; the next-stage Export
-records the user's explicit decision against that exact immutable document.
-The Export package is prepared and validated locally without an AI service,
-remains a draft, and keeps publishing not approved with user authority.
+and atomically preserves sixteen frames at 300 ms. Concept and Turnaround art
+must contact the exact `(16, 28)` placement anchor; Walk Cycle frames may
+contact anywhere on row 28 so either foot can lift fully. Motion and
+readability remain user-only. The World Test slice binds the accepted Walk
+Cycle to a copied SHA-256-pinned TileForge pack, atomically preserves sixteen
+previews, and resolves ground luma for every frame/reference pairing. Final-art
+judgment stays Not assessed inside the World Test document; the next-stage
+Export records the user's explicit decision against that exact immutable
+document. The Export package is prepared and validated locally without an AI
+service, remains a draft, and keeps publishing not approved with user
+authority.
 
 ## Validation language
 

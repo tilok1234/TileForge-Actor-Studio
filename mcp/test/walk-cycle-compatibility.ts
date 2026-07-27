@@ -1,5 +1,6 @@
 import { Client } from "@modelcontextprotocol/sdk/client/index.js";
 import { InMemoryTransport } from "@modelcontextprotocol/sdk/inMemory.js";
+import { createHash } from "node:crypto";
 import { mkdtemp, readFile, readdir, rm } from "node:fs/promises";
 import { tmpdir } from "node:os";
 import { dirname, join, resolve } from "node:path";
@@ -22,6 +23,7 @@ import { parseWalkCycleValidationReport } from "../../src/lib/studio/walk-cycle-
 import {
   type TurnaroundDirection,
 } from "../../src/lib/studio/turnaround.js";
+import { validatePngStructuralEvidence } from "../../src/lib/studio/validate-candidate.js";
 import { textPayload } from "./result.js";
 
 const moduleDir = dirname(fileURLToPath(import.meta.url));
@@ -69,12 +71,27 @@ function frameSet(
       direction,
       [
         frameZero,
-        viewPng(8 + directionIndex * 3),
-        viewPng(9 + directionIndex * 3),
-        viewPng(10 + directionIndex * 3),
+        walkFramePng(8 + directionIndex * 3),
+        walkFramePng(9 + directionIndex * 3),
+        walkFramePng(10 + directionIndex * 3),
       ],
     ]),
   ) as WalkCyclePngs;
+}
+
+function walkFramePng(
+  colorOffset = 0,
+  includeGroundContact = true,
+): Uint8Array {
+  const png = PNG.sync.read(Buffer.from(viewPng(colorOffset)));
+  const anchorIndex = (28 * png.width + 16) * 4;
+  png.data[anchorIndex + 3] = 0;
+  if (!includeGroundContact) {
+    for (let x = 0; x < png.width; x += 1) {
+      png.data[(28 * png.width + x) * 4 + 3] = 0;
+    }
+  }
+  return PNG.sync.write(png);
 }
 
 function base64Frames(
@@ -284,6 +301,36 @@ try {
       validation.motionJudgment.status === "not_assessed" &&
       validation.motionJudgment.authority === "user",
     "Walk Cycle validation totals or authority changed.",
+  );
+  const animatedContactRules = validation.frames
+    .filter((frame) => frame.frameIndex > 0)
+    .map((frame) =>
+      frame.report.results.find((result) => result.id === "foot_anchor"),
+    );
+  assert(
+    animatedContactRules.every(
+      (rule) =>
+        rule?.status === "pass" &&
+        rule.expected === "Visible pixel on foot-anchor row y=28",
+    ),
+    "Animated Walk Cycle frames did not use row-based ground contact.",
+  );
+
+  const ungrounded = walkFramePng(30, false);
+  const ungroundedReport = validatePngStructuralEvidence(
+    {
+      artifactId: created.id,
+      sha256: createHash("sha256").update(ungrounded).digest("hex"),
+      byteLength: ungrounded.byteLength,
+      contractId: created.contractId,
+    },
+    ungrounded,
+    { contactMode: "foot-anchor-row" },
+  );
+  assert(
+    ungroundedReport.results.find((result) => result.id === "foot_anchor")
+      ?.status === "fail",
+    "A Walk Cycle frame without foot-anchor-row contact unexpectedly passed.",
   );
 
   const collisionOptions = {

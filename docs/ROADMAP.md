@@ -83,7 +83,7 @@ Initial validators:
 - 32 x 32 canvas
 - hard alpha
 - actor height range
-- foot-anchor contact
+- exact static foot-anchor contact and animated walk ground-row contact
 - palette maximum
 - minimum ground luma separation
 - no frame-edge clipping
@@ -96,6 +96,9 @@ Implemented:
   MCP adapters;
 - decoded PNG pixels, rather than candidate metadata, drive canvas, hard-alpha,
   visible-height, foot-anchor, visible-palette, and frame-edge measurements;
+- Concept and Turnaround validation require exact contact at `(16, 28)`;
+  animated Walk Cycle validation requires visible foot contact anywhere on
+  contract row 28 so alternating feet can fully lift;
 - independent rules continue running after another rule fails, preserving the
   full repair list;
 - ground-luma separation reports Not assessed until a pinned ground reference
@@ -149,6 +152,8 @@ Walk Cycle implemented:
 - the first Walk Cycle document records the exact accepted Turnaround id and
   four source hashes, `acceptedBy: user`, and acceptance time;
 - frame 0 for each direction must preserve the accepted Turnaround PNG bytes;
+- static Concept/Turnaround art retains exact `(16, 28)` placement contact,
+  while Walk Cycle frames may ground either foot anywhere on contract row 28;
 - sixteen original PNGs publish atomically in canonical down/right/up/left and
   frame 0–3 order with a fixed 300 ms contract duration;
 - desktop and MCP adapters create, list, read, rehash, and structurally
@@ -332,16 +337,25 @@ Current evidence:
   reshapes the anchor heel as a connected two-by-two color-shifted pivot and
   changes the one coincident up-facing outline value at `(21, 27)` to the
   adjacent boot-ramp value;
-- frames 0 and 2 remain exact neutral beats; no down/up anchor-side lower-foot
-  pixel retains its neutral-source RGBA value, and every r10 frame is exactly
-  one four-connected visible component;
+- the user still saw a stationary right-foot pixel in r10; the exact
+  `(16, 28)` opacity requirement was the remaining forced support pixel;
+- the user explicitly approved a narrow contract clarification: Concept and
+  Turnaround keep exact anchor contact, frame 0 keeps exact accepted source
+  bytes, and animated Walk Cycle frames may contact anywhere on row 28;
+- full alternating-foot-lift Walk Cycle
+  `walk-cycle-r0011-20260727064901-0ebf795f` preserves all eight r10 side
+  frames byte for byte, fully lifts the down/up left boot in frame 1, and
+  raises and advances the complete right lower leg and boot in frame 3;
+- frames 0 and 2 remain exact neutral beats; down/up frame 3 has transparent
+  alpha at `(16, 28)` while the opposite boot remains grounded on row 28, and
+  every r11 frame is exactly one four-connected visible component;
 - Walk Cycle validation reports 96 Pass / 0 Fail / 16 Not assessed, while
   motion and readability remain Not assessed with user authority;
 - generation used built-in subscription ImageGen outside the provider-neutral
   core; transparency preparation and validation were local and incurred no
   additional AI-service cost;
 - the next transition is blocked only on the user's acceptance or rejection of
-  exact Walk Cycle r10 motion/readability; no World Test may be created before
+  exact Walk Cycle r11 motion/readability; no World Test may be created before
   that decision;
 - the larger attack-animation reference was translated only into original
   32 px character language; attacks, weapons, and equipment remain outside the

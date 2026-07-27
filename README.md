@@ -118,8 +118,10 @@ The completed M02 milestone extends the shared `.studio` protocol with
 immutable candidate documents and original PNG bytes. The desktop restores,
 lists, compares, and zooms saved revisions, while MCP exposes equivalent
 import/list/read operations. M03 adds candidate-hash-bound pixel measurements
-for canvas, alpha, height, anchor, palette, and clipping. Ground contrast and
-human visual judgment remain explicitly Not assessed until their required
+for canvas, alpha, height, contact, palette, and clipping. Static Concept and
+Turnaround art require exact contact at `(16, 28)`; Walk Cycle frames require
+visible contact anywhere on row 28 so either foot may lift. Ground contrast
+and human visual judgment remain explicitly Not assessed until their required
 human/reference inputs exist. The Turnaround slice of M04 stores the exact
 user-selected Concept as the down view plus immutable right/up/left PNGs,
 restores the four-view comparison in the desktop, and exposes equivalent MCP
