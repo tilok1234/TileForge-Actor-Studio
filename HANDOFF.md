@@ -51,7 +51,8 @@ As of 2026-07-28:
 - expected remote: `https://github.com/tilok1234/TileForge-Actor-Studio.git`
 - expected state after the M08 checkpoint: clean and synchronized with
   `origin/main`
-- source and installed milestone: M08 complete at the Concept selection gate
+- source and installed milestone: M08 complete; the post-proof actor is at the
+  Walk Cycle motion/readability gate
 - MCP surface: 28 tools
 
 These are orientation expectations, not permission to skip live verification.
@@ -220,10 +221,19 @@ promote, or rewrite them during the next milestone.
   `turnaround-r0001-20260727231939-6d597fb3`
 - Turnaround r1 preserves the selected down PNG byte for byte and stores new
   right, up, and left views with generated provenance
-- Turnaround validation reports 24 Pass / 0 Fail / 4 Not assessed; identity
-  consistency is `not_assessed` with user authority
-- no Walk Cycle is authorized until the user explicitly accepts this exact
-  Turnaround
+- Turnaround validation reports 24 Pass / 0 Fail / 4 Not assessed
+- the user explicitly accepted exact Turnaround r1 for animation
+- immutable Walk Cycle r1:
+  `walk-cycle-r0001-20260727232551-4db453a0`
+- the Walk Cycle records exact Turnaround r1 with `acceptedBy: user`, preserves
+  every direction byte for byte as frame 0, and uses a 300 ms
+  neutral/step/neutral/opposite-step loop
+- all sixteen frames remain 32 x 32, hard-alpha, 27 visible pixels tall, at or
+  below 16 colors, grounded on row 28, unclipped, and one connected silhouette
+- Walk Cycle validation reports 96 Pass / 0 Fail / 16 Not assessed; motion and
+  readability are `not_assessed` with user authority
+- no World Test is authorized until the user explicitly accepts this exact
+  Walk Cycle
 
 ### Orc Vanguard - completed generality proof
 
@@ -284,7 +294,10 @@ byte.
 - ignored repository-local
   `.studio\mosscap-r1-turnaround\turnaround-comparison.png` preserves the
   down/right/up/left review sheet and headless preparation evidence for the
-  current identity gate
+  accepted Turnaround
+- ignored repository-local `.studio\mosscap-r1-walk` preserves all sixteen
+  prepared frame inputs, structural preparation evidence, a static review
+  sheet, and animated GIFs for the current motion/readability gate
 
 ## Installed release proof
 
@@ -337,18 +350,18 @@ terminal before `npm run test:mcp:http`.
 
 ## Current human gate
 
-M08 remains complete. The user explicitly selected Mosscap Scout Concept r1,
-and immutable Turnaround
-`turnaround-r0001-20260727231939-6d597fb3` now waits at the identity-consistency
-gate.
+M08 remains complete. The user explicitly accepted Mosscap Scout Turnaround r1,
+and immutable Walk Cycle
+`walk-cycle-r0001-20260727232551-4db453a0` now waits at the
+motion/readability gate.
 
-Present the down/right/up/left comparison without controlling the user's
-desktop. Do not create a Walk Cycle until the user explicitly accepts identity
-consistency for this exact Turnaround. If accepted, continue through the
-existing unchanged workflow:
+Present the animated and static four-direction evidence without controlling the
+user's desktop. Do not create a World Test until the user explicitly accepts
+motion and readability for this exact Walk Cycle. If accepted, continue through
+the existing unchanged workflow:
 
 ```text
-accepted Turnaround -> Walk Cycle -> accepted motion -> World Test
+accepted Walk Cycle -> World Test -> approved final art -> draft Export
 ```
 
 This gate does not authorize final-art approval, publishing, a provider API,

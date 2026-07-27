@@ -66,7 +66,7 @@ Expected checkpoint, which you must verify live:
   78e965b8c6adc392f385967043ca28156af1390097760c8cc6c59d92f374be5f;
 - publishing remains absent and every Export remains a local draft.
 
-Continue from the Mosscap Scout Turnaround identity-consistency gate.
+Continue from the Mosscap Scout Walk Cycle motion/readability gate.
 
 Installed proof evidence:
 
@@ -82,24 +82,31 @@ Installed proof evidence:
   turnaround-r0001-20260727231939-6d597fb3
 - its down PNG is byte-identical to selected Concept r1
 - Turnaround validation: 24 Pass / 0 Fail / 4 Not assessed
-- identity consistency remains Not assessed with user authority
-- no Walk Cycle is authorized
+- the user explicitly accepted exact Turnaround r1 for animation
+- immutable Walk Cycle r1:
+  walk-cycle-r0001-20260727232551-4db453a0
+- every direction preserves the accepted Turnaround PNG byte for byte as frame 0
+- timing: 300 ms; neutral / step / neutral / opposite step
+- Walk Cycle validation: 96 Pass / 0 Fail / 16 Not assessed
+- motion/readability remains Not assessed with user authority
+- no World Test is authorized
 
 1. Verify the live Git state, `0.1.1` package fields, installer identity, and
-   exact Mosscap Scout Concept and Turnaround records before acting.
+   exact Mosscap Scout Concept, Turnaround, and Walk Cycle records before
+   acting.
 2. Work headlessly through MCP and local review artifacts. Do not use Computer
    Use or take control of my desktop unless I explicitly request UI-specific
    QA.
 3. Present
-   .studio\mosscap-r1-turnaround\turnaround-comparison.png in canonical
+   .studio\mosscap-r1-walk\walk-cycle-all-directions.gif and
+   .studio\mosscap-r1-walk\walk-cycle-review.png in canonical
    down/right/up/left order.
-4. Stop for my explicit identity decision: accept exact Turnaround r1 or reject
-   it. Never infer acceptance from structural validation.
-5. If I accept it, create a new immutable Walk Cycle through the existing
-   contract, preserving each Turnaround direction byte for byte as frame 0 and
-   waiting again for my motion/readability acceptance.
-6. If I reject it, preserve it and wait for an explicit repair or new
-   Turnaround request. Do not silently replace it.
+4. Stop for my explicit motion/readability decision: accept exact Walk Cycle r1
+   or reject it. Never infer acceptance from structural validation.
+5. If I accept it, create a new immutable World Test through the existing
+   contract and wait again for my final-art approval.
+6. If I reject it, preserve it and wait for an explicit repair or new Walk
+   Cycle request. Do not silently replace it.
 7. Do not add a provider API, paid fallback, new scope, autonomous approval, or
    publishing.
 
@@ -115,9 +122,9 @@ The completed Orc Vanguard checkpoint must remain immutable:
 - publishing: not_approved
 
 The current blocker is intentionally my visual authority, so stop after
-presenting Turnaround r1 unless I have explicitly accepted or rejected its
-identity consistency. After explicit acceptance, make reasonable
-implementation decisions within the unchanged workflow.
+presenting Walk Cycle r1 unless I have explicitly accepted or rejected its
+motion/readability. After explicit acceptance, make reasonable implementation
+decisions within the unchanged workflow.
 
 If source or package files change before claiming another milestone, run:
 

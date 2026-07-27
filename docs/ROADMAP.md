@@ -428,8 +428,8 @@ image invocation.
 
 ## M08 - Installed cross-client generation proof
 
-Status: complete. The post-proof actor has advanced to the user-owned
-Turnaround identity-consistency gate.
+Status: complete. The post-proof actor has advanced to the user-owned Walk
+Cycle motion/readability gate.
 
 Goal: package the completed M07 source and prove that one durable Concept
 request can cross the installed desktop/MCP boundary without adding a provider
@@ -473,8 +473,12 @@ After M08 completion, the user explicitly selected Mosscap Scout Concept r1
 immutable Turnaround
 `turnaround-r0001-20260727231939-6d597fb3`, preserving that exact down PNG and
 adding right/up/left views. Validation reports 24 Pass / 0 Fail / 4 Not
-assessed. The next action is not autonomous: the user must accept or reject
-identity consistency before any Walk Cycle work.
+assessed. The user then explicitly accepted exact Turnaround r1. Headless local
+preparation plus MCP creation published immutable Walk Cycle
+`walk-cycle-r0001-20260727232551-4db453a0`, preserving each accepted direction
+byte for byte as frame 0. Its neutral/step/neutral/opposite-step loop validates
+at 96 Pass / 0 Fail / 16 Not assessed. The next action is not autonomous: the
+user must accept or reject motion/readability before World Test.
 
 ## Deferred beyond version 1
 

@@ -534,3 +534,22 @@ with user authority; no Walk Cycle is authorized.
 
 Reason: Concept selection authorizes one immutable four-view candidate, not
 identity acceptance or a later-stage transition.
+
+## 2026-07-28 - Mosscap Scout Turnaround r1 accepted for animation
+
+The user explicitly accepted identity consistency for
+`turnaround-r0001-20260727231939-6d597fb3`. Immutable Walk Cycle
+`walk-cycle-r0001-20260727232551-4db453a0` records that acceptance with
+`acceptedBy: user`, preserves all four Turnaround direction PNGs byte for byte
+as frame 0, and stores a 300 ms neutral/step/neutral/opposite-step loop.
+
+The animation was prepared locally and deterministically without another AI
+service or desktop control. All sixteen frames remain one connected silhouette
+and satisfy the measurable structural contract. MCP re-read every stored frame
+byte for byte; validation reports 96 Pass / 0 Fail / 16 Not assessed. Motion
+and readability remain Not assessed with user authority, and no World Test is
+authorized.
+
+Reason: accepting Turnaround identity authorizes one immutable animation
+candidate, not motion acceptance, final-art approval, or later-stage
+progression.
