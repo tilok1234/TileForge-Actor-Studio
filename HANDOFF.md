@@ -175,18 +175,26 @@ The post-release generality run is active with a deliberately different mob:
   ground-luma result pending per direction
 - identity consistency: explicitly accepted by the user in chat with "looks
   good"; this unlocks animation only and is not final-art approval
-- immutable Walk Cycle:
+- preserved rejected Walk Cycle:
   `walk-cycle-r0001-20260727015657-df64eb2e`
 - source receipt: exact Turnaround r1 id and all four direction hashes,
   `acceptedBy: user`
 - clip: `walk`, four frames per down/right/up/left direction, 300 ms
-- motion: deterministic neutral/weight-shift/neutral/opposite-weight-shift
-  rhythm for a heavy armored actor; frames 0 and 2 are intentional neutral
-  beats, and frame 0 in every direction is byte-identical to Turnaround r1
+- r1 rejection: the user explicitly rejected motion/readability because the
+  actor only wiggled back and forth and its feet did not walk; the user said
+  the remaining motion was pretty good
+- active immutable Walk Cycle:
+  `walk-cycle-r0002-20260727020559-adbbcf52`
+- r2 motion: deterministic neutral/first-foot/neutral/opposite-foot rhythm;
+  down and up visibly lift and offset alternating boots, right and left move
+  the lower foot through a two-pixel forward/back arc, and the restrained
+  armored torso/arm sway from r1 remains
+- frames 0 and 2 are intentional neutral beats, and frame 0 in every direction
+  is byte-identical to Turnaround r1
 - Walk Cycle structural evidence: 96 Pass / 0 Fail / 16 Not assessed, with one
   ground-luma result pending per frame
 - motion and readability: Not assessed with user authority; the next action is
-  the user's acceptance or rejection of this exact sixteen-frame candidate,
+  the user's acceptance or rejection of exact Walk Cycle r2,
   and no World Test may be created before that decision
 - generation boundary: sources used OpenAI built-in ImageGen through the
   user's subscription; preparation and validation were local, with no API key,
@@ -195,10 +203,13 @@ The post-release generality run is active with a deliberately different mob:
   `generated-source/orc-vanguard-20260727`; sixteen Turnaround identity
   references, prompts, sources, prepared views, comparison, and import files
   were copied byte-for-byte under
-  `generated-source/orc-vanguard-turnaround-20260727`; sixty-one Walk Cycle
+  `generated-source/orc-vanguard-turnaround-20260727`; sixty-one r1 Walk Cycle
   source, preparation, rejected-working-preview, final-frame, review, and
   import files were copied byte-for-byte under
-  `generated-source/orc-vanguard-walk-cycle-20260727`
+  `generated-source/orc-vanguard-walk-cycle-20260727`; sixty-one r2 source,
+  planted-anchor repair, preserved working preview, final frame, review, and
+  import files were copied byte-for-byte under
+  `generated-source/orc-vanguard-walk-cycle-r2-20260727`
 - animation preparation: local deterministic pixel motion,
   `additionalAiCost: false`; no AI service was used
 - scope translation: the user's larger eight-frame axe-swing reference informed
@@ -349,7 +360,7 @@ Re-run checks relevant to any new change. For the HTTP smoke test, start
 M06 release hardening is complete. The second-actor generality test is now at
 the Orc Vanguard Animate motion/readability gate. The next action is the user's
 acceptance or rejection of
-`walk-cycle-r0001-20260727015657-df64eb2e`. If accepted, create a World Test
+`walk-cycle-r0002-20260727020559-adbbcf52`. If accepted, create a World Test
 tied to that exact sixteen-frame receipt and the pinned reference pack. If
 rejected, create a new immutable Walk Cycle revision and preserve the current
 candidate. Keep this one mob active and preserve every revision. Publishing

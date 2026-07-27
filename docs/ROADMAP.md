@@ -278,16 +278,22 @@ Current evidence:
 - immutable Walk Cycle `walk-cycle-r0001-20260727015657-df64eb2e` records that
   exact accepted-Turnaround receipt and preserves frame 0 byte for byte in all
   four directions;
-- the local deterministic 4 x 4 loop uses the contract timing and a compact
-  neutral/weight-shift/neutral/opposite-weight-shift rhythm suited to a heavy
-  armored actor;
+- the user rejected Walk Cycle r1 because its feet remained planted while the
+  actor only wiggled back and forth; r1 remains immutable;
+- replacement Walk Cycle `walk-cycle-r0002-20260727020559-adbbcf52` records the
+  same exact accepted-Turnaround receipt and again preserves frame 0 byte for
+  byte in every direction;
+- the local deterministic r2 loop uses the contract timing and a compact
+  neutral/first-foot/neutral/opposite-foot rhythm suited to a heavy
+  armored actor, now with alternating lifted boots in down/up and a two-pixel
+  forward/back foot arc in right/left;
 - Walk Cycle validation reports 96 Pass / 0 Fail / 16 Not assessed, while
   motion and readability remain Not assessed with user authority;
 - generation used built-in subscription ImageGen outside the provider-neutral
   core; transparency preparation and validation were local and incurred no
   additional AI-service cost;
 - the next transition is blocked only on the user's acceptance or rejection of
-  the exact sixteen-frame motion; no World Test may be created before that
+  exact Walk Cycle r2 motion; no World Test may be created before that
   decision;
 - the larger attack-animation reference was translated only into original
   32 px character language; attacks, weapons, and equipment remain outside the
