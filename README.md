@@ -21,8 +21,9 @@ request UI. M08 proved installed creation and restart restore, an exact MCP
 cross-client read from the shared per-user workspace, and three separately
 generated immutable unreviewed Concept candidates in the installed desktop.
 The user selected Mosscap Scout Concept r1 and accepted its immutable
-four-view Turnaround after that proof. Walk Cycle r1 now waits at the
-user-owned motion/readability gate.
+four-view Turnaround after that proof. The feet-only Walk Cycle r1 remains
+preserved as rejected evidence; Walk Cycle r2 adds a one-pixel body bob on the
+two step frames and now waits at the user-owned motion/readability gate.
 The older `0.1.0` installer remains historical M06 evidence. Publishing remains
 a separate unapproved user gate.
 

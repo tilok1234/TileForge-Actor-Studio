@@ -225,15 +225,22 @@ promote, or rewrite them during the next milestone.
 - the user explicitly accepted exact Turnaround r1 for animation
 - immutable Walk Cycle r1:
   `walk-cycle-r0001-20260727232551-4db453a0`
-- the Walk Cycle records exact Turnaround r1 with `acceptedBy: user`, preserves
+- Walk Cycle r1 records exact Turnaround r1 with `acceptedBy: user`, preserves
   every direction byte for byte as frame 0, and uses a 300 ms
   neutral/step/neutral/opposite-step loop
-- all sixteen frames remain 32 x 32, hard-alpha, 27 visible pixels tall, at or
-  below 16 colors, grounded on row 28, unclipped, and one connected silhouette
-- Walk Cycle validation reports 96 Pass / 0 Fail / 16 Not assessed; motion and
+- the user rejected Walk Cycle r1 because only the feet moved; r1 remains
+  immutable diagnostic evidence
+- immutable replacement Walk Cycle r2:
+  `walk-cycle-r0002-20260727233042-abdbb047`
+- r2 preserves r1's foot motion and all accepted Turnaround sources as frames
+  0 and 2, while moving the upper body down one pixel on frames 1 and 3 to add
+  a restrained walking bob
+- all sixteen r2 frames remain 32 x 32, hard-alpha, at or below 16 colors,
+  grounded on row 28, unclipped, and one connected silhouette
+- r2 validation reports 96 Pass / 0 Fail / 16 Not assessed; motion and
   readability are `not_assessed` with user authority
 - no World Test is authorized until the user explicitly accepts this exact
-  Walk Cycle
+  Walk Cycle r2
 
 ### Orc Vanguard - completed generality proof
 
@@ -297,7 +304,11 @@ byte.
   accepted Turnaround
 - ignored repository-local `.studio\mosscap-r1-walk` preserves all sixteen
   prepared frame inputs, structural preparation evidence, a static review
-  sheet, and animated GIFs for the current motion/readability gate
+  sheet, and animated GIFs for the rejected feet-only candidate
+- ignored repository-local `.studio\mosscap-r2-walk` preserves all sixteen
+  bobbing repair inputs, structural preparation evidence, the MCP publication
+  receipt, a static review sheet, and the animated GIF for the current
+  motion/readability gate
 
 ## Installed release proof
 
@@ -351,14 +362,15 @@ terminal before `npm run test:mcp:http`.
 ## Current human gate
 
 M08 remains complete. The user explicitly accepted Mosscap Scout Turnaround r1,
-and immutable Walk Cycle
-`walk-cycle-r0001-20260727232551-4db453a0` now waits at the
-motion/readability gate.
+rejected feet-only Walk Cycle r1, and requested a slight walking bob. Immutable
+Walk Cycle `walk-cycle-r0002-20260727233042-abdbb047` adds that one-pixel bob
+on frames 1 and 3 and now waits at the motion/readability gate.
 
-Present the animated and static four-direction evidence without controlling the
-user's desktop. Do not create a World Test until the user explicitly accepts
-motion and readability for this exact Walk Cycle. If accepted, continue through
-the existing unchanged workflow:
+Present the animated and static four-direction evidence from
+`.studio\mosscap-r2-walk` without controlling the user's desktop. Do not create
+a World Test until the user explicitly accepts motion and readability for this
+exact Walk Cycle r2. If accepted, continue through the existing unchanged
+workflow:
 
 ```text
 accepted Walk Cycle -> World Test -> approved final art -> draft Export

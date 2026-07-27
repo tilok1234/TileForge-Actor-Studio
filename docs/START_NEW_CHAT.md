@@ -85,9 +85,14 @@ Installed proof evidence:
 - the user explicitly accepted exact Turnaround r1 for animation
 - immutable Walk Cycle r1:
   walk-cycle-r0001-20260727232551-4db453a0
-- every direction preserves the accepted Turnaround PNG byte for byte as frame 0
+- the user rejected r1 because only its feet moved; r1 remains immutable
+- immutable Walk Cycle r2:
+  walk-cycle-r0002-20260727233042-abdbb047
+- r2 preserves the r1 foot motion and the accepted Turnaround PNG byte for byte
+  as frames 0 and 2, while moving the upper body down one pixel on frames 1
+  and 3
 - timing: 300 ms; neutral / step / neutral / opposite step
-- Walk Cycle validation: 96 Pass / 0 Fail / 16 Not assessed
+- r2 Walk Cycle validation: 96 Pass / 0 Fail / 16 Not assessed
 - motion/readability remains Not assessed with user authority
 - no World Test is authorized
 
@@ -98,10 +103,10 @@ Installed proof evidence:
    Use or take control of my desktop unless I explicitly request UI-specific
    QA.
 3. Present
-   .studio\mosscap-r1-walk\walk-cycle-all-directions.gif and
-   .studio\mosscap-r1-walk\walk-cycle-review.png in canonical
+   .studio\mosscap-r2-walk\walk-cycle-all-directions.gif and
+   .studio\mosscap-r2-walk\walk-cycle-review.png in canonical
    down/right/up/left order.
-4. Stop for my explicit motion/readability decision: accept exact Walk Cycle r1
+4. Stop for my explicit motion/readability decision: accept exact Walk Cycle r2
    or reject it. Never infer acceptance from structural validation.
 5. If I accept it, create a new immutable World Test through the existing
    contract and wait again for my final-art approval.
@@ -122,7 +127,7 @@ The completed Orc Vanguard checkpoint must remain immutable:
 - publishing: not_approved
 
 The current blocker is intentionally my visual authority, so stop after
-presenting Walk Cycle r1 unless I have explicitly accepted or rejected its
+presenting Walk Cycle r2 unless I have explicitly accepted or rejected its
 motion/readability. After explicit acceptance, make reasonable implementation
 decisions within the unchanged workflow.
 

@@ -477,8 +477,14 @@ assessed. The user then explicitly accepted exact Turnaround r1. Headless local
 preparation plus MCP creation published immutable Walk Cycle
 `walk-cycle-r0001-20260727232551-4db453a0`, preserving each accepted direction
 byte for byte as frame 0. Its neutral/step/neutral/opposite-step loop validates
-at 96 Pass / 0 Fail / 16 Not assessed. The next action is not autonomous: the
-user must accept or reject motion/readability before World Test.
+at 96 Pass / 0 Fail / 16 Not assessed. The user rejected r1 because only its
+feet moved, so r1 remains immutable diagnostic evidence. Headless local repair
+plus MCP creation then published immutable Walk Cycle
+`walk-cycle-r0002-20260727233042-abdbb047`: r2 preserves the foot motion and
+accepted neutral sources while moving the upper body down one pixel on frames
+1 and 3. R2 also validates at 96 Pass / 0 Fail / 16 Not assessed. The next
+action is not autonomous: the user must accept or reject r2 motion/readability
+before World Test.
 
 ## Deferred beyond version 1
 

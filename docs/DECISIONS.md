@@ -553,3 +553,23 @@ authorized.
 Reason: accepting Turnaround identity authorizes one immutable animation
 candidate, not motion acceptance, final-art approval, or later-stage
 progression.
+
+## 2026-07-28 - Mosscap Scout Walk Cycle r2 adds body bob
+
+The user rejected immutable Walk Cycle
+`walk-cycle-r0001-20260727232551-4db453a0` because only its feet moved and
+requested a slight walking bob. R1 remains preserved as diagnostic evidence.
+
+Immutable replacement `walk-cycle-r0002-20260727233042-abdbb047` preserves the
+r1 foot motion, the accepted Turnaround source as frames 0 and 2, and the
+300 ms timing. On frames 1 and 3, it moves the upper body down one pixel to add
+a restrained bob. The repair was prepared headlessly and stored through MCP
+without desktop control. MCP re-read all sixteen frames byte for byte;
+validation reports 96 Pass / 0 Fail / 16 Not assessed.
+
+Motion and readability remain Not assessed with user authority. No World Test
+is authorized until the user explicitly accepts exact Walk Cycle r2.
+
+Reason: a targeted repair creates a new immutable candidate; it neither
+rewrites rejected evidence nor converts structural validity into human motion
+acceptance.
