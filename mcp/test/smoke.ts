@@ -5,12 +5,14 @@ import { textPayload } from "./result.js";
 
 const expectedTools = [
   "compile_actor_prompt",
+  "create_concept_generation_request",
   "create_export_candidate",
   "create_sprite_session",
   "create_turnaround_candidate",
   "create_walk_cycle_candidate",
   "create_world_test_candidate",
   "get_concept_candidate",
+  "get_concept_generation_request",
   "get_export_candidate",
   "get_sprite_session",
   "get_studio_contract",
@@ -19,6 +21,7 @@ const expectedTools = [
   "get_world_test_candidate",
   "import_concept_candidate",
   "list_concept_candidates",
+  "list_concept_generation_requests",
   "list_export_candidates",
   "list_sprite_sessions",
   "list_turnaround_candidates",

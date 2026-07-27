@@ -1,0 +1,31 @@
+{
+  "schemaVersion": 1,
+  "id": "concept-gen-r0001-20260727120000-fixture1",
+  "revision": 1,
+  "sessionId": "mirelight-pilgrim-20260726210140-rustdesk",
+  "stage": "concept",
+  "contractId": "tileforge-actor-32-v1",
+  "createdAt": "2026-07-27T12:00:00.000Z",
+  "prompt": "Create one 32x32 pixel-art mob named \"Mirelight Pilgrim\".\nA quiet marsh pilgrim.",
+  "requestedCandidates": 3,
+  "execution": {
+    "mode": "connected-client-native-image-generation",
+    "additionalPaidServices": "forbidden",
+    "apiCredentials": "not-used"
+  },
+  "output": {
+    "artifact": "concept-candidate",
+    "direction": "down",
+    "width": 32,
+    "height": 32,
+    "mimeType": "image/png",
+    "importTool": "import_concept_candidate"
+  },
+  "authority": {
+    "agentsMayGenerate": true,
+    "agentsMayImport": true,
+    "agentsMayApprove": false,
+    "approvalOwner": "user"
+  },
+  "lifecycle": "immutable-request"
+}

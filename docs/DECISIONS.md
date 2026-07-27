@@ -428,3 +428,33 @@ authority, and no publishing operation was added.
 Reason: completing a second visually distinct actor through the same package
 contract proves the version 1 workflow generalizes end to end. Final-art
 approval authorizes a local package, not a new publishing capability.
+
+## 2026-07-27 - Generation requests bridge subscriptions without provider APIs
+
+Actor Studio now stores immutable Concept generation requests inside each
+session:
+
+```text
+generation-requests/<request-id>/
+  request.json
+```
+
+The request is a versioned provider-neutral work order containing the exact
+compiled prompt, requested candidate count, 32 x 32 down-facing output
+contract, `import_concept_candidate` continuation, explicit
+`additionalPaidServices: forbidden`, `apiCredentials: not-used`, and
+`agentsMayApprove: false`. Desktop and MCP adapters implement the same id,
+validation, atomic-publish, list, and read rules against a shared fixture.
+
+Starting a new desktop Concept creates the first request automatically and
+shows its identity after restart. Connected Codex, Claude, or Antigravity
+clients may read it and use a native image capability included in that client's
+subscription. If no included capability exists, the request remains durable
+for another client or manual import. The core does not call a provider, hold a
+secret, select billing, or pretend one client's subscription is portable to
+another.
+
+Reason: a direct provider adapter would either couple the product to one AI
+client or require separately metered API access. A durable work order makes the
+generation step visible and reproducible across clients while preserving the
+user's no-additional-cost rule and approval authority.

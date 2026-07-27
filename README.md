@@ -3,14 +3,18 @@
 A narrow desktop workflow for creating **32 px TileForge mobs and NPCs with AI**.
 The artist supplies the identity; the studio supplies the boundaries.
 
-Current status: **M06 release hardening is complete.** The user accepted
-Turnaround r2 for animation, Walk Cycle r1 for World Test, and World Test r1 as
-final art for Export. The desktop and MCP gateway share durable local sessions,
-never-overwritten Concept, Turnaround, Walk Cycle, World Test, and Export
+Current status: **M07 subscription-native generation handoff is complete.**
+M06 release hardening and the full second-actor generality run remain complete.
+The desktop and MCP gateway share durable local sessions,
+provider-neutral generation requests, never-overwritten Concept, Turnaround,
+Walk Cycle, World Test, and Export
 revisions, user-owned transition receipts, and local deterministic validation
 reports. A current-user Windows installer is available, and the desktop can
 reveal a validated immutable Export in Explorer. Publishing remains a separate
-unapproved user gate. No image-generation provider adapter is integrated.
+unapproved user gate. Image generation is now a built-in handoff: Actor Studio
+stores the exact request and every supported AI client can read it through MCP,
+while the image invocation stays inside that client's existing subscription.
+No image-generation provider API is integrated.
 
 The initial workflow has six deliberate stages:
 
@@ -88,6 +92,15 @@ npm run mcp:http
 It listens only on `http://127.0.0.1:7331/mcp`. All supported AI clients can
 connect to that same endpoint. See [docs/MCP.md](docs/MCP.md).
 
+When the desktop starts a new Concept, it also saves an immutable AI generation
+request and shows the request id. A connected Codex, Claude, or Antigravity
+client can read the same request, use an included native image tool when
+available, and import each result as a separate candidate. The desktop requests
+three alternatives by default; MCP callers may request one through four. If no included image
+tool is available, the request remains safe for another client or manual PNG
+import. Actor Studio never asks for an API key and never falls back to metered
+image generation.
+
 ## Verify
 
 ```powershell
@@ -140,7 +153,10 @@ publishing remains unavailable and user-only. M06 gives the packaged desktop
 and MCP gateway the same uninstall-safe per-user workspace, keeps
 `TFAS_WORKSPACE` as an explicit override, adds a validated Open Export Folder
 action, and produces a current-user NSIS installer without administrator
-rights.
+rights. The post-M06 generation bridge adds immutable
+`generation-requests/<request-id>/request.json` work orders shared by desktop
+and MCP, including the exact prompt, output count, no-additional-cost rule, and
+user-only approval boundary.
 
 Future AI integrations may use only capabilities already covered by the user's
 subscriptions. Pay-as-you-go APIs, purchased credits, usage billing, and paid

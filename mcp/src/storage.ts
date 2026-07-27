@@ -72,6 +72,9 @@ export async function createSession(
       { encoding: "utf8", flag: "wx" },
     );
     await mkdir(join(temporaryDirectory, "candidates"), { recursive: false });
+    await mkdir(join(temporaryDirectory, "generation-requests"), {
+      recursive: false,
+    });
     await rename(temporaryDirectory, finalDirectory);
     return session;
   } catch (error) {

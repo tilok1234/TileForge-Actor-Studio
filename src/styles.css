@@ -475,6 +475,42 @@ small {
   color: #df957e;
 }
 
+.generation-request-card {
+  padding: 12px;
+  border: 1px solid #4c5f3d;
+  border-radius: 6px;
+  background: rgba(154, 170, 80, 0.06);
+}
+
+.generation-request-identity,
+.generation-request-identity div {
+  margin: 0;
+}
+
+.generation-request-identity {
+  display: grid;
+  gap: 5px;
+}
+
+.generation-request-identity div {
+  display: grid;
+  grid-template-columns: 52px minmax(0, 1fr);
+  gap: 8px;
+  font: 9px/1.4 ui-monospace, SFMono-Regular, Consolas, monospace;
+}
+
+.generation-request-identity dt {
+  color: #7f8f73;
+}
+
+.generation-request-identity dd {
+  min-width: 0;
+  overflow: hidden;
+  color: #bdc9ad;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
 .turnaround-selection {
   display: grid;
   gap: 5px;

@@ -76,6 +76,9 @@ this project so every client observes the same gateway behavior.
 - `create_sprite_session`
 - `list_sprite_sessions`
 - `get_sprite_session`
+- `create_concept_generation_request`
+- `list_concept_generation_requests`
+- `get_concept_generation_request`
 - `import_concept_candidate`
 - `list_concept_candidates`
 - `get_concept_candidate`
@@ -106,9 +109,23 @@ No tool can autonomously approve final art or publishing. Export creation is
 available only after the user has explicitly approved the exact source World
 Test.
 
+`create_concept_generation_request` preserves a provider-neutral work order
+under the session's `generation-requests/` directory. Its exact compiled
+prompt, requested output count, 32 x 32 down-facing output contract,
+subscription-only execution rule, and human approval boundary are immutable.
+The desktop creates the first request automatically with a new session and
+shows its stable id after restart.
+
+To fulfill a request, read it with `get_concept_generation_request`, invoke the
+connected client's native image tool separately for each requested candidate,
+and pass every resulting PNG to `import_concept_candidate` with generated
+provider provenance. If the client has no included native image capability,
+leave the request intact and use another connected client or manual import.
+Never add an API key, metered endpoint, purchased credits, or usage billing.
+
 `import_concept_candidate` accepts PNG bytes with imported or generated
 provenance. Generated provenance must name its provider, but Actor Studio does
-not integrate or select a provider in M02. Successful intake records structural
+not integrate or select a provider. Successful intake records structural
 evidence and `unreviewed` status; it never implies visual acceptance.
 
 `validate_concept_candidate` is read-only and local. It returns seven ordered
@@ -168,8 +185,9 @@ retains highest precedence, and non-Windows source development falls back to
 the repository `.studio/sessions`. Session
 directories are published atomically and are never overwritten. A session
 created from the desktop can therefore be listed and read through MCP without a
-conversion or copy step. Concept candidate directories use the same rule and
-preserve the exact original `source.png`; Turnaround directories preserve
+conversion or copy step. Generation request and Concept candidate directories
+use the same rule. Concept directories preserve the exact original
+`source.png`; Turnaround directories preserve
 `turnaround.json` plus `down.png`, `right.png`, `up.png`, and `left.png`.
 Walk Cycle directories preserve `walk-cycle.json` plus four numbered frame
 PNGs for every canonical direction. World Test directories preserve

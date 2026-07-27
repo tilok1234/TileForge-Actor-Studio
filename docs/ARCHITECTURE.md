@@ -19,18 +19,18 @@ frame, art, animation, and approval rules. The TypeScript representation in
 
 ### Shared studio core
 
-`src/lib/studio/` contains client-neutral types, session, Concept, Turnaround,
-Walk Cycle, pinned-reference, World Test, and Export documents, intake rules,
-versioned validation-report schemas, deterministic PNG validators, and prompt
-compilation. Business rules belong here.
+`src/lib/studio/` contains client-neutral types, session, generation-request,
+Concept, Turnaround, Walk Cycle, pinned-reference, World Test, and Export
+documents, intake rules, versioned validation-report schemas, deterministic
+PNG validators, and prompt compilation. Business rules belong here.
 
 ### MCP gateway
 
 `mcp/` exposes the shared core over standard MCP transports. It owns no art
 style rules and grants no autonomous approval or publishing capability. Its
-adapter reads and publishes the same session, Concept, Turnaround, Walk Cycle,
-World Test, and draft Export documents as the desktop backend and exposes the
-shared read-only validators.
+adapter reads and publishes the same session, generation-request, Concept,
+Turnaround, Walk Cycle, World Test, and draft Export documents as the desktop
+backend and exposes the shared read-only validators.
 
 ### Desktop shell
 
@@ -48,8 +48,16 @@ adapters default its root to
 the current-user NSIS installation directory. `TFAS_WORKSPACE` has highest
 precedence, and non-Windows source development falls back to the ignored
 repository `.studio/`. Both adapters use
-`.studio/sessions/<session-id>/session.json`, immutable Concept directories at
-`candidates/<candidate-id>/`, and immutable Turnaround directories:
+`.studio/sessions/<session-id>/session.json`, immutable provider-neutral
+generation work orders:
+
+```text
+generation-requests/<request-id>/
+  request.json
+```
+
+Concept directories live at `candidates/<candidate-id>/`, followed by immutable
+Turnaround directories:
 
 ```text
 turnarounds/<turnaround-id>/
@@ -95,9 +103,15 @@ exports/<export-id>/
 ```
 
 Concept directories contain `candidate.json` and the original `source.png`.
-A complete session, Concept, Turnaround, Walk Cycle, World Test, or Export is first
-written to a hidden same-parent temporary directory, then published with one
-rename so readers never observe a partial record.
+A complete session, generation request, Concept, Turnaround, Walk Cycle, World
+Test, or Export is first written to a hidden same-parent temporary directory,
+then published with one rename so readers never observe a partial record.
+
+Generation requests deliberately stop at the filesystem/MCP boundary. They
+record the exact prompt, expected output, subscription-only cost rule, and
+human approval rule. The connected AI client may use its own included native
+image capability, but the core stores no provider credentials and calls no
+metered image API.
 
 The JSON documents, identity rules, brief and intake limits, hashes, and
 directory layout form one local protocol; the Rust and TypeScript adapters are

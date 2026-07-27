@@ -22,6 +22,10 @@
     parseExportValidationReport,
     type ExportValidationReport,
   } from "./lib/studio/export-validation";
+  import {
+    parseConceptGenerationRequest,
+    type ConceptGenerationRequest,
+  } from "./lib/studio/generation-request";
   import { compileActorPrompt } from "./lib/studio/prompt";
   import { parseStudioSession } from "./lib/studio/session";
   import {
@@ -111,6 +115,12 @@
   let workspaceRoot = "";
   let saving = false;
   let restoring = true;
+  let generationRequests: ConceptGenerationRequest[] = [];
+  let selectedGenerationRequest: ConceptGenerationRequest | null = null;
+  let generationRequestMessage =
+    "No AI generation request has been prepared yet.";
+  let generationRequestError = "";
+  let creatingGenerationRequest = false;
   let candidates: ConceptCandidate[] = [];
   let selectedCandidate: ConceptCandidate | null = null;
   let candidatePngUrl = "";
@@ -220,6 +230,14 @@
     candidateMessage = "Import a 32 × 32 PNG to create the first immutable candidate.";
   }
 
+  function clearGenerationRequests() {
+    generationRequests = [];
+    selectedGenerationRequest = null;
+    generationRequestError = "";
+    generationRequestMessage =
+      "No AI generation request has been prepared yet.";
+  }
+
   function revokeTurnaroundUrls() {
     for (const direction of TURNAROUND_DIRECTIONS) {
       if (turnaroundPngUrls[direction]) {
@@ -312,6 +330,7 @@
       if (latest) {
         const restoredSession = parseStudioSession(latest);
         showSession(restoredSession);
+        await refreshGenerationRequests(restoredSession.id);
         await refreshCandidates(restoredSession.id);
         await refreshTurnarounds(restoredSession.id);
         await refreshWalkCycles(restoredSession.id);
@@ -351,6 +370,7 @@
         await invoke("create_sprite_session", { brief: validatedBrief }),
       );
       showSession(saved);
+      clearGenerationRequests();
       clearCandidates();
       clearTurnarounds();
       clearWalkCycles();
@@ -358,11 +378,71 @@
       clearExports();
       workspaceRoot ||= ".studio";
       sessionMessage = "Saved locally. MCP clients can read this session.";
+      await prepareGenerationRequest(saved);
     } catch (error) {
       sessionError = actorBriefError(error);
       sessionMessage = "The session was not saved.";
     } finally {
       saving = false;
+    }
+  }
+
+  async function refreshGenerationRequests(
+    sessionId: string,
+    preferredId?: string,
+  ) {
+    generationRequestError = "";
+    try {
+      const result = await invoke<unknown[]>(
+        "list_concept_generation_requests",
+        { sessionId },
+      );
+      generationRequests = result.map(parseConceptGenerationRequest);
+      selectedGenerationRequest =
+        generationRequests.find((request) => request.id === preferredId) ??
+        generationRequests[0] ??
+        null;
+      generationRequestMessage = selectedGenerationRequest
+        ? `${generationRequests.length} immutable AI request${generationRequests.length === 1 ? "" : "s"} saved.`
+        : "No AI generation request has been prepared yet.";
+    } catch (error) {
+      generationRequestError = actorBriefError(error);
+      generationRequestMessage = "AI generation requests could not be loaded.";
+    }
+  }
+
+  async function prepareGenerationRequest(
+    targetSession: StudioSession | null = session,
+  ) {
+    if (!targetSession) {
+      return;
+    }
+    generationRequestError = "";
+    if (!isTauri()) {
+      generationRequestError =
+        "Open the desktop app to prepare a durable AI request.";
+      return;
+    }
+
+    creatingGenerationRequest = true;
+    generationRequestMessage =
+      "Saving an immutable subscription-only generation request…";
+    try {
+      const saved = parseConceptGenerationRequest(
+        await invoke("create_concept_generation_request", {
+          sessionId: targetSession.id,
+          requestedCandidates: 3,
+        }),
+      );
+      await refreshGenerationRequests(targetSession.id, saved.id);
+      generationRequestMessage =
+        "Ready for a connected AI. Ask it to run this request with its included image tool.";
+    } catch (error) {
+      generationRequestError = actorBriefError(error);
+      generationRequestMessage =
+        "The session is safe, but its AI request was not created.";
+    } finally {
+      creatingGenerationRequest = false;
     }
   }
 
@@ -1081,6 +1161,48 @@
           <small>Original bytes and provenance are preserved. Import never approves art.</small>
           <p class="candidate-message" class:error={Boolean(candidateError)} role={candidateError ? "alert" : "status"}>
             {candidateError || candidateMessage}
+          </p>
+        </section>
+
+        <section class="candidate-intake generation-request-card" aria-label="AI generation request">
+          <div>
+            <p class="eyebrow">Connected AI handoff</p>
+            <strong>Subscription-native image generation</strong>
+          </div>
+          <button
+            class="secondary-action"
+            disabled={creatingGenerationRequest}
+            onclick={() => prepareGenerationRequest()}
+          >
+            {creatingGenerationRequest
+              ? "Preparing request…"
+              : generationRequests.length > 0
+                ? "Prepare another AI request"
+                : "Prepare AI generation request"}
+          </button>
+          <small>No API key, usage billing, purchased credits, or provider lock-in. Each request is immutable.</small>
+          {#if selectedGenerationRequest}
+            <dl class="generation-request-identity">
+              <div>
+                <dt>Request</dt>
+                <dd title={selectedGenerationRequest.id}>{selectedGenerationRequest.id}</dd>
+              </div>
+              <div>
+                <dt>Outputs</dt>
+                <dd>{selectedGenerationRequest.requestedCandidates} separate 32 × 32 candidates</dd>
+              </div>
+              <div>
+                <dt>Approval</dt>
+                <dd>User only</dd>
+              </div>
+            </dl>
+          {/if}
+          <p
+            class="candidate-message"
+            class:error={Boolean(generationRequestError)}
+            role={generationRequestError ? "alert" : "status"}
+          >
+            {generationRequestError || generationRequestMessage}
           </p>
         </section>
 

@@ -69,6 +69,8 @@ runtime dependency or write generated assets back into them.
 | Brief | Editable name, mob/NPC kind, and description |
 | Prompt | Live contract-constrained prompt preview |
 | UI session | Creates an atomic durable session and advances to Concept |
+| Generation handoff | New Concepts also create an immutable subscription-only AI request with exact prompt, output count, cost rule, and approval boundary |
+| Generation restore | Desktop restart restores and shows the newest stable request id; agents read the same request through MCP |
 | Session restore | Reopens the newest valid local session on desktop startup |
 | Saved identity | Shows session id, revision, contract id, and saved workspace |
 | Candidate intake | Imports a local 32 x 32 transparent PNG as a new immutable Concept revision |
@@ -100,15 +102,17 @@ runtime dependency or write generated assets back into them.
 | Contract | JSON Schema, versioned JSON instance, and TypeScript representation |
 | Approval | Human-only approval boundary shown in UI, contract, prompt, and MCP |
 | MCP | Stdio and localhost Streamable HTTP transports |
-| MCP tools | Twenty-five tools covering contract, prompt, sessions, Concept, Turnaround, Walk Cycle, World Test, and Export create/read/validation |
-| Shared storage | Tauri and MCP adapters use one atomic `.studio/sessions` protocol for immutable Concepts, Turnarounds, Walk Cycles, World Tests, and Exports |
-| Compatibility | Shared session, Concept, Turnaround, Walk Cycle, World Test, Export, and validation fixtures plus TypeScript and Rust failure-path tests |
+| MCP tools | Twenty-eight tools covering contract, prompt, sessions, generation requests, Concept, Turnaround, Walk Cycle, World Test, and Export create/read/validation |
+| Shared storage | Tauri and MCP adapters use one atomic `.studio/sessions` protocol for immutable generation requests, Concepts, Turnarounds, Walk Cycles, World Tests, and Exports |
+| Compatibility | Shared session, generation-request, Concept, Turnaround, Walk Cycle, World Test, Export, and validation fixtures plus TypeScript and Rust failure-path tests |
 | Agent guidance | `AGENTS.md`, `CLAUDE.md`, `GEMINI.md`, project rules, and skill |
 | App icon | Generated Tauri desktop/mobile icon set from `src-tauri/icons/icon.svg` |
 
 ## Not implemented yet
 
-- No image-generation provider adapter is integrated.
+- No image-generation provider API is integrated. Generation execution stays
+  inside an included native capability of the connected AI client; otherwise
+  the durable request remains available for another client or manual import.
 - Earlier-stage ground-luma validation remains Not assessed because those
   artifacts have no pinned placement; World Test resolves it with real grounds.
 - No publishing operation exists; every prepared Export remains a local draft.
@@ -128,15 +132,19 @@ and verification evidence.
   World Test input.
 - `%LOCALAPPDATA%\TileForge\Actor Studio\.studio` is the packaged Windows
   workspace for sessions, immutable Concepts, Turnarounds, Walk Cycles, World
-  Tests, Exports, and generation evidence. `TFAS_WORKSPACE` redirects both
-  adapters. The source-checkout `.studio/` remains an ignored migration backup.
+  Tests, Exports, generation requests, and generation evidence.
+  `TFAS_WORKSPACE` redirects both adapters. The source-checkout `.studio/`
+  remains an ignored migration backup.
 
 The shared boundary is documented in `docs/DECISIONS.md`: both thin adapters
-use the same session, Concept, Turnaround, Walk Cycle, World Test, and Export
-documents, identity rules, brief limits, directory layout, hash checks, atomic
-publish behavior, and recomputed artifact-hash-bound validation reports.
-`tests/fixtures/session-v1.json` and
-`tests/fixtures/concept-candidate-v1.json` guard storage compatibility;
+use the same session, generation-request, Concept, Turnaround, Walk Cycle,
+World Test, and Export documents, identity rules, brief limits, directory
+layout, hash checks, atomic publish behavior, and recomputed
+artifact-hash-bound validation reports.
+`tests/fixtures/session-v1.json` guards session compatibility;
+`tests/fixtures/concept-generation-request-v1.json` guards the immutable
+subscription-only work order, exact output contract, and human authority;
+`tests/fixtures/concept-candidate-v1.json` guards storage compatibility;
 `tests/fixtures/turnaround-candidate-v1.json` guards the user-selection and
 four-direction artifact contract;
 `tests/fixtures/walk-cycle-candidate-v1.json` guards the accepted-Turnaround
@@ -439,13 +447,14 @@ incremental billing.
 
 ## Verification evidence
 
-The M04 through M06 slices were verified on Windows with Node 24.15.0,
+The M04 through M07 slices were verified on Windows with Node 24.15.0,
 npm 11.12.1, and Rust 1.95:
 
 - `npm run check` — 0 errors and 0 warnings
 - `npm run build` — production bundle built
-- `npm run test:mcp` — twenty-five tools, locked approval contract, shared
-  session/Concept/Turnaround/Walk Cycle/World Test/Export/report compatibility,
+- `npm run test:mcp` — twenty-eight tools, locked approval and cost contracts,
+  shared session/generation-request/Concept/Turnaround/Walk Cycle/World
+  Test/Export/report compatibility,
   exact transition-source preservation, immutable artifact reads, 256 ground
   measurements, Export sheet reconstruction, JSON receipt checks, independent
   failures, collisions, tamper detection, and atomic failure cleanup passed
@@ -453,11 +462,18 @@ npm 11.12.1, and Rust 1.95:
 - `npm run test:mcp:http` — real localhost HTTP transport passed while server ran
 - `cargo fmt --manifest-path src-tauri/Cargo.toml --check` — passed
 - `cargo check --manifest-path src-tauri/Cargo.toml` — passed
-- `cargo test --manifest-path src-tauri/Cargo.toml` — twenty
-  session/Concept/Turnaround/Walk Cycle/World Test/Export/validation
+- `cargo test --manifest-path src-tauri/Cargo.toml` — twenty-two
+  session/generation-request/Concept/Turnaround/Walk Cycle/World Test/Export/validation
   compatibility, workspace resolution, safe folder-opening, and failure-path
   tests passed
 - `npm audit --audit-level=moderate` — 0 vulnerabilities
+- isolated native M07 QA — desktop Brief → Concept created durable session
+  `mirelight-pilgrim-20260727073811-e6c44d8a` under
+  `C:\tmp\tfas-m07-ui-qa`, displayed immutable request
+  `concept-gen-r0001-20260727073811-33734fa0`, requested three separate 32 x 32
+  candidates, showed `User only`, and stated that the connected AI must use its
+  included image tool; the temporary QA app was stopped without touching the
+  real per-user workspace
 - Orc Vanguard r11 ground-contact update: all six required check/build/test
   commands above were rerun successfully; TypeScript and Rust both pass
   animated frames with row-28 contact after clearing `(16, 28)`, reject a
@@ -513,17 +529,24 @@ Re-run checks relevant to any new change. For the HTTP smoke test, start
 
 ## Recommended next milestone
 
-M06 release hardening and the second-actor generality run are complete through
-immutable local draft Export
-`export-r0001-20260727070603-f9fe69a3`. The user may now consume or inspect
-that local package. Publishing remains a separate user-owned scope decision
-and is not implemented in version 1; do not add a destination or publish
-without explicit authority. Any future actor must start a separate durable
-session and preserve the completed Orc Vanguard evidence unchanged.
+M07's provider-neutral generation bridge is implemented. A new desktop Concept
+now saves both its session and a stable generation request; Codex, Claude, and
+Antigravity can list and read that exact request through MCP, use an included
+native image capability when available, and import each output through the
+existing immutable candidate path. The app intentionally cannot trigger a
+provider subscription by itself because there is no client-neutral
+subscription API.
 
-Any future AI integration must be included in the user's existing
-subscriptions. Do not enable pay-as-you-go APIs, purchased credits,
-usage-metered billing, or paid add-ons.
+The next useful proof is to run one fresh actor request end to end from another
+connected client, confirming its native image capability and generated
+provenance behavior without changing the protocol. If that client lacks an
+included image tool, leave the request intact and use another client or manual
+import. Never enable pay-as-you-go APIs, purchased credits, usage-metered
+billing, or paid add-ons.
+
+The completed Orc Vanguard draft Export
+`export-r0001-20260727070603-f9fe69a3` remains immutable. Publishing remains a
+separate user-owned scope decision and is not implemented in version 1.
 
 ## Handoff discipline
 

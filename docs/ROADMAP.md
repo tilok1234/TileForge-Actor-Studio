@@ -384,6 +384,45 @@ Current evidence:
 - the paused Snowberry Courier session and all three of its unselected
   Concepts remain preserved without mutation.
 
+## M07 - Subscription-native generation bridge
+
+Status: complete.
+
+Goal: make image generation part of the durable Actor Studio workflow without
+adding provider credentials, metered APIs, purchased credits, or autonomous
+approval.
+
+Implemented:
+
+- beginning a new desktop Concept creates both the immutable session and an
+  immutable `generation-requests/<request-id>/request.json` work order;
+- every work order records the exact compiled prompt, one through four separate
+  32 x 32 down-facing outputs, the existing Concept import tool, and the locked
+  human approval boundary; the desktop defaults to three;
+- the execution contract permits only a connected AI client's native image
+  capability covered by the user's subscription, explicitly forbids additional
+  paid services, and stores no API credentials;
+- desktop restart lists and restores the newest request and visibly shows its
+  stable identity, requested output count, and user-only approval owner;
+- desktop users may prepare another immutable request revision without
+  overwriting earlier work;
+- MCP exposes create/list/get operations over the same shared request document,
+  allowing Codex, Claude, and Antigravity to execute the request with whatever
+  included native image capability they actually have;
+- fulfillment continues through `import_concept_candidate`, preserving every
+  resulting PNG as a separate unreviewed immutable revision;
+- if a client lacks an included image capability, the request remains durable
+  for another client or manual import; Actor Studio does not silently fall back
+  to a paid provider API;
+- a shared compatibility fixture plus TypeScript and Rust tests cover exact
+  request identity, cross-adapter reads, subscription and approval boundaries,
+  invalid candidate counts, collisions, and partial-directory cleanup.
+
+This bridge deliberately does not pretend the standalone desktop can invoke a
+user's Codex, Claude, or Antigravity subscription directly. The durable request
+is the client-neutral handoff; the connected client owns its optional native
+image invocation.
+
 ## Deferred beyond version 1
 
 - tiles and map editing

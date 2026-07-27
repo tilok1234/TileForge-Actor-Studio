@@ -15,6 +15,7 @@ const CONTRACT_ID: &str = "tileforge-actor-32-v1";
 const SESSION_ID_MAX_LENGTH: usize = 96;
 const SESSION_SLUG_MAX_LENGTH: usize = 64;
 const CANDIDATE_ID_MAX_LENGTH: usize = 96;
+const GENERATION_REQUEST_ID_MAX_LENGTH: usize = 96;
 const CONCEPT_PNG_MAX_BYTES: usize = 1_048_576;
 const VALIDATION_REPORT_VERSION: u32 = 1;
 const STRUCTURAL_VALIDATOR_ID: &str = "tileforge-actor-32-structural-v1";
@@ -87,6 +88,52 @@ struct StudioSession {
 struct SessionList {
     workspace_root: PathBuf,
     sessions: Vec<StudioSession>,
+}
+
+#[derive(Debug, Clone, Serialize, Deserialize)]
+#[serde(rename_all = "camelCase", deny_unknown_fields)]
+struct GenerationRequestExecution {
+    mode: String,
+    additional_paid_services: String,
+    api_credentials: String,
+}
+
+#[derive(Debug, Clone, Serialize, Deserialize)]
+#[serde(rename_all = "camelCase", deny_unknown_fields)]
+struct GenerationRequestOutput {
+    artifact: String,
+    direction: String,
+    width: u32,
+    height: u32,
+    mime_type: String,
+    import_tool: String,
+}
+
+#[derive(Debug, Clone, Serialize, Deserialize)]
+#[serde(rename_all = "camelCase", deny_unknown_fields)]
+struct GenerationRequestAuthority {
+    agents_may_generate: bool,
+    agents_may_import: bool,
+    agents_may_approve: bool,
+    approval_owner: String,
+}
+
+#[derive(Debug, Clone, Serialize, Deserialize)]
+#[serde(rename_all = "camelCase", deny_unknown_fields)]
+struct ConceptGenerationRequest {
+    schema_version: u32,
+    id: String,
+    revision: u32,
+    session_id: String,
+    stage: String,
+    contract_id: String,
+    created_at: String,
+    prompt: String,
+    requested_candidates: u32,
+    execution: GenerationRequestExecution,
+    output: GenerationRequestOutput,
+    authority: GenerationRequestAuthority,
+    lifecycle: String,
 }
 
 #[derive(Debug, Clone, Serialize, Deserialize)]
@@ -999,6 +1046,8 @@ fn create_session_at(
             .map_err(|error| format!("Could not write session: {error}"))?;
         fs::create_dir(temporary_directory.join("candidates"))
             .map_err(|error| format!("Could not create candidate storage: {error}"))?;
+        fs::create_dir(temporary_directory.join("generation-requests"))
+            .map_err(|error| format!("Could not create generation request storage: {error}"))?;
         fs::rename(&temporary_directory, &final_directory)
             .map_err(|error| format!("Could not publish session: {error}"))
     })();
@@ -1008,6 +1057,247 @@ fn create_session_at(
     }
     publish_result?;
     Ok(session)
+}
+
+fn validate_generation_request_id(request_id: &str) -> Result<(), String> {
+    let valid_length = (3..=GENERATION_REQUEST_ID_MAX_LENGTH).contains(&request_id.len());
+    let valid_characters = request_id
+        .chars()
+        .all(|character| character.is_ascii_alphanumeric() || character == '-');
+    let valid_start = request_id
+        .chars()
+        .next()
+        .is_some_and(|character| character.is_ascii_alphanumeric());
+
+    if valid_length && valid_characters && valid_start {
+        Ok(())
+    } else {
+        Err("Invalid generation request id.".to_owned())
+    }
+}
+
+fn compile_actor_prompt(brief: &ActorBrief) -> String {
+    let kind = match &brief.kind {
+        ActorKind::Mob => "mob",
+        ActorKind::Npc => "npc",
+    };
+    format!(
+        "Create one 32x32 pixel-art {kind} named \"{}\".\n{}\n\n\
+Locked world contract:\n\
+- The visible actor is 22-30px tall.\n\
+- Feet remain anchored at (16, 28).\n\
+- Lighting comes from the north-west.\n\
+- Use selective shaded-side outline using the actor's own dark ramp.\n\
+- Use at most 16 colors with hard transparent pixels.\n\
+- Preserve at least 15 luma separation from walkable TileForge grounds.\n\
+- Render a single down-facing approval concept. Do not create a full sheet yet.\n\
+- No background, text, border, mockup, or soft antialiasing.\n\
+- Return a candidate only. Only the user may approve final art.",
+        brief.name, brief.description
+    )
+}
+
+fn validate_generation_request(
+    request: ConceptGenerationRequest,
+) -> Result<ConceptGenerationRequest, String> {
+    validate_generation_request_id(&request.id)?;
+    validate_session_id(&request.session_id)?;
+    if request.schema_version != 1 {
+        return Err("Unsupported generation request document version.".to_owned());
+    }
+    if request.revision == 0 {
+        return Err("Generation request revision must be at least 1.".to_owned());
+    }
+    if request.stage != "concept" || request.contract_id != CONTRACT_ID {
+        return Err("Generation request contract is incompatible.".to_owned());
+    }
+    if request.prompt.is_empty() || request.prompt.chars().count() > 12_000 {
+        return Err("Generation request prompt is invalid.".to_owned());
+    }
+    if !(1..=4).contains(&request.requested_candidates) {
+        return Err("Generation request candidate count must be between 1 and 4.".to_owned());
+    }
+    if request.execution.mode != "connected-client-native-image-generation"
+        || request.execution.additional_paid_services != "forbidden"
+        || request.execution.api_credentials != "not-used"
+    {
+        return Err("Generation request cost boundary is incompatible.".to_owned());
+    }
+    if request.output.artifact != "concept-candidate"
+        || request.output.direction != "down"
+        || request.output.width != FRAME_WIDTH
+        || request.output.height != FRAME_HEIGHT
+        || request.output.mime_type != "image/png"
+        || request.output.import_tool != "import_concept_candidate"
+    {
+        return Err("Generation request output contract is incompatible.".to_owned());
+    }
+    if !request.authority.agents_may_generate
+        || !request.authority.agents_may_import
+        || request.authority.agents_may_approve
+        || request.authority.approval_owner != "user"
+    {
+        return Err("Generation request approval boundary is incompatible.".to_owned());
+    }
+    if request.lifecycle != "immutable-request" {
+        return Err("Generation request lifecycle is incompatible.".to_owned());
+    }
+    Ok(request)
+}
+
+fn generation_requests_root(root: &Path, session_id: &str) -> Result<PathBuf, String> {
+    validate_session_id(session_id)?;
+    Ok(root
+        .join("sessions")
+        .join(session_id)
+        .join("generation-requests"))
+}
+
+fn generation_request_directory(
+    root: &Path,
+    session_id: &str,
+    request_id: &str,
+) -> Result<PathBuf, String> {
+    validate_generation_request_id(request_id)?;
+    Ok(generation_requests_root(root, session_id)?.join(request_id))
+}
+
+fn read_generation_request(
+    root: &Path,
+    session_id: &str,
+    request_id: &str,
+) -> Result<ConceptGenerationRequest, String> {
+    let session = read_session(root, session_id)?;
+    let raw = fs::read_to_string(
+        generation_request_directory(root, &session.id, request_id)?.join("request.json"),
+    )
+    .map_err(|error| format!("Could not read generation request: {error}"))?;
+    let request: ConceptGenerationRequest = serde_json::from_str(&raw)
+        .map_err(|error| format!("Invalid generation request document: {error}"))?;
+    let request = validate_generation_request(request)?;
+    if request.session_id != session.id || request.id != request_id {
+        return Err("Generation request identity does not match its storage path.".to_owned());
+    }
+    Ok(request)
+}
+
+fn list_generation_requests_at(
+    root: &Path,
+    session_id: &str,
+) -> Result<Vec<ConceptGenerationRequest>, String> {
+    let session = read_session(root, session_id)?;
+    let requests_root = generation_requests_root(root, &session.id)?;
+    fs::create_dir_all(&requests_root)
+        .map_err(|error| format!("Could not create generation request storage: {error}"))?;
+
+    let mut requests = Vec::new();
+    for entry in fs::read_dir(&requests_root)
+        .map_err(|error| format!("Could not list generation requests: {error}"))?
+    {
+        let Ok(entry) = entry else {
+            continue;
+        };
+        let file_name = entry.file_name();
+        let Some(request_id) = file_name.to_str() else {
+            continue;
+        };
+        if request_id.starts_with('.') || !entry.path().is_dir() {
+            continue;
+        }
+        if let Ok(request) = read_generation_request(root, &session.id, request_id) {
+            requests.push(request);
+        }
+    }
+    requests.sort_by(|left, right| right.revision.cmp(&left.revision));
+    Ok(requests)
+}
+
+#[allow(clippy::too_many_arguments)]
+fn create_concept_generation_request_at(
+    root: &Path,
+    session_id: &str,
+    requested_candidates: u32,
+    timestamp: &str,
+    id_suffix: &str,
+    temporary_suffix: &str,
+    forced_revision: Option<u32>,
+) -> Result<ConceptGenerationRequest, String> {
+    let session = read_session(root, session_id)?;
+    let requests = list_generation_requests_at(root, &session.id)?;
+    let revision = forced_revision.unwrap_or_else(|| {
+        requests
+            .iter()
+            .map(|request| request.revision)
+            .max()
+            .unwrap_or(0)
+            + 1
+    });
+    let timestamp_digits: String = timestamp
+        .chars()
+        .filter(char::is_ascii_digit)
+        .take(14)
+        .collect();
+    let request = validate_generation_request(ConceptGenerationRequest {
+        schema_version: 1,
+        id: format!(
+            "concept-gen-r{:04}-{}-{}",
+            revision, timestamp_digits, id_suffix
+        ),
+        revision,
+        session_id: session.id.clone(),
+        stage: "concept".to_owned(),
+        contract_id: CONTRACT_ID.to_owned(),
+        created_at: timestamp.to_owned(),
+        prompt: compile_actor_prompt(&session.brief),
+        requested_candidates,
+        execution: GenerationRequestExecution {
+            mode: "connected-client-native-image-generation".to_owned(),
+            additional_paid_services: "forbidden".to_owned(),
+            api_credentials: "not-used".to_owned(),
+        },
+        output: GenerationRequestOutput {
+            artifact: "concept-candidate".to_owned(),
+            direction: "down".to_owned(),
+            width: FRAME_WIDTH,
+            height: FRAME_HEIGHT,
+            mime_type: "image/png".to_owned(),
+            import_tool: "import_concept_candidate".to_owned(),
+        },
+        authority: GenerationRequestAuthority {
+            agents_may_generate: true,
+            agents_may_import: true,
+            agents_may_approve: false,
+            approval_owner: "user".to_owned(),
+        },
+        lifecycle: "immutable-request".to_owned(),
+    })?;
+
+    let requests_root = generation_requests_root(root, &session.id)?;
+    fs::create_dir_all(&requests_root)
+        .map_err(|error| format!("Could not create generation request storage: {error}"))?;
+    let final_directory = generation_request_directory(root, &session.id, &request.id)?;
+    let temporary_directory =
+        requests_root.join(format!(".{}.{}.tmp", request.id, temporary_suffix));
+    fs::create_dir(&temporary_directory)
+        .map_err(|error| format!("Could not stage generation request: {error}"))?;
+
+    let publish_result = (|| -> Result<(), String> {
+        let document = format!(
+            "{}\n",
+            serde_json::to_string_pretty(&request)
+                .map_err(|error| format!("Could not serialize generation request: {error}"))?
+        );
+        fs::write(temporary_directory.join("request.json"), document)
+            .map_err(|error| format!("Could not write generation request: {error}"))?;
+        fs::rename(&temporary_directory, &final_directory)
+            .map_err(|error| format!("Could not publish generation request: {error}"))
+    })();
+
+    if publish_result.is_err() {
+        let _ = fs::remove_dir_all(&temporary_directory);
+    }
+    publish_result?;
+    Ok(request)
 }
 
 fn validate_provenance(mut provenance: CandidateProvenance) -> Result<CandidateProvenance, String> {
@@ -3970,6 +4260,40 @@ fn list_sprite_sessions() -> Result<SessionList, String> {
 }
 
 #[tauri::command]
+fn create_concept_generation_request(
+    session_id: String,
+    requested_candidates: u32,
+) -> Result<ConceptGenerationRequest, String> {
+    let timestamp = Utc::now().to_rfc3339_opts(SecondsFormat::Millis, true);
+    let id_suffix = Uuid::new_v4().simple().to_string()[..8].to_owned();
+    let temporary_suffix = Uuid::new_v4().simple().to_string();
+    create_concept_generation_request_at(
+        &workspace_root(),
+        &session_id,
+        requested_candidates,
+        &timestamp,
+        &id_suffix,
+        &temporary_suffix,
+        None,
+    )
+}
+
+#[tauri::command]
+fn list_concept_generation_requests(
+    session_id: String,
+) -> Result<Vec<ConceptGenerationRequest>, String> {
+    list_generation_requests_at(&workspace_root(), &session_id)
+}
+
+#[tauri::command]
+fn get_concept_generation_request(
+    session_id: String,
+    request_id: String,
+) -> Result<ConceptGenerationRequest, String> {
+    read_generation_request(&workspace_root(), &session_id, &request_id)
+}
+
+#[tauri::command]
 fn import_concept_candidate(
     session_id: String,
     png_bytes: Vec<u8>,
@@ -4204,6 +4528,9 @@ pub fn run() {
             create_sprite_session,
             get_sprite_session,
             list_sprite_sessions,
+            create_concept_generation_request,
+            list_concept_generation_requests,
+            get_concept_generation_request,
             import_concept_candidate,
             list_concept_candidates,
             get_concept_candidate,
@@ -4348,6 +4675,92 @@ mod tests {
         let reread = read_session(&root, &fixture_session.id).unwrap();
         assert_eq!(reread.id, fixture_session.id);
         assert_eq!(reread.contract_id, CONTRACT_ID);
+        fs::remove_dir_all(root).unwrap();
+    }
+
+    #[test]
+    fn desktop_adapter_reads_shared_generation_request_fixture() {
+        let root = test_root("generation-request-fixture");
+        let session_fixture = include_str!("../../tests/fixtures/session-v1.json");
+        let session: StudioSession = serde_json::from_str(session_fixture).unwrap();
+        let request_fixture =
+            include_str!("../../tests/fixtures/concept-generation-request-v1.json");
+        let request: ConceptGenerationRequest = serde_json::from_str(request_fixture).unwrap();
+        let request = validate_generation_request(request).unwrap();
+        let request_directory = root
+            .join("sessions")
+            .join(&session.id)
+            .join("generation-requests")
+            .join(&request.id);
+        fs::create_dir_all(&request_directory).unwrap();
+        fs::write(
+            root.join("sessions").join(&session.id).join("session.json"),
+            session_fixture,
+        )
+        .unwrap();
+        fs::write(request_directory.join("request.json"), request_fixture).unwrap();
+
+        let reread = read_generation_request(&root, &session.id, &request.id).unwrap();
+        assert_eq!(reread.id, request.id);
+        assert_eq!(reread.execution.additional_paid_services, "forbidden");
+        assert!(!reread.authority.agents_may_approve);
+        fs::remove_dir_all(root).unwrap();
+    }
+
+    #[test]
+    fn generation_request_is_immutable_and_failure_cleans_up() {
+        let root = test_root("generation-request");
+        let session = create_session_at(
+            &root,
+            brief(),
+            "2026-07-27T12:00:00.000Z",
+            "request1",
+            "session",
+        )
+        .unwrap();
+        let first = create_concept_generation_request_at(
+            &root,
+            &session.id,
+            3,
+            "2026-07-27T12:01:00.000Z",
+            "request1",
+            "first",
+            None,
+        )
+        .unwrap();
+        assert!(first.prompt.contains("Only the user may approve final art"));
+        assert_eq!(first.execution.api_credentials, "not-used");
+
+        let collision = create_concept_generation_request_at(
+            &root,
+            &session.id,
+            3,
+            "2026-07-27T12:01:00.000Z",
+            "request1",
+            "collision",
+            Some(1),
+        );
+        assert!(collision.is_err());
+        let invalid_count = create_concept_generation_request_at(
+            &root,
+            &session.id,
+            5,
+            "2026-07-27T12:02:00.000Z",
+            "invalid1",
+            "invalid",
+            None,
+        );
+        assert!(invalid_count.is_err());
+
+        let entries: Vec<_> = fs::read_dir(
+            root.join("sessions")
+                .join(&session.id)
+                .join("generation-requests"),
+        )
+        .unwrap()
+        .map(|entry| entry.unwrap().file_name())
+        .collect();
+        assert_eq!(entries, vec![OsString::from(first.id)]);
         fs::remove_dir_all(root).unwrap();
     }
 

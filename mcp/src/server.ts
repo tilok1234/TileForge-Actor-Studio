@@ -19,6 +19,11 @@ import {
   listExportCandidates,
   validateExportCandidate,
 } from "./exports.js";
+import {
+  createConceptGenerationRequest,
+  getConceptGenerationRequest,
+  listConceptGenerationRequests,
+} from "./generation-requests.js";
 import { createSession, getSession, listSessions, workspaceRoot } from "./storage.js";
 import {
   createTurnaroundCandidate,
@@ -191,6 +196,82 @@ export function createActorStudioServer(
       },
     },
     async ({ sessionId }) => textResult(await getSession(sessionId, storageRoot)),
+  );
+
+  server.registerTool(
+    "create_concept_generation_request",
+    {
+      title: "Create concept generation request",
+      description:
+        "Prepare one immutable local request for a connected AI client to create separate Concept candidates with its native subscription image capability. This never calls a paid API, stores no credentials, and cannot approve art.",
+      inputSchema: {
+        sessionId: z.string().min(3).max(96),
+        requestedCandidates: z.number().int().min(1).max(4).default(3),
+      },
+      annotations: {
+        readOnlyHint: false,
+        destructiveHint: false,
+        idempotentHint: false,
+        openWorldHint: false,
+      },
+    },
+    async ({ sessionId, requestedCandidates }) =>
+      textResult(
+        await createConceptGenerationRequest(
+          sessionId,
+          requestedCandidates,
+          { root: storageRoot },
+        ),
+      ),
+  );
+
+  server.registerTool(
+    "list_concept_generation_requests",
+    {
+      title: "List concept generation requests",
+      description:
+        "List immutable subscription-only Concept generation requests for one session, newest revision first.",
+      inputSchema: {
+        sessionId: z.string().min(3).max(96),
+      },
+      annotations: {
+        readOnlyHint: true,
+        destructiveHint: false,
+        idempotentHint: true,
+        openWorldHint: false,
+      },
+    },
+    async ({ sessionId }) =>
+      textResult({
+        requests: await listConceptGenerationRequests(sessionId, storageRoot),
+      }),
+  );
+
+  server.registerTool(
+    "get_concept_generation_request",
+    {
+      title: "Get concept generation request",
+      description:
+        "Read one immutable generation request. Use its exact prompt with the connected client's native subscription image tool, then preserve each PNG with import_concept_candidate. Never use a pay-as-you-go API or infer approval.",
+      inputSchema: {
+        sessionId: z.string().min(3).max(96),
+        requestId: z.string().min(3).max(96),
+      },
+      annotations: {
+        readOnlyHint: true,
+        destructiveHint: false,
+        idempotentHint: true,
+        openWorldHint: false,
+      },
+    },
+    async ({ sessionId, requestId }) =>
+      textResult(
+        await getConceptGenerationRequest(
+          sessionId,
+          requestId,
+          storageRoot,
+        ),
+      ),
   );
 
   server.registerTool(
