@@ -1,0 +1,86 @@
+{
+  "schemaVersion": 1,
+  "id": "export-r0001-20260728010000-fixture1",
+  "revision": 1,
+  "sessionId": "mirelight-pilgrim-20260728000000-fixture1",
+  "stage": "export",
+  "contractId": "tileforge-actor-32-v1",
+  "approvedWorldTest": {
+    "worldTestId": "world-test-r0001-20260728003000-fixture1",
+    "documentSha256": "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa",
+    "previewSources": [
+      { "scene": "scale-lineup", "theme": "forest", "sourceFile": "scale-lineup-forest.png", "sha256": "bbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbb", "byteLength": 1001 },
+      { "scene": "scale-lineup", "theme": "autumn", "sourceFile": "scale-lineup-autumn.png", "sha256": "bbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbb", "byteLength": 1002 },
+      { "scene": "scale-lineup", "theme": "dusk", "sourceFile": "scale-lineup-dusk.png", "sha256": "bbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbb", "byteLength": 1003 },
+      { "scene": "scale-lineup", "theme": "winter", "sourceFile": "scale-lineup-winter.png", "sha256": "bbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbb", "byteLength": 1004 },
+      { "scene": "forest-clearing", "theme": "forest", "sourceFile": "forest-clearing-forest.png", "sha256": "bbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbb", "byteLength": 1005 },
+      { "scene": "forest-clearing", "theme": "autumn", "sourceFile": "forest-clearing-autumn.png", "sha256": "bbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbb", "byteLength": 1006 },
+      { "scene": "forest-clearing", "theme": "dusk", "sourceFile": "forest-clearing-dusk.png", "sha256": "bbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbb", "byteLength": 1007 },
+      { "scene": "forest-clearing", "theme": "winter", "sourceFile": "forest-clearing-winter.png", "sha256": "bbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbb", "byteLength": 1008 },
+      { "scene": "crownhold", "theme": "forest", "sourceFile": "crownhold-forest.png", "sha256": "bbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbb", "byteLength": 1009 },
+      { "scene": "crownhold", "theme": "autumn", "sourceFile": "crownhold-autumn.png", "sha256": "bbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbb", "byteLength": 1010 },
+      { "scene": "crownhold", "theme": "dusk", "sourceFile": "crownhold-dusk.png", "sha256": "bbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbb", "byteLength": 1011 },
+      { "scene": "crownhold", "theme": "winter", "sourceFile": "crownhold-winter.png", "sha256": "bbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbb", "byteLength": 1012 },
+      { "scene": "tidewater", "theme": "forest", "sourceFile": "tidewater-forest.png", "sha256": "bbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbb", "byteLength": 1013 },
+      { "scene": "tidewater", "theme": "autumn", "sourceFile": "tidewater-autumn.png", "sha256": "bbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbb", "byteLength": 1014 },
+      { "scene": "tidewater", "theme": "dusk", "sourceFile": "tidewater-dusk.png", "sha256": "bbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbb", "byteLength": 1015 },
+      { "scene": "tidewater", "theme": "winter", "sourceFile": "tidewater-winter.png", "sha256": "bbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbb", "byteLength": 1016 }
+    ],
+    "approvedBy": "user",
+    "approvedAt": "2026-07-28T01:00:00.000Z"
+  },
+  "sourceWalkCycle": {
+    "walkCycleId": "walk-cycle-r0001-20260728002000-fixture1",
+    "frameSources": [
+      { "direction": "down", "frameIndex": 0, "sha256": "cccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccc", "byteLength": 200 },
+      { "direction": "down", "frameIndex": 1, "sha256": "cccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccc", "byteLength": 201 },
+      { "direction": "down", "frameIndex": 2, "sha256": "cccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccc", "byteLength": 202 },
+      { "direction": "down", "frameIndex": 3, "sha256": "cccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccc", "byteLength": 203 },
+      { "direction": "right", "frameIndex": 0, "sha256": "cccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccc", "byteLength": 204 },
+      { "direction": "right", "frameIndex": 1, "sha256": "cccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccc", "byteLength": 205 },
+      { "direction": "right", "frameIndex": 2, "sha256": "cccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccc", "byteLength": 206 },
+      { "direction": "right", "frameIndex": 3, "sha256": "cccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccc", "byteLength": 207 },
+      { "direction": "up", "frameIndex": 0, "sha256": "cccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccc", "byteLength": 208 },
+      { "direction": "up", "frameIndex": 1, "sha256": "cccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccc", "byteLength": 209 },
+      { "direction": "up", "frameIndex": 2, "sha256": "cccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccc", "byteLength": 210 },
+      { "direction": "up", "frameIndex": 3, "sha256": "cccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccc", "byteLength": 211 },
+      { "direction": "left", "frameIndex": 0, "sha256": "cccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccc", "byteLength": 212 },
+      { "direction": "left", "frameIndex": 1, "sha256": "cccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccc", "byteLength": 213 },
+      { "direction": "left", "frameIndex": 2, "sha256": "cccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccc", "byteLength": 214 },
+      { "direction": "left", "frameIndex": 3, "sha256": "cccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccc", "byteLength": 215 }
+    ]
+  },
+  "package": {
+    "spriteSheet": {
+      "sourceFile": "sprite-sheet.png",
+      "sha256": "dddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddd",
+      "byteLength": 4096,
+      "width": 128,
+      "height": 128,
+      "cellWidth": 32,
+      "cellHeight": 32,
+      "layout": "direction-rows-frame-columns-v1"
+    },
+    "metadata": {
+      "sourceFile": "metadata.json",
+      "sha256": "eeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeee",
+      "byteLength": 2048
+    },
+    "provenance": {
+      "sourceFile": "provenance.json",
+      "sha256": "ffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffff",
+      "byteLength": 3072
+    }
+  },
+  "createdAt": "2026-07-28T01:00:00.000Z",
+  "preparation": {
+    "method": "local-deterministic-sheet-v1",
+    "additionalAiCost": false
+  },
+  "status": "draft",
+  "publishing": {
+    "status": "not_approved",
+    "authority": "user",
+    "message": "Publishing requires a separate explicit user decision."
+  }
+}

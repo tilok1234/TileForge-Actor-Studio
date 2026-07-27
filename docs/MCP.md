@@ -92,13 +92,19 @@ this project so every client observes the same gateway behavior.
 - `list_world_test_candidates`
 - `get_world_test_candidate`
 - `validate_world_test_candidate`
+- `create_export_candidate`
+- `list_export_candidates`
+- `get_export_candidate`
+- `validate_export_candidate`
 
 The gateway also exposes:
 
 - resource: `studio://contracts/tileforge-actor-32-v1`
 - prompt: `design_tileforge_actor`
 
-No tool can approve final art.
+No tool can autonomously approve final art or publishing. Export creation is
+available only after the user has explicitly approved the exact source World
+Test.
 
 `import_concept_candidate` accepts PNG bytes with imported or generated
 provenance. Generated provenance must name its provider, but Actor Studio does
@@ -141,6 +147,18 @@ AI service and cannot approve final art.
 recomputes 256 frame-to-ground luma comparisons against the pinned pack. Its
 final-art judgment remains Not assessed with user authority.
 
+`create_export_candidate` is available only after the user explicitly approves
+one World Test as final art. It records the exact World Test document hash and
+sixteen preview identities with `approvedBy: user`, binds all sixteen Walk
+Cycle frame identities, and atomically prepares `sprite-sheet.png`,
+`metadata.json`, `provenance.json`, and `export.json`. Preparation is local,
+deterministic, and has no additional AI cost.
+
+`validate_export_candidate` rehashes all package files, reconstructs the
+128 x 128 direction-row/frame-column sheet from the immutable Walk Cycle,
+checks metadata and provenance against the contract and source receipts, and
+verifies that publishing remains `not_approved` with user authority.
+
 ## Shared desktop state
 
 MCP session tools and the Tauri desktop use the same local workspace:
@@ -152,8 +170,10 @@ preserve the exact original `source.png`; Turnaround directories preserve
 `turnaround.json` plus `down.png`, `right.png`, `up.png`, and `left.png`.
 Walk Cycle directories preserve `walk-cycle.json` plus four numbered frame
 PNGs for every canonical direction. World Test directories preserve
-`world-test.json` plus sixteen scene/theme preview PNGs. Either adapter can
-list and read an artifact created by the other.
+`world-test.json` plus sixteen scene/theme preview PNGs. Export directories
+preserve `export.json`, `sprite-sheet.png`, `metadata.json`, and
+`provenance.json`. Either adapter can list and read an artifact created by the
+other.
 
 Do not configure an AI provider that incurs incremental charges. Any future AI
 connection must be covered by the user's existing subscriptions.

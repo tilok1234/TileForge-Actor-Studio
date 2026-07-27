@@ -36,15 +36,17 @@ Hard boundaries:
 - Never overwrite generated candidates; create immutable revisions.
 - Keep Codex, Claude, and Antigravity on the same client-neutral MCP contract.
 
-After orientation, verify the implemented M04 and M05 World Test behavior
-against the live code and checks. The user accepted immutable Turnaround r2 for
-animation and Walk Cycle r1 for World Test. Local World Test r1 preserves
-sixteen pinned previews and reports 240 Pass / 16 Fail / 0 Not assessed across
-256 ground checks; its failures are concentrated on dusk grass in Scale Lineup
-and Forest Clearing. The next gate is the user's final-art decision. Do not
-prepare Export until that gate is explicit. Keep every repair immutable, keep
-Pass/Fail/Not assessed separate from visual acceptance, and do not grant
-final-art approval or publishing authority.
+After orientation, verify the completed M04 and M05 behavior against the live
+code and checks. The user accepted immutable Turnaround r2 for animation, Walk
+Cycle r1 for World Test, and World Test r1 as final art for the exact local
+draft Export r1. World Test r1 preserves sixteen pinned previews and reports
+240 Pass / 16 Fail / 0 Not assessed across 256 ground checks; its failures are
+concentrated on dusk grass in Scale Lineup and Forest Clearing. Export
+`export-r0001-20260727001749-a13580f4` preserves the exact user approval
+receipt, a 128 x 128 4 x 4 sheet, metadata, and provenance and reports
+7 Pass / 0 Fail / 0 Not assessed. It remains a local draft. Publishing is a
+separate unapproved user gate, and no publishing operation exists. Keep every
+repair immutable and keep structural evidence separate from human authority.
 
 Do not use any AI service that adds cost beyond my existing subscriptions. No
 pay-as-you-go APIs, purchased credits, usage billing, or paid add-ons.

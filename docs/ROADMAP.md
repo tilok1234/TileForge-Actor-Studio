@@ -164,8 +164,9 @@ Walk Cycle implemented:
 
 ## M05 - World Test and Export
 
-Status: in progress. World Test is implemented; final-art review and Export
-remain pending.
+Status: complete through a local draft Export. World Test r1 has explicit
+user final-art approval for Export; publishing remains a separate unapproved
+user gate.
 
 Goal: show the actor in pinned TileForge reference scenes and produce a
 reviewable export package.
@@ -199,12 +200,31 @@ World Test implemented:
   accepted-source receipt, pack identity, immutable previews, collisions,
   partial-write cleanup, 256 measurements, and approval boundary.
 
-Pending:
+Export implemented:
 
-- explicit user approval or rejection of World Test r1 as final art;
-- export-package preparation only after that gate;
-- explicit publishing approval remains separate, and no publishing operation
-  exists.
+- the user's explicit World Test r1 final-art decision is recorded only in the
+  next-stage Export receipt with the exact World Test document hash, all
+  sixteen preview identities, `approvedBy: user`, and approval time;
+- one immutable draft Export atomically preserves `export.json`, a 128 x 128
+  RGBA `sprite-sheet.png`, `metadata.json`, and `provenance.json`;
+- sheet rows follow canonical down/right/up/left order and columns contain
+  frames 0–3, with every cell pixel-identical to its immutable Walk Cycle
+  source;
+- metadata records actor identity, contract id, 32 px cells, 300 ms timing,
+  foot anchor, frame coordinates, and source hashes; provenance binds the
+  approved World Test, source Walk Cycle, no-cost local preparation, and the
+  closed publishing gate;
+- desktop and MCP adapters create, list, read, restore, and validate the same
+  Export protocol; desktop restart restores the full stable Export id, sheet,
+  7 Pass / 0 Fail / 0 Not assessed package evidence, and publishing lock;
+- shared TypeScript and Rust compatibility/failure-path tests cover the
+  fixture, missing source, immutable file reads, source and pixel
+  reconstruction, metadata/provenance compatibility, collisions, tamper
+  detection, partial-write cleanup, no-cost boundary, and user-only
+  publishing authority;
+- the real local Mirelight Pilgrim Export r1 is
+  `export-r0001-20260727001749-a13580f4`; it remains `draft` and no publishing
+  operation exists.
 
 ## Deferred beyond version 1
 

@@ -3,12 +3,12 @@
 A narrow desktop workflow for creating **32 px TileForge mobs and NPCs with AI**.
 The artist supplies the identity; the studio supplies the boundaries.
 
-Current status: **M04 is complete and the World Test slice of M05 is
-implemented; World Test r1 is awaiting the user's final-art decision.** The
-user accepted Turnaround r2 for animation and Walk Cycle r1 for World Test. The
-desktop and MCP gateway share durable local sessions, never-overwritten
-Concept, Turnaround, Walk Cycle, and World Test revisions, user-owned
-transition receipts, and local deterministic validation reports. No
+Current status: **M05 is complete through a local draft Export.** The user
+accepted Turnaround r2 for animation, Walk Cycle r1 for World Test, and World
+Test r1 as final art for Export. The desktop and MCP gateway share durable
+local sessions, never-overwritten Concept, Turnaround, Walk Cycle, World Test,
+and Export revisions, user-owned transition receipts, and local deterministic
+validation reports. Publishing remains a separate unapproved user gate. No
 image-generation provider adapter is integrated.
 
 The initial workflow has six deliberate stages:
@@ -121,8 +121,10 @@ MCP operations. Motion and readability remain a user-only gate before World
 Test work. M05 copies a SHA-256-pinned TileForge reference subset into this
 repository, prepares sixteen immutable scene/theme previews from an accepted
 Walk Cycle, and measures all sixteen frames against all sixteen pinned ground
-samples. Final-art approval remains user-only, and export/publishing are still
-unimplemented.
+samples. The user-approved World Test receipt unlocks one immutable local draft
+Export containing a 128 x 128 PNG sheet, consumer metadata, and provenance.
+The package is validated against the exact sixteen source frames, while
+publishing remains unavailable and user-only.
 
 Future AI integrations may use only capabilities already covered by the user's
 subscriptions. Pay-as-you-go APIs, purchased credits, usage billing, and paid

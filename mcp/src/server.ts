@@ -13,6 +13,12 @@ import {
   getConceptCandidatePayload,
   listConceptCandidates,
 } from "./candidates.js";
+import {
+  createExportCandidate,
+  getExportCandidatePayload,
+  listExportCandidates,
+  validateExportCandidate,
+} from "./exports.js";
 import { createSession, getSession, listSessions, workspaceRoot } from "./storage.js";
 import {
   createTurnaroundCandidate,
@@ -657,6 +663,110 @@ export function createActorStudioServer(
           worldTestId,
           storageRoot,
         ),
+      ),
+  );
+
+  server.registerTool(
+    "create_export_candidate",
+    {
+      title: "Prepare draft Export",
+      description:
+        "Only after the user explicitly approves final art, atomically prepare an immutable local PNG sheet, metadata, and provenance package from that exact World Test. This records the user approval receipt but cannot approve or perform publishing.",
+      inputSchema: {
+        sessionId: z.string().min(3).max(96),
+        sourceWorldTestId: z.string().min(3).max(96),
+      },
+      annotations: {
+        readOnlyHint: false,
+        destructiveHint: false,
+        idempotentHint: false,
+        openWorldHint: false,
+      },
+    },
+    async ({ sessionId, sourceWorldTestId }) =>
+      textResult(
+        await createExportCandidate(sessionId, sourceWorldTestId, {
+          root: storageRoot,
+        }),
+      ),
+  );
+
+  server.registerTool(
+    "list_export_candidates",
+    {
+      title: "List draft Exports",
+      description:
+        "List immutable local draft Export revisions. A listed package is not published and does not grant publishing approval.",
+      inputSchema: {
+        sessionId: z.string().min(3).max(96),
+      },
+      annotations: {
+        readOnlyHint: true,
+        destructiveHint: false,
+        idempotentHint: true,
+        openWorldHint: false,
+      },
+    },
+    async ({ sessionId }) =>
+      textResult({
+        candidates: await listExportCandidates(sessionId, storageRoot),
+      }),
+  );
+
+  server.registerTool(
+    "get_export_candidate",
+    {
+      title: "Get draft Export",
+      description:
+        "Read one immutable local draft Export, including its PNG sheet and parsed metadata and provenance. Publishing remains separately user-owned.",
+      inputSchema: {
+        sessionId: z.string().min(3).max(96),
+        exportId: z.string().min(3).max(96),
+      },
+      annotations: {
+        readOnlyHint: true,
+        destructiveHint: false,
+        idempotentHint: true,
+        openWorldHint: false,
+      },
+    },
+    async ({ sessionId, exportId }) => {
+      const payload = await getExportCandidatePayload(
+        sessionId,
+        exportId,
+        storageRoot,
+      );
+      return textResult({
+        candidate: payload.candidate,
+        spriteSheetPngBase64: Buffer.from(
+          payload.spriteSheetPngBytes,
+        ).toString("base64"),
+        metadata: payload.metadata,
+        provenance: payload.provenance,
+      });
+    },
+  );
+
+  server.registerTool(
+    "validate_export_candidate",
+    {
+      title: "Validate draft Export",
+      description:
+        "Rehash the immutable package, reconstruct its 4 x 4 sheet from the approved source frames, and verify metadata, provenance, and the still-closed publishing boundary.",
+      inputSchema: {
+        sessionId: z.string().min(3).max(96),
+        exportId: z.string().min(3).max(96),
+      },
+      annotations: {
+        readOnlyHint: true,
+        destructiveHint: false,
+        idempotentHint: true,
+        openWorldHint: false,
+      },
+    },
+    async ({ sessionId, exportId }) =>
+      textResult(
+        await validateExportCandidate(sessionId, exportId, storageRoot),
       ),
   );
 

@@ -12,6 +12,16 @@
     type ConceptCandidate,
   } from "./lib/studio/candidate";
   import { BOUNDARY_RULES, TILEFORGE_ACTOR_CONTRACT } from "./lib/studio/contract";
+  import {
+    parseExportCandidate,
+    parseExportMetadata,
+    parseExportProvenance,
+    type ExportCandidate,
+  } from "./lib/studio/export";
+  import {
+    parseExportValidationReport,
+    type ExportValidationReport,
+  } from "./lib/studio/export-validation";
   import { compileActorPrompt } from "./lib/studio/prompt";
   import { parseStudioSession } from "./lib/studio/session";
   import {
@@ -145,6 +155,14 @@
   let worldTestValidation: WorldTestValidationReport | null = null;
   let validatingWorldTest = false;
   let creatingWorldTest = false;
+  let exports: ExportCandidate[] = [];
+  let selectedExport: ExportCandidate | null = null;
+  let exportSheetUrl = "";
+  let exportMessage = "No immutable draft Export has been prepared yet.";
+  let exportError = "";
+  let exportValidation: ExportValidationReport | null = null;
+  let validatingExport = false;
+  let creatingExport = false;
 
   $: compiledPrompt = compileActorPrompt(brief);
   $: selectedWorldPreviewKey = `${sceneIds[selectedScene]}/${themeIds[selectedTheme]}`;
@@ -178,6 +196,7 @@
     revokeTurnaroundUrls();
     revokeWalkCycleUrls();
     revokeWorldTestUrls();
+    revokeExportUrl();
     if (animationTimer !== undefined) {
       window.clearInterval(animationTimer);
     }
@@ -252,6 +271,22 @@
     worldTestMessage = "No immutable World Test has been prepared yet.";
   }
 
+  function revokeExportUrl() {
+    if (exportSheetUrl) {
+      URL.revokeObjectURL(exportSheetUrl);
+      exportSheetUrl = "";
+    }
+  }
+
+  function clearExports() {
+    revokeExportUrl();
+    exports = [];
+    selectedExport = null;
+    exportValidation = null;
+    exportError = "";
+    exportMessage = "No immutable draft Export has been prepared yet.";
+  }
+
   function showSession(saved: StudioSession) {
     session = saved;
     brief = { ...saved.brief };
@@ -280,6 +315,7 @@
         await refreshTurnarounds(restoredSession.id);
         await refreshWalkCycles(restoredSession.id);
         await refreshWorldTests(restoredSession.id);
+        await refreshExports(restoredSession.id);
         sessionMessage = "Reopened the latest durable session.";
       } else {
         sessionMessage = "No saved sessions yet.";
@@ -318,6 +354,7 @@
       clearTurnarounds();
       clearWalkCycles();
       clearWorldTests();
+      clearExports();
       workspaceRoot ||= ".studio";
       sessionMessage = "Saved locally. MCP clients can read this session.";
     } catch (error) {
@@ -786,6 +823,131 @@
       creatingWorldTest = false;
     }
   }
+
+  async function refreshExports(sessionId: string, preferredId?: string) {
+    exportError = "";
+    try {
+      const result = await invoke<unknown[]>("list_export_candidates", {
+        sessionId,
+      });
+      exports = result.map(parseExportCandidate);
+      const preferred =
+        exports.find((candidate) => candidate.id === preferredId) ??
+        exports[0] ??
+        null;
+      if (preferred) {
+        await loadExport(preferred);
+        exportMessage = `${exports.length} immutable draft Export revision${exports.length === 1 ? "" : "s"} saved.`;
+        activeStage = 5;
+      } else {
+        clearExports();
+      }
+    } catch (error) {
+      exportError = actorBriefError(error);
+      exportMessage = "Draft Exports could not be loaded.";
+    }
+  }
+
+  async function loadExport(candidate: ExportCandidate) {
+    if (!session || !isTauri()) {
+      return;
+    }
+    exportError = "";
+    exportValidation = null;
+    try {
+      const payload = await invoke<{
+        candidate: unknown;
+        spriteSheetPngBytes: number[];
+        metadata: unknown;
+        provenance: unknown;
+      }>("get_export_candidate", {
+        sessionId: session.id,
+        exportId: candidate.id,
+      });
+      const loaded = parseExportCandidate(payload.candidate);
+      const metadata = parseExportMetadata(payload.metadata);
+      const provenance = parseExportProvenance(payload.provenance);
+      if (
+        provenance.exportId !== loaded.id ||
+        metadata.contractId !== loaded.contractId
+      ) {
+        throw new Error("Export package identity does not match its receipt.");
+      }
+      const sourceWorldTest = worldTests.find(
+        (worldTest) =>
+          worldTest.id === loaded.approvedWorldTest.worldTestId,
+      );
+      if (sourceWorldTest && selectedWorldTest?.id !== sourceWorldTest.id) {
+        await loadWorldTest(sourceWorldTest);
+      }
+      revokeExportUrl();
+      exportSheetUrl = URL.createObjectURL(
+        new Blob(
+          [new Uint8Array(payload.spriteSheetPngBytes).buffer],
+          { type: "image/png" },
+        ),
+      );
+      selectedExport = loaded;
+      await validateExport(loaded);
+    } catch (error) {
+      exportError = actorBriefError(error);
+    }
+  }
+
+  async function validateExport(candidate: ExportCandidate) {
+    if (!session || !isTauri()) {
+      return;
+    }
+    validatingExport = true;
+    exportError = "";
+    try {
+      const report = parseExportValidationReport(
+        await invoke("validate_export_candidate", {
+          sessionId: session.id,
+          exportId: candidate.id,
+        }),
+      );
+      if (report.exportId !== candidate.id) {
+        throw new Error(
+          "Export validation identity does not match the candidate.",
+        );
+      }
+      exportValidation = report;
+    } catch (error) {
+      exportValidation = null;
+      exportError = actorBriefError(error);
+    } finally {
+      validatingExport = false;
+    }
+  }
+
+  async function prepareExport() {
+    if (!session || !selectedWorldTest || !isTauri()) {
+      return;
+    }
+    creatingExport = true;
+    exportError = "";
+    exportMessage =
+      "Preparing an immutable local sheet, metadata, and provenance package…";
+    try {
+      const saved = parseExportCandidate(
+        await invoke("create_export_candidate", {
+          sessionId: session.id,
+          sourceWorldTestId: selectedWorldTest.id,
+        }),
+      );
+      await refreshExports(session.id, saved.id);
+      activeStage = 5;
+      exportMessage =
+        "Draft Export prepared locally. Publishing is still not approved.";
+    } catch (error) {
+      exportError = actorBriefError(error);
+      exportMessage =
+        "Export preparation failed without creating a partial revision.";
+    } finally {
+      creatingExport = false;
+    }
+  }
 </script>
 
 <svelte:head>
@@ -950,6 +1112,34 @@
             <span>Accepted for World Test by user authority. Final-art and publishing approval remain separate.</span>
           </section>
         {/if}
+
+        {#if activeStage >= 5 && selectedWorldTest}
+          <section class="candidate-intake export-action" aria-label="Draft Export preparation">
+            <div>
+              <p class="eyebrow">Approved final art</p>
+              <strong>Prepare local package</strong>
+            </div>
+            <button
+              class="secondary-action"
+              disabled={creatingExport}
+              onclick={prepareExport}
+            >
+              {creatingExport ? "Preparing…" : "Prepare new draft Export"}
+            </button>
+            <small>Creates a local 4 × 4 PNG sheet, metadata, and provenance. It never publishes.</small>
+          </section>
+        {/if}
+
+        {#if selectedExport}
+          <section class="turnaround-selection export-source" aria-label="Approved World Test receipt">
+            <p class="eyebrow">User final-art receipt</p>
+            <strong>World Test r{worldTests.find((candidate) => candidate.id === selectedExport?.approvedWorldTest.worldTestId)?.revision ?? "?"}</strong>
+            <small title={selectedExport.approvedWorldTest.worldTestId}>
+              {selectedExport.approvedWorldTest.worldTestId}
+            </small>
+            <span>Approved for this exact draft Export by user authority. Publishing remains not approved.</span>
+          </section>
+        {/if}
       {/if}
 
       <p class="session-message" class:error={Boolean(sessionError)} role={sessionError ? "alert" : "status"}>
@@ -996,9 +1186,26 @@
         class:turnaround={activeStage === 2}
         class:animate={activeStage === 3}
         class:world-test={activeStage === 4}
+        class:export={activeStage === 5}
         class="preview-stage"
       >
-        {#if activeStage === 4 && selectedWorldTest && selectedWorldPreviewUrl}
+        {#if activeStage === 5 && selectedExport && exportSheetUrl}
+          <figure class="export-sheet-canvas">
+            <img
+              alt={`Draft Export sprite sheet revision ${selectedExport.revision}`}
+              src={exportSheetUrl}
+            />
+            <figcaption>
+              <span>down · right · up · left</span>
+              <small>rows × frames 1–4 columns · 128 × 128 px</small>
+            </figcaption>
+          </figure>
+        {:else if activeStage === 5}
+          <div class="world-test-empty">
+            <strong>Draft Export is ready to prepare.</strong>
+            <span>Your final-art approval can now be recorded against the exact World Test; publishing stays closed.</span>
+          </div>
+        {:else if activeStage === 4 && selectedWorldTest && selectedWorldPreviewUrl}
           <figure class="world-test-canvas">
             <img
               alt={`${selectedScene} ${selectedTheme} World Test preview for revision ${selectedWorldTest.revision}`}
@@ -1080,7 +1287,9 @@
           </div>
         {/if}
         <p class="preview-note">
-          {activeStage === 4 && selectedWorldTest
+          {activeStage === 5 && selectedExport
+            ? `Export r${selectedExport.revision} · immutable local draft · publishing not approved`
+            : activeStage === 4 && selectedWorldTest
             ? `World Test r${selectedWorldTest.revision} · 16 immutable previews · final art not assessed`
             : activeStage === 3 && selectedWalkCycle
             ? `Walk Cycle r${selectedWalkCycle.revision} · 4 × 4 immutable frames · ${selectedWalkCycle.frameDurationMs} ms · motion not assessed`
@@ -1092,7 +1301,23 @@
               ? "Concept slot ready. Import creates immutable, unreviewed candidates here."
               : "Begin a concept to create the first immutable candidate."}
         </p>
-        {#if activeStage === 4 && worldTests.length > 0}
+        {#if activeStage === 5 && exports.length > 0}
+          <div class="candidate-strip" aria-label="Immutable draft Export candidates">
+            {#each exports as candidate}
+              <button
+                class:selected={selectedExport?.id === candidate.id}
+                onclick={() => loadExport(candidate)}
+                title={candidate.id}
+              >
+                <strong>r{candidate.revision}</strong>
+                <span>draft</span>
+              </button>
+            {/each}
+          </div>
+          <p class="turnaround-message" class:error={Boolean(exportError)} role={exportError ? "alert" : "status"}>
+            {exportError || exportMessage}
+          </p>
+        {:else if activeStage === 4 && worldTests.length > 0}
           <div class="candidate-strip" aria-label="Immutable World Test candidates">
             {#each worldTests as candidate}
               <button
@@ -1156,8 +1381,29 @@
         {/if}
       </div>
 
-      <div class="world-strip">
-        <div class="world-controls">
+      <div class:export-strip={activeStage === 5} class="world-strip">
+        {#if activeStage === 5 && selectedExport}
+          <div class="export-package-summary">
+            <div>
+              <span>Package</span>
+              <strong>4 immutable files</strong>
+            </div>
+            <div>
+              <span>Sheet</span>
+              <strong>128 × 128 · 32 px cells</strong>
+            </div>
+            <div>
+              <span>Identity</span>
+              <strong title={selectedExport.id}>Export r{selectedExport.revision}</strong>
+              <small title={selectedExport.id}>{selectedExport.id}</small>
+            </div>
+            <div>
+              <span>Publishing</span>
+              <strong class="closed">Not approved</strong>
+            </div>
+          </div>
+        {:else}
+          <div class="world-controls">
           <label>
             <span>Scene</span>
             <select bind:value={selectedScene}>
@@ -1171,7 +1417,7 @@
             </select>
           </label>
         </div>
-        {#if activeStage === 4 && selectedWorldPreviewUrl}
+          {#if activeStage === 4 && selectedWorldPreviewUrl}
           <div class="world-swatch pinned">
             <img
               alt={`${selectedScene} ${selectedTheme} pinned reference thumbnail`}
@@ -1179,7 +1425,7 @@
             />
             <small>{selectedScene} · {selectedTheme}</small>
           </div>
-        {:else}
+          {:else}
           <div class="world-swatch" class:dusk={selectedTheme === "Dusk"} class:winter={selectedTheme === "Winter"}>
             <span class="terrain-grain one"></span>
             <span class="terrain-grain two"></span>
@@ -1189,6 +1435,7 @@
             </div>
             <small>{selectedScene} · {selectedTheme}</small>
           </div>
+          {/if}
         {/if}
       </div>
     </section>
@@ -1227,7 +1474,15 @@
             <p class="eyebrow">Local evidence</p>
             <strong>Contract validation</strong>
           </div>
-          {#if activeStage === 4 && selectedWorldTest}
+          {#if activeStage === 5 && selectedExport}
+            <button
+              aria-label="Validate draft Export package again"
+              disabled={validatingExport}
+              onclick={() => selectedExport && validateExport(selectedExport)}
+            >
+              {validatingExport ? "Running…" : "Re-run"}
+            </button>
+          {:else if activeStage === 4 && selectedWorldTest}
             <button
               aria-label="Run World Test ground validation again"
               disabled={validatingWorldTest}
@@ -1262,7 +1517,36 @@
           {/if}
         </div>
 
-        {#if activeStage === 4}
+        {#if activeStage === 5}
+          {#if !selectedExport}
+            <p class="validation-empty">Prepare a draft Export to verify its immutable sheet, metadata, provenance, and publishing boundary.</p>
+          {:else if validatingExport && !exportValidation}
+            <p class="validation-empty">Reconstructing the 4 × 4 sheet and verifying every package receipt locally…</p>
+          {:else if exportError}
+            <p class="validation-error" role="alert">{exportError}</p>
+          {:else if exportValidation}
+            <div class="validation-summary" aria-label="Export validation totals">
+              <span class="pass">{exportValidation.summary.pass} pass</span>
+              <span class="fail quiet">0 fail</span>
+              <span class="not-assessed">0 not assessed</span>
+            </div>
+            <div class="validation-results">
+              {#each exportValidation.checks as check}
+                <div class="validation-result pass">
+                  <span class="validation-mark" aria-label="pass">✓</span>
+                  <div>
+                    <strong>{check.id.replaceAll("_", " ")}</strong>
+                    <span>{check.message}</span>
+                  </div>
+                </div>
+              {/each}
+            </div>
+            <div class="visual-judgment">
+              <span>Publishing</span>
+              <strong>Not approved — user only</strong>
+            </div>
+          {/if}
+        {:else if activeStage === 4}
           {#if !selectedWorldTest}
             <p class="validation-empty">Prepare a World Test to measure all sixteen walk frames against sixteen pinned grounds.</p>
           {:else if validatingWorldTest && !worldTestValidation}
@@ -1430,8 +1714,12 @@
 
       <div class="approval-card">
         <p class="eyebrow">Approval boundary</p>
-        <strong>Only you can approve final art.</strong>
-        <span>Connected agents may generate, compare, validate, and prepare exports.</span>
+        <strong>{activeStage === 5 ? "Only you can approve publishing." : "Only you can approve final art."}</strong>
+        <span>
+          {activeStage === 5
+            ? "This package is a local draft. No connected agent or desktop action can publish it."
+            : "Connected agents may generate, compare, validate, and prepare exports."}
+        </span>
       </div>
 
       <div class="agent-row">

@@ -79,8 +79,16 @@ revision and preserve the evidence trail.
     frame-to-ground luma measurements.
 17. Ask the user to approve or reject final art. Do not prepare an export until
     that gate is explicit, and do not treat a structural result as approval.
+18. After the user explicitly approves one World Test as final art, call
+    `create_export_candidate` to record that exact approval receipt and prepare
+    the local PNG sheet, metadata, and provenance.
+19. Use `list_export_candidates`, `get_export_candidate`, and
+    `validate_export_candidate` to inspect immutable draft packages and verify
+    every file against the approved sources.
+20. Keep publishing separate. A draft Export is not published, and no agent
+    operation may approve or perform publishing.
 
-The MCP tools currently implement steps 1–16. M02 candidate intake proves PNG
+The MCP tools currently implement steps 1–20. M02 candidate intake proves PNG
 structure, exact dimensions, and the presence of transparency. M03 validation
 then measures the immutable decoded pixels. The Turnaround slice of M04 records
 the user-selected Concept and requires its exact bytes as the down view before
@@ -92,7 +100,10 @@ and atomically preserves sixteen frames at 300 ms. Motion and readability
 remain user-only. The World Test slice binds the accepted Walk Cycle to a
 copied SHA-256-pinned TileForge pack, atomically preserves sixteen previews,
 and resolves ground luma for every frame/reference pairing. Final-art judgment
-stays Not assessed with user authority. Export tools remain unimplemented.
+stays Not assessed inside the World Test document; the next-stage Export
+records the user's explicit decision against that exact immutable document.
+The Export package is prepared and validated locally without an AI service,
+remains a draft, and keeps publishing not approved with user authority.
 
 ## Validation language
 
@@ -108,10 +119,12 @@ Use these distinct outcomes:
 
 Sessions live in `.studio/sessions` by default. Set `TFAS_WORKSPACE` to redirect
 local state. The desktop and MCP gateway read the same immutable session,
-Concept, Turnaround, Walk Cycle, and World Test documents; creation publishes complete
-directories atomically rather than exposing partial records. Original PNG
-bytes are rehash-verified on read and never overwritten. `.studio/` and
-generated exports are ignored by Git.
+Concept, Turnaround, Walk Cycle, World Test, and Export documents; creation
+publishes complete directories atomically rather than exposing partial
+records. Original PNG bytes are rehash-verified on read and never overwritten.
+Draft Export directories preserve `export.json`, `sprite-sheet.png`,
+`metadata.json`, and `provenance.json`. `.studio/` and generated exports are
+ignored by Git.
 
 ## Cost boundary
 

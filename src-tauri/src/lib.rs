@@ -19,6 +19,7 @@ const STRUCTURAL_VALIDATOR_ID: &str = "tileforge-actor-32-structural-v1";
 const TURNAROUND_VALIDATOR_ID: &str = "tileforge-actor-32-turnaround-structural-v1";
 const WALK_CYCLE_VALIDATOR_ID: &str = "tileforge-actor-32-walk-cycle-structural-v1";
 const WORLD_TEST_VALIDATOR_ID: &str = "tileforge-actor-32-world-test-ground-luma-v1";
+const EXPORT_VALIDATOR_ID: &str = "tileforge-actor-32-export-package-v1";
 const WORLD_TEST_REFERENCE_PACK_ID: &str = "tileforge-world-test-v1";
 const WALK_CYCLE_FRAMES_PER_DIRECTION: usize = 4;
 const WALK_CYCLE_FRAME_DURATION_MS: u32 = 300;
@@ -32,6 +33,12 @@ const PALETTE_MAX_COLORS: usize = 16;
 const MINIMUM_GROUND_LUMA_DISTANCE: u32 = 15;
 const WORLD_TEST_PREVIEW_WIDTH: u32 = 640;
 const WORLD_TEST_PREVIEW_HEIGHT: u32 = 384;
+const EXPORT_SHEET_WIDTH: u32 = FRAME_WIDTH * WALK_CYCLE_FRAMES_PER_DIRECTION as u32;
+const EXPORT_SHEET_HEIGHT: u32 = FRAME_HEIGHT * 4;
+const EXPORT_SHEET_FILE: &str = "sprite-sheet.png";
+const EXPORT_METADATA_FILE: &str = "metadata.json";
+const EXPORT_PROVENANCE_FILE: &str = "provenance.json";
+const EXPORT_SHEET_LAYOUT: &str = "direction-rows-frame-columns-v1";
 const WORLD_TEST_SCENES: [&str; 4] = ["scale-lineup", "forest-clearing", "crownhold", "tidewater"];
 const WORLD_TEST_THEMES: [&str; 4] = ["forest", "autumn", "dusk", "winter"];
 const WORLD_TEST_REFERENCE_MANIFEST: &[u8] =
@@ -386,6 +393,168 @@ struct WorldTestCandidatePayload {
     preview_png_bytes: HashMap<String, Vec<u8>>,
 }
 
+#[derive(Debug, Clone, Serialize, Deserialize)]
+#[serde(rename_all = "camelCase", deny_unknown_fields)]
+struct ExportPreviewSource {
+    scene: String,
+    theme: String,
+    source_file: String,
+    sha256: String,
+    byte_length: usize,
+}
+
+#[derive(Debug, Clone, Serialize, Deserialize)]
+#[serde(rename_all = "camelCase", deny_unknown_fields)]
+struct ExportApprovedWorldTest {
+    world_test_id: String,
+    document_sha256: String,
+    preview_sources: Vec<ExportPreviewSource>,
+    approved_by: String,
+    approved_at: String,
+}
+
+#[derive(Debug, Clone, Serialize, Deserialize)]
+#[serde(rename_all = "camelCase", deny_unknown_fields)]
+struct ExportSourceWalkCycle {
+    walk_cycle_id: String,
+    frame_sources: Vec<WorldTestAcceptedFrameSource>,
+}
+
+#[derive(Debug, Clone, Serialize, Deserialize)]
+#[serde(rename_all = "camelCase", deny_unknown_fields)]
+struct ExportFileReceipt {
+    source_file: String,
+    sha256: String,
+    byte_length: usize,
+}
+
+#[derive(Debug, Clone, Serialize, Deserialize)]
+#[serde(rename_all = "camelCase", deny_unknown_fields)]
+struct ExportSheetReceipt {
+    source_file: String,
+    sha256: String,
+    byte_length: usize,
+    width: u32,
+    height: u32,
+    cell_width: u32,
+    cell_height: u32,
+    layout: String,
+}
+
+#[derive(Debug, Clone, Serialize, Deserialize)]
+#[serde(rename_all = "camelCase", deny_unknown_fields)]
+struct ExportPackage {
+    sprite_sheet: ExportSheetReceipt,
+    metadata: ExportFileReceipt,
+    provenance: ExportFileReceipt,
+}
+
+#[derive(Debug, Clone, PartialEq, Eq, Serialize, Deserialize)]
+#[serde(rename_all = "camelCase", deny_unknown_fields)]
+struct ExportPreparation {
+    method: String,
+    additional_ai_cost: bool,
+}
+
+#[derive(Debug, Clone, PartialEq, Eq, Serialize, Deserialize)]
+#[serde(rename_all = "camelCase", deny_unknown_fields)]
+struct PublishingBoundary {
+    status: String,
+    authority: String,
+    message: String,
+}
+
+#[derive(Debug, Clone, Serialize, Deserialize)]
+#[serde(rename_all = "camelCase", deny_unknown_fields)]
+struct ExportCandidate {
+    schema_version: u32,
+    id: String,
+    revision: u32,
+    session_id: String,
+    stage: String,
+    contract_id: String,
+    approved_world_test: ExportApprovedWorldTest,
+    source_walk_cycle: ExportSourceWalkCycle,
+    package: ExportPackage,
+    created_at: String,
+    preparation: ExportPreparation,
+    status: String,
+    publishing: PublishingBoundary,
+}
+
+#[derive(Debug, Clone, Serialize, Deserialize)]
+#[serde(rename_all = "camelCase", deny_unknown_fields)]
+struct ExportActorMetadata {
+    name: String,
+    kind: ActorKind,
+}
+
+#[derive(Debug, Clone, Serialize, Deserialize)]
+#[serde(rename_all = "camelCase", deny_unknown_fields)]
+struct ExportSheetMetadata {
+    source_file: String,
+    width: u32,
+    height: u32,
+    cell_width: u32,
+    cell_height: u32,
+    layout: String,
+}
+
+#[derive(Debug, Clone, Serialize, Deserialize)]
+#[serde(rename_all = "camelCase", deny_unknown_fields)]
+struct ExportAnimationMetadata {
+    clip: String,
+    directions: Vec<TurnaroundDirection>,
+    frames_per_direction: usize,
+    frame_duration_ms: u32,
+    foot_anchor: Vec<u32>,
+}
+
+#[derive(Debug, Clone, Serialize, Deserialize)]
+#[serde(rename_all = "camelCase", deny_unknown_fields)]
+struct ExportFrameMetadata {
+    direction: TurnaroundDirection,
+    frame_index: usize,
+    x: u32,
+    y: u32,
+    width: u32,
+    height: u32,
+    sha256: String,
+    byte_length: usize,
+}
+
+#[derive(Debug, Clone, Serialize, Deserialize)]
+#[serde(rename_all = "camelCase", deny_unknown_fields)]
+struct ExportMetadata {
+    schema_version: u32,
+    contract_id: String,
+    actor: ExportActorMetadata,
+    sheet: ExportSheetMetadata,
+    animation: ExportAnimationMetadata,
+    frames: Vec<ExportFrameMetadata>,
+}
+
+#[derive(Debug, Clone, Serialize, Deserialize)]
+#[serde(rename_all = "camelCase", deny_unknown_fields)]
+struct ExportProvenance {
+    schema_version: u32,
+    export_id: String,
+    session_id: String,
+    approved_world_test: ExportApprovedWorldTest,
+    source_walk_cycle: ExportSourceWalkCycle,
+    preparation: ExportPreparation,
+    publishing: PublishingBoundary,
+}
+
+#[derive(Debug, Serialize)]
+#[serde(rename_all = "camelCase")]
+struct ExportCandidatePayload {
+    candidate: ExportCandidate,
+    sprite_sheet_png_bytes: Vec<u8>,
+    metadata: ExportMetadata,
+    provenance: ExportProvenance,
+}
+
 #[derive(Debug, Clone, Deserialize)]
 #[serde(rename_all = "camelCase", deny_unknown_fields)]
 struct ReferencePackSource {
@@ -585,6 +754,38 @@ struct WorldTestValidationReport {
     measurements: Vec<WorldTestLumaMeasurement>,
     summary: ValidationSummary,
     final_art_judgment: VisualJudgment,
+}
+
+#[derive(Debug, Clone, Copy, PartialEq, Eq, Serialize, Deserialize)]
+#[serde(rename_all = "snake_case")]
+enum ExportValidationCheckId {
+    ApprovedWorldTest,
+    SourceWalkCycle,
+    SpriteSheetIdentity,
+    SpriteSheetPixels,
+    MetadataIdentity,
+    ProvenanceIdentity,
+    PublishingBoundary,
+}
+
+#[derive(Debug, Clone, PartialEq, Eq, Serialize, Deserialize)]
+#[serde(rename_all = "camelCase", deny_unknown_fields)]
+struct ExportValidationCheck {
+    id: ExportValidationCheckId,
+    status: ValidationStatus,
+    message: String,
+}
+
+#[derive(Debug, Clone, PartialEq, Eq, Serialize, Deserialize)]
+#[serde(rename_all = "camelCase", deny_unknown_fields)]
+struct ExportValidationReport {
+    schema_version: u32,
+    validator_id: String,
+    export_id: String,
+    contract_id: String,
+    checks: Vec<ExportValidationCheck>,
+    summary: ValidationSummary,
+    publishing: PublishingBoundary,
 }
 
 #[derive(Debug)]
@@ -2594,6 +2795,694 @@ fn validate_world_test_pngs(
     })
 }
 
+fn json_document_bytes<T: Serialize>(value: &T, label: &str) -> Result<Vec<u8>, String> {
+    Ok(format!(
+        "{}\n",
+        serde_json::to_string_pretty(value)
+            .map_err(|error| format!("Could not serialize {label}: {error}"))?
+    )
+    .into_bytes())
+}
+
+fn json_equal<T: Serialize, U: Serialize>(left: &T, right: &U) -> Result<bool, String> {
+    let left = serde_json::to_value(left)
+        .map_err(|error| format!("Could not compare Export receipt: {error}"))?;
+    let right = serde_json::to_value(right)
+        .map_err(|error| format!("Could not compare Export receipt: {error}"))?;
+    Ok(left == right)
+}
+
+fn validate_export_document(candidate: ExportCandidate) -> Result<ExportCandidate, String> {
+    validate_candidate_id(&candidate.id)?;
+    validate_session_id(&candidate.session_id)?;
+    validate_candidate_id(&candidate.approved_world_test.world_test_id)?;
+    validate_candidate_id(&candidate.source_walk_cycle.walk_cycle_id)?;
+    if candidate.schema_version != 1
+        || candidate.revision == 0
+        || candidate.stage != "export"
+        || candidate.contract_id != CONTRACT_ID
+    {
+        return Err("Export document is incompatible.".to_owned());
+    }
+    if !valid_sha256(&candidate.approved_world_test.document_sha256)
+        || candidate.approved_world_test.approved_by != "user"
+        || candidate.approved_world_test.approved_at.is_empty()
+        || candidate.approved_world_test.preview_sources.len()
+            != WORLD_TEST_SCENES.len() * WORLD_TEST_THEMES.len()
+    {
+        return Err("Export approved World Test receipt is invalid.".to_owned());
+    }
+    for (scene_index, scene) in WORLD_TEST_SCENES.iter().enumerate() {
+        for (theme_index, theme) in WORLD_TEST_THEMES.iter().enumerate() {
+            let index = scene_index * WORLD_TEST_THEMES.len() + theme_index;
+            let preview = &candidate.approved_world_test.preview_sources[index];
+            if preview.scene != *scene
+                || preview.theme != *theme
+                || preview.source_file != format!("{scene}-{theme}.png")
+                || !valid_sha256(&preview.sha256)
+                || preview.byte_length == 0
+            {
+                return Err(
+                    "Export approved World Test previews must use canonical order.".to_owned(),
+                );
+            }
+        }
+    }
+    if candidate.source_walk_cycle.frame_sources.len()
+        != TURNAROUND_DIRECTIONS.len() * WALK_CYCLE_FRAMES_PER_DIRECTION
+    {
+        return Err("Export source Walk Cycle receipt is incomplete.".to_owned());
+    }
+    for (direction_index, direction) in TURNAROUND_DIRECTIONS.iter().enumerate() {
+        for frame_index in 0..WALK_CYCLE_FRAMES_PER_DIRECTION {
+            let index = direction_index * WALK_CYCLE_FRAMES_PER_DIRECTION + frame_index;
+            let frame = &candidate.source_walk_cycle.frame_sources[index];
+            if frame.direction != *direction
+                || frame.frame_index != frame_index
+                || !valid_sha256(&frame.sha256)
+                || frame.byte_length == 0
+                || frame.byte_length > CONCEPT_PNG_MAX_BYTES
+            {
+                return Err("Export source frames must use canonical immutable order.".to_owned());
+            }
+        }
+    }
+    let sheet = &candidate.package.sprite_sheet;
+    if sheet.source_file != EXPORT_SHEET_FILE
+        || !valid_sha256(&sheet.sha256)
+        || sheet.byte_length == 0
+        || sheet.width != EXPORT_SHEET_WIDTH
+        || sheet.height != EXPORT_SHEET_HEIGHT
+        || sheet.cell_width != FRAME_WIDTH
+        || sheet.cell_height != FRAME_HEIGHT
+        || sheet.layout != EXPORT_SHEET_LAYOUT
+    {
+        return Err("Export sprite-sheet receipt is invalid.".to_owned());
+    }
+    for (receipt, expected_file) in [
+        (&candidate.package.metadata, EXPORT_METADATA_FILE),
+        (&candidate.package.provenance, EXPORT_PROVENANCE_FILE),
+    ] {
+        if receipt.source_file != expected_file
+            || !valid_sha256(&receipt.sha256)
+            || receipt.byte_length == 0
+        {
+            return Err("Export JSON file receipt is invalid.".to_owned());
+        }
+    }
+    if candidate.created_at.is_empty()
+        || candidate.preparation.method != "local-deterministic-sheet-v1"
+        || candidate.preparation.additional_ai_cost
+        || candidate.status != "draft"
+    {
+        return Err("Export preparation or draft status is invalid.".to_owned());
+    }
+    if candidate.publishing.status != "not_approved"
+        || candidate.publishing.authority != "user"
+        || candidate.publishing.message.is_empty()
+    {
+        return Err("Export crossed the user-owned publishing gate.".to_owned());
+    }
+    Ok(candidate)
+}
+
+fn validate_export_metadata(metadata: ExportMetadata) -> Result<ExportMetadata, String> {
+    if metadata.schema_version != 1
+        || metadata.contract_id != CONTRACT_ID
+        || metadata.actor.name.is_empty()
+        || metadata.actor.name.chars().count() > 80
+        || metadata.sheet.source_file != EXPORT_SHEET_FILE
+        || metadata.sheet.width != EXPORT_SHEET_WIDTH
+        || metadata.sheet.height != EXPORT_SHEET_HEIGHT
+        || metadata.sheet.cell_width != FRAME_WIDTH
+        || metadata.sheet.cell_height != FRAME_HEIGHT
+        || metadata.sheet.layout != EXPORT_SHEET_LAYOUT
+        || metadata.animation.clip != "walk"
+        || metadata.animation.directions != TURNAROUND_DIRECTIONS
+        || metadata.animation.frames_per_direction != WALK_CYCLE_FRAMES_PER_DIRECTION
+        || metadata.animation.frame_duration_ms != WALK_CYCLE_FRAME_DURATION_MS
+        || metadata.animation.foot_anchor != [FOOT_ANCHOR_X, FOOT_ANCHOR_Y]
+        || metadata.frames.len() != TURNAROUND_DIRECTIONS.len() * WALK_CYCLE_FRAMES_PER_DIRECTION
+    {
+        return Err("Export metadata document is incompatible.".to_owned());
+    }
+    for (direction_index, direction) in TURNAROUND_DIRECTIONS.iter().enumerate() {
+        for frame_index in 0..WALK_CYCLE_FRAMES_PER_DIRECTION {
+            let index = direction_index * WALK_CYCLE_FRAMES_PER_DIRECTION + frame_index;
+            let frame = &metadata.frames[index];
+            if frame.direction != *direction
+                || frame.frame_index != frame_index
+                || frame.x != frame_index as u32 * FRAME_WIDTH
+                || frame.y != direction_index as u32 * FRAME_HEIGHT
+                || frame.width != FRAME_WIDTH
+                || frame.height != FRAME_HEIGHT
+                || !valid_sha256(&frame.sha256)
+                || frame.byte_length == 0
+            {
+                return Err("Export metadata frames do not match the sheet layout.".to_owned());
+            }
+        }
+    }
+    Ok(metadata)
+}
+
+fn validate_export_provenance(provenance: ExportProvenance) -> Result<ExportProvenance, String> {
+    validate_candidate_id(&provenance.export_id)?;
+    validate_session_id(&provenance.session_id)?;
+    if provenance.schema_version != 1
+        || provenance.preparation.method != "local-deterministic-sheet-v1"
+        || provenance.preparation.additional_ai_cost
+        || provenance.publishing.status != "not_approved"
+        || provenance.publishing.authority != "user"
+        || provenance.publishing.message.is_empty()
+    {
+        return Err("Export provenance document is incompatible.".to_owned());
+    }
+    let probe = ExportCandidate {
+        schema_version: 1,
+        id: provenance.export_id.clone(),
+        revision: 1,
+        session_id: provenance.session_id.clone(),
+        stage: "export".to_owned(),
+        contract_id: CONTRACT_ID.to_owned(),
+        approved_world_test: provenance.approved_world_test.clone(),
+        source_walk_cycle: provenance.source_walk_cycle.clone(),
+        package: ExportPackage {
+            sprite_sheet: ExportSheetReceipt {
+                source_file: EXPORT_SHEET_FILE.to_owned(),
+                sha256: "0".repeat(64),
+                byte_length: 1,
+                width: EXPORT_SHEET_WIDTH,
+                height: EXPORT_SHEET_HEIGHT,
+                cell_width: FRAME_WIDTH,
+                cell_height: FRAME_HEIGHT,
+                layout: EXPORT_SHEET_LAYOUT.to_owned(),
+            },
+            metadata: ExportFileReceipt {
+                source_file: EXPORT_METADATA_FILE.to_owned(),
+                sha256: "0".repeat(64),
+                byte_length: 1,
+            },
+            provenance: ExportFileReceipt {
+                source_file: EXPORT_PROVENANCE_FILE.to_owned(),
+                sha256: "0".repeat(64),
+                byte_length: 1,
+            },
+        },
+        created_at: provenance.approved_world_test.approved_at.clone(),
+        preparation: provenance.preparation.clone(),
+        status: "draft".to_owned(),
+        publishing: provenance.publishing.clone(),
+    };
+    validate_export_document(probe)?;
+    Ok(provenance)
+}
+
+fn render_export_sheet(source: &WalkCycleCandidatePayload) -> Result<Vec<u8>, String> {
+    let mut pixels = vec![[0_u8; 4]; (EXPORT_SHEET_WIDTH * EXPORT_SHEET_HEIGHT) as usize];
+    for (direction_index, direction) in TURNAROUND_DIRECTIONS.iter().enumerate() {
+        for frame_index in 0..WALK_CYCLE_FRAMES_PER_DIRECTION {
+            let bytes = source
+                .png_bytes
+                .get(*direction, frame_index)
+                .ok_or_else(|| "Export source frame set is incomplete.".to_owned())?;
+            let frame = decode_png_rgba(bytes)?;
+            if frame.width != FRAME_WIDTH || frame.height != FRAME_HEIGHT {
+                return Err("Export source frame dimensions are incompatible.".to_owned());
+            }
+            for y in 0..FRAME_HEIGHT {
+                for x in 0..FRAME_WIDTH {
+                    let source_index = (y * FRAME_WIDTH + x) as usize;
+                    let target_x = frame_index as u32 * FRAME_WIDTH + x;
+                    let target_y = direction_index as u32 * FRAME_HEIGHT + y;
+                    let target_index = (target_y * EXPORT_SHEET_WIDTH + target_x) as usize;
+                    pixels[target_index] = frame.pixels[source_index];
+                }
+            }
+        }
+    }
+    encode_png_rgba(EXPORT_SHEET_WIDTH, EXPORT_SHEET_HEIGHT, &pixels)
+}
+
+fn build_export_metadata(
+    session: &StudioSession,
+    source: &WalkCycleCandidatePayload,
+) -> Result<ExportMetadata, String> {
+    validate_export_metadata(ExportMetadata {
+        schema_version: 1,
+        contract_id: CONTRACT_ID.to_owned(),
+        actor: ExportActorMetadata {
+            name: session.brief.name.clone(),
+            kind: session.brief.kind.clone(),
+        },
+        sheet: ExportSheetMetadata {
+            source_file: EXPORT_SHEET_FILE.to_owned(),
+            width: EXPORT_SHEET_WIDTH,
+            height: EXPORT_SHEET_HEIGHT,
+            cell_width: FRAME_WIDTH,
+            cell_height: FRAME_HEIGHT,
+            layout: EXPORT_SHEET_LAYOUT.to_owned(),
+        },
+        animation: ExportAnimationMetadata {
+            clip: "walk".to_owned(),
+            directions: TURNAROUND_DIRECTIONS.to_vec(),
+            frames_per_direction: WALK_CYCLE_FRAMES_PER_DIRECTION,
+            frame_duration_ms: WALK_CYCLE_FRAME_DURATION_MS,
+            foot_anchor: vec![FOOT_ANCHOR_X, FOOT_ANCHOR_Y],
+        },
+        frames: source
+            .candidate
+            .frames
+            .iter()
+            .enumerate()
+            .map(|(index, frame)| ExportFrameMetadata {
+                direction: frame.direction,
+                frame_index: frame.frame_index,
+                x: frame.frame_index as u32 * FRAME_WIDTH,
+                y: (index / WALK_CYCLE_FRAMES_PER_DIRECTION) as u32 * FRAME_HEIGHT,
+                width: FRAME_WIDTH,
+                height: FRAME_HEIGHT,
+                sha256: frame.sha256.clone(),
+                byte_length: frame.byte_length,
+            })
+            .collect(),
+    })
+}
+
+fn build_export_provenance(
+    export_id: &str,
+    session_id: &str,
+    approved_world_test: ExportApprovedWorldTest,
+    source_walk_cycle: ExportSourceWalkCycle,
+) -> Result<ExportProvenance, String> {
+    validate_export_provenance(ExportProvenance {
+        schema_version: 1,
+        export_id: export_id.to_owned(),
+        session_id: session_id.to_owned(),
+        approved_world_test,
+        source_walk_cycle,
+        preparation: ExportPreparation {
+            method: "local-deterministic-sheet-v1".to_owned(),
+            additional_ai_cost: false,
+        },
+        publishing: PublishingBoundary {
+            status: "not_approved".to_owned(),
+            authority: "user".to_owned(),
+            message: "This draft export is local only. Publishing requires a separate explicit user decision."
+                .to_owned(),
+        },
+    })
+}
+
+fn export_root(root: &Path, session_id: &str) -> Result<PathBuf, String> {
+    validate_session_id(session_id)?;
+    Ok(root.join("sessions").join(session_id).join("exports"))
+}
+
+fn export_directory(root: &Path, session_id: &str, export_id: &str) -> Result<PathBuf, String> {
+    validate_candidate_id(export_id)?;
+    Ok(export_root(root, session_id)?.join(export_id))
+}
+
+fn read_export(root: &Path, session_id: &str, export_id: &str) -> Result<ExportCandidate, String> {
+    let session = read_session(root, session_id)?;
+    let raw =
+        fs::read_to_string(export_directory(root, &session.id, export_id)?.join("export.json"))
+            .map_err(|error| format!("Could not read Export: {error}"))?;
+    let candidate: ExportCandidate =
+        serde_json::from_str(&raw).map_err(|error| format!("Invalid Export document: {error}"))?;
+    let candidate = validate_export_document(candidate)?;
+    if candidate.session_id != session.id || candidate.id != export_id {
+        return Err("Export identity does not match its storage path.".to_owned());
+    }
+    Ok(candidate)
+}
+
+fn list_exports_at(root: &Path, session_id: &str) -> Result<Vec<ExportCandidate>, String> {
+    let session = read_session(root, session_id)?;
+    let candidates_root = export_root(root, &session.id)?;
+    fs::create_dir_all(&candidates_root)
+        .map_err(|error| format!("Could not create Export storage: {error}"))?;
+    let mut candidates = Vec::new();
+    for entry in fs::read_dir(&candidates_root)
+        .map_err(|error| format!("Could not list Exports: {error}"))?
+    {
+        let Ok(entry) = entry else {
+            continue;
+        };
+        let file_name = entry.file_name();
+        let Some(export_id) = file_name.to_str() else {
+            continue;
+        };
+        if export_id.starts_with('.') || !entry.path().is_dir() {
+            continue;
+        }
+        if let Ok(candidate) = read_export(root, &session.id, export_id) {
+            candidates.push(candidate);
+        }
+    }
+    candidates.sort_by(|left, right| right.revision.cmp(&left.revision));
+    Ok(candidates)
+}
+
+#[allow(clippy::too_many_arguments)]
+fn create_export_candidate_at(
+    root: &Path,
+    session_id: &str,
+    source_world_test_id: &str,
+    timestamp: &str,
+    id_suffix: &str,
+    temporary_suffix: &str,
+    forced_revision: Option<u32>,
+) -> Result<ExportCandidate, String> {
+    let session = read_session(root, session_id)?;
+    let world_test = read_world_test_payload(root, &session.id, source_world_test_id)?;
+    let walk_cycle = read_walk_cycle_payload(
+        root,
+        &session.id,
+        &world_test.candidate.source_walk_cycle.walk_cycle_id,
+    )?;
+    assert_world_test_source_walk_cycle(&world_test.candidate, &walk_cycle)?;
+    let world_test_document = fs::read(
+        world_test_directory(root, &session.id, &world_test.candidate.id)?.join("world-test.json"),
+    )
+    .map_err(|error| format!("Could not read approved World Test document: {error}"))?;
+    let revision = forced_revision.unwrap_or_else(|| {
+        list_exports_at(root, &session.id)
+            .ok()
+            .and_then(|candidates| candidates.iter().map(|candidate| candidate.revision).max())
+            .unwrap_or(0)
+            + 1
+    });
+    let timestamp_digits: String = timestamp
+        .chars()
+        .filter(char::is_ascii_digit)
+        .take(14)
+        .collect();
+    let export_id = format!("export-r{:04}-{}-{}", revision, timestamp_digits, id_suffix);
+    let approved_world_test = ExportApprovedWorldTest {
+        world_test_id: world_test.candidate.id.clone(),
+        document_sha256: format!("{:x}", Sha256::digest(&world_test_document)),
+        preview_sources: world_test
+            .candidate
+            .previews
+            .iter()
+            .map(|preview| ExportPreviewSource {
+                scene: preview.scene.clone(),
+                theme: preview.theme.clone(),
+                source_file: preview.source_file.clone(),
+                sha256: preview.sha256.clone(),
+                byte_length: preview.byte_length,
+            })
+            .collect(),
+        approved_by: "user".to_owned(),
+        approved_at: timestamp.to_owned(),
+    };
+    let source_walk_cycle = ExportSourceWalkCycle {
+        walk_cycle_id: walk_cycle.candidate.id.clone(),
+        frame_sources: walk_cycle
+            .candidate
+            .frames
+            .iter()
+            .map(|frame| WorldTestAcceptedFrameSource {
+                direction: frame.direction,
+                frame_index: frame.frame_index,
+                sha256: frame.sha256.clone(),
+                byte_length: frame.byte_length,
+            })
+            .collect(),
+    };
+    let sprite_sheet_png_bytes = render_export_sheet(&walk_cycle)?;
+    let metadata = build_export_metadata(&session, &walk_cycle)?;
+    let provenance = build_export_provenance(
+        &export_id,
+        &session.id,
+        approved_world_test.clone(),
+        source_walk_cycle.clone(),
+    )?;
+    let metadata_bytes = json_document_bytes(&metadata, "Export metadata")?;
+    let provenance_bytes = json_document_bytes(&provenance, "Export provenance")?;
+    let candidate = validate_export_document(ExportCandidate {
+        schema_version: 1,
+        id: export_id,
+        revision,
+        session_id: session.id.clone(),
+        stage: "export".to_owned(),
+        contract_id: CONTRACT_ID.to_owned(),
+        approved_world_test,
+        source_walk_cycle,
+        package: ExportPackage {
+            sprite_sheet: ExportSheetReceipt {
+                source_file: EXPORT_SHEET_FILE.to_owned(),
+                sha256: format!("{:x}", Sha256::digest(&sprite_sheet_png_bytes)),
+                byte_length: sprite_sheet_png_bytes.len(),
+                width: EXPORT_SHEET_WIDTH,
+                height: EXPORT_SHEET_HEIGHT,
+                cell_width: FRAME_WIDTH,
+                cell_height: FRAME_HEIGHT,
+                layout: EXPORT_SHEET_LAYOUT.to_owned(),
+            },
+            metadata: ExportFileReceipt {
+                source_file: EXPORT_METADATA_FILE.to_owned(),
+                sha256: format!("{:x}", Sha256::digest(&metadata_bytes)),
+                byte_length: metadata_bytes.len(),
+            },
+            provenance: ExportFileReceipt {
+                source_file: EXPORT_PROVENANCE_FILE.to_owned(),
+                sha256: format!("{:x}", Sha256::digest(&provenance_bytes)),
+                byte_length: provenance_bytes.len(),
+            },
+        },
+        created_at: timestamp.to_owned(),
+        preparation: provenance.preparation.clone(),
+        status: "draft".to_owned(),
+        publishing: provenance.publishing.clone(),
+    })?;
+
+    let candidates_root = export_root(root, &session.id)?;
+    fs::create_dir_all(&candidates_root)
+        .map_err(|error| format!("Could not create Export storage: {error}"))?;
+    let final_directory = export_directory(root, &session.id, &candidate.id)?;
+    let temporary_directory =
+        candidates_root.join(format!(".{}.{}.tmp", candidate.id, temporary_suffix));
+    fs::create_dir(&temporary_directory)
+        .map_err(|error| format!("Could not stage Export: {error}"))?;
+    let publish_result = (|| -> Result<(), String> {
+        fs::write(
+            temporary_directory.join(EXPORT_SHEET_FILE),
+            &sprite_sheet_png_bytes,
+        )
+        .map_err(|error| format!("Could not write Export sprite sheet: {error}"))?;
+        fs::write(
+            temporary_directory.join(EXPORT_METADATA_FILE),
+            &metadata_bytes,
+        )
+        .map_err(|error| format!("Could not write Export metadata: {error}"))?;
+        fs::write(
+            temporary_directory.join(EXPORT_PROVENANCE_FILE),
+            &provenance_bytes,
+        )
+        .map_err(|error| format!("Could not write Export provenance: {error}"))?;
+        fs::write(
+            temporary_directory.join("export.json"),
+            json_document_bytes(&candidate, "Export document")?,
+        )
+        .map_err(|error| format!("Could not write Export document: {error}"))?;
+        fs::rename(&temporary_directory, &final_directory)
+            .map_err(|error| format!("Could not publish immutable Export: {error}"))
+    })();
+    if publish_result.is_err() {
+        let _ = fs::remove_dir_all(&temporary_directory);
+    }
+    publish_result?;
+    Ok(candidate)
+}
+
+fn read_export_payload(
+    root: &Path,
+    session_id: &str,
+    export_id: &str,
+) -> Result<ExportCandidatePayload, String> {
+    let candidate = read_export(root, session_id, export_id)?;
+    let directory = export_directory(root, session_id, export_id)?;
+    let sprite_sheet_png_bytes = fs::read(directory.join(EXPORT_SHEET_FILE))
+        .map_err(|error| format!("Could not read Export sprite sheet: {error}"))?;
+    let metadata_bytes = fs::read(directory.join(EXPORT_METADATA_FILE))
+        .map_err(|error| format!("Could not read Export metadata: {error}"))?;
+    let provenance_bytes = fs::read(directory.join(EXPORT_PROVENANCE_FILE))
+        .map_err(|error| format!("Could not read Export provenance: {error}"))?;
+    let decoded = decode_png_rgba(&sprite_sheet_png_bytes)?;
+    if sprite_sheet_png_bytes.len() != candidate.package.sprite_sheet.byte_length
+        || format!("{:x}", Sha256::digest(&sprite_sheet_png_bytes))
+            != candidate.package.sprite_sheet.sha256
+        || decoded.width != EXPORT_SHEET_WIDTH
+        || decoded.height != EXPORT_SHEET_HEIGHT
+    {
+        return Err("Export sprite sheet no longer matches immutable provenance.".to_owned());
+    }
+    if metadata_bytes.len() != candidate.package.metadata.byte_length
+        || format!("{:x}", Sha256::digest(&metadata_bytes)) != candidate.package.metadata.sha256
+    {
+        return Err("Export metadata no longer matches immutable provenance.".to_owned());
+    }
+    if provenance_bytes.len() != candidate.package.provenance.byte_length
+        || format!("{:x}", Sha256::digest(&provenance_bytes)) != candidate.package.provenance.sha256
+    {
+        return Err("Export provenance no longer matches immutable provenance.".to_owned());
+    }
+    let metadata: ExportMetadata = serde_json::from_slice(&metadata_bytes)
+        .map_err(|error| format!("Invalid Export metadata: {error}"))?;
+    let metadata = validate_export_metadata(metadata)?;
+    let provenance: ExportProvenance = serde_json::from_slice(&provenance_bytes)
+        .map_err(|error| format!("Invalid Export provenance: {error}"))?;
+    let provenance = validate_export_provenance(provenance)?;
+    if provenance.export_id != candidate.id
+        || provenance.session_id != candidate.session_id
+        || !json_equal(
+            &provenance.approved_world_test,
+            &candidate.approved_world_test,
+        )?
+        || !json_equal(&provenance.source_walk_cycle, &candidate.source_walk_cycle)?
+        || provenance.preparation != candidate.preparation
+        || provenance.publishing != candidate.publishing
+    {
+        return Err("Export provenance document does not match its receipt.".to_owned());
+    }
+    Ok(ExportCandidatePayload {
+        candidate,
+        sprite_sheet_png_bytes,
+        metadata,
+        provenance,
+    })
+}
+
+fn validate_export_package(
+    root: &Path,
+    payload: &ExportCandidatePayload,
+) -> Result<ExportValidationReport, String> {
+    let session = read_session(root, &payload.candidate.session_id)?;
+    let world_test = read_world_test_payload(
+        root,
+        &session.id,
+        &payload.candidate.approved_world_test.world_test_id,
+    )?;
+    let world_test_document = fs::read(
+        world_test_directory(root, &session.id, &world_test.candidate.id)?.join("world-test.json"),
+    )
+    .map_err(|error| format!("Could not read approved World Test document: {error}"))?;
+    if payload.candidate.approved_world_test.world_test_id != world_test.candidate.id
+        || payload.candidate.approved_world_test.document_sha256
+            != format!("{:x}", Sha256::digest(&world_test_document))
+    {
+        return Err("Export approved World Test document no longer matches.".to_owned());
+    }
+    for (receipt, preview) in payload
+        .candidate
+        .approved_world_test
+        .preview_sources
+        .iter()
+        .zip(world_test.candidate.previews.iter())
+    {
+        if receipt.scene != preview.scene
+            || receipt.theme != preview.theme
+            || receipt.source_file != preview.source_file
+            || receipt.sha256 != preview.sha256
+            || receipt.byte_length != preview.byte_length
+        {
+            return Err("Export approved World Test previews no longer match.".to_owned());
+        }
+    }
+    let walk_cycle = read_walk_cycle_payload(
+        root,
+        &session.id,
+        &payload.candidate.source_walk_cycle.walk_cycle_id,
+    )?;
+    assert_world_test_source_walk_cycle(&world_test.candidate, &walk_cycle)?;
+    for (receipt, frame) in payload
+        .candidate
+        .source_walk_cycle
+        .frame_sources
+        .iter()
+        .zip(walk_cycle.candidate.frames.iter())
+    {
+        if receipt.direction != frame.direction
+            || receipt.frame_index != frame.frame_index
+            || receipt.sha256 != frame.sha256
+            || receipt.byte_length != frame.byte_length
+        {
+            return Err("Export source Walk Cycle bytes changed.".to_owned());
+        }
+    }
+    let expected_sheet = decode_png_rgba(&render_export_sheet(&walk_cycle)?)?;
+    let actual_sheet = decode_png_rgba(&payload.sprite_sheet_png_bytes)?;
+    if actual_sheet.pixels != expected_sheet.pixels {
+        return Err("Export sprite-sheet pixels no longer match source frames.".to_owned());
+    }
+    let expected_metadata = build_export_metadata(&session, &walk_cycle)?;
+    if !json_equal(&payload.metadata, &expected_metadata)? {
+        return Err("Export metadata no longer describes the source frames.".to_owned());
+    }
+    let expected_provenance = build_export_provenance(
+        &payload.candidate.id,
+        &session.id,
+        payload.candidate.approved_world_test.clone(),
+        payload.candidate.source_walk_cycle.clone(),
+    )?;
+    if !json_equal(&payload.provenance, &expected_provenance)? {
+        return Err("Export provenance no longer matches its source receipts.".to_owned());
+    }
+    let checks = [
+        (
+            ExportValidationCheckId::ApprovedWorldTest,
+            "Approved World Test document and all sixteen previews are SHA-256 bound.",
+        ),
+        (
+            ExportValidationCheckId::SourceWalkCycle,
+            "All sixteen source Walk Cycle frames match the approved World Test receipt.",
+        ),
+        (
+            ExportValidationCheckId::SpriteSheetIdentity,
+            "The immutable 128 x 128 sprite sheet matches its SHA-256 receipt.",
+        ),
+        (
+            ExportValidationCheckId::SpriteSheetPixels,
+            "Every sheet cell is pixel-identical to its source Walk Cycle frame.",
+        ),
+        (
+            ExportValidationCheckId::MetadataIdentity,
+            "Metadata matches the actor contract, layout, timing, anchor, and source frames.",
+        ),
+        (
+            ExportValidationCheckId::ProvenanceIdentity,
+            "Provenance matches the exact World Test approval and Walk Cycle receipts.",
+        ),
+        (
+            ExportValidationCheckId::PublishingBoundary,
+            "Publishing remains not approved and requires a separate user decision.",
+        ),
+    ]
+    .into_iter()
+    .map(|(id, message)| ExportValidationCheck {
+        id,
+        status: ValidationStatus::Pass,
+        message: message.to_owned(),
+    })
+    .collect();
+    Ok(ExportValidationReport {
+        schema_version: 1,
+        validator_id: EXPORT_VALIDATOR_ID.to_owned(),
+        export_id: payload.candidate.id.clone(),
+        contract_id: payload.candidate.contract_id.clone(),
+        checks,
+        summary: ValidationSummary {
+            pass: 7,
+            fail: 0,
+            not_assessed: 0,
+        },
+        publishing: payload.candidate.publishing.clone(),
+    })
+}
+
 fn validation_rule(
     id: ValidationRuleId,
     status: ValidationStatus,
@@ -3158,6 +4047,48 @@ fn validate_world_test_candidate(
     validate_world_test_pngs(&root, &payload)
 }
 
+#[tauri::command]
+fn create_export_candidate(
+    session_id: String,
+    source_world_test_id: String,
+) -> Result<ExportCandidate, String> {
+    let timestamp = Utc::now().to_rfc3339_opts(SecondsFormat::Millis, true);
+    let id_suffix = Uuid::new_v4().simple().to_string()[..8].to_owned();
+    let temporary_suffix = Uuid::new_v4().simple().to_string();
+    create_export_candidate_at(
+        &workspace_root(),
+        &session_id,
+        &source_world_test_id,
+        &timestamp,
+        &id_suffix,
+        &temporary_suffix,
+        None,
+    )
+}
+
+#[tauri::command]
+fn list_export_candidates(session_id: String) -> Result<Vec<ExportCandidate>, String> {
+    list_exports_at(&workspace_root(), &session_id)
+}
+
+#[tauri::command]
+fn get_export_candidate(
+    session_id: String,
+    export_id: String,
+) -> Result<ExportCandidatePayload, String> {
+    read_export_payload(&workspace_root(), &session_id, &export_id)
+}
+
+#[tauri::command]
+fn validate_export_candidate(
+    session_id: String,
+    export_id: String,
+) -> Result<ExportValidationReport, String> {
+    let root = workspace_root();
+    let payload = read_export_payload(&root, &session_id, &export_id)?;
+    validate_export_package(&root, &payload)
+}
+
 #[cfg_attr(mobile, tauri::mobile_entry_point)]
 pub fn run() {
     tauri::Builder::default()
@@ -3181,7 +4112,11 @@ pub fn run() {
             create_world_test_candidate,
             list_world_test_candidates,
             get_world_test_candidate,
-            validate_world_test_candidate
+            validate_world_test_candidate,
+            create_export_candidate,
+            list_export_candidates,
+            get_export_candidate,
+            validate_export_candidate
         ])
         .run(tauri::generate_context!())
         .expect("error while running TileForge Actor Studio");
@@ -4180,6 +5115,192 @@ mod tests {
                     .to_string_lossy()
                     .starts_with('.'))
         );
+        fs::remove_dir_all(root).unwrap();
+    }
+
+    #[test]
+    fn desktop_adapter_reads_shared_export_fixture() {
+        let fixture = include_str!("../../tests/fixtures/export-candidate-v1.json");
+        let candidate: ExportCandidate = serde_json::from_str(fixture).unwrap();
+        let candidate = validate_export_document(candidate).unwrap();
+
+        assert_eq!(candidate.contract_id, CONTRACT_ID);
+        assert_eq!(candidate.stage, "export");
+        assert_eq!(candidate.approved_world_test.approved_by, "user");
+        assert_eq!(candidate.source_walk_cycle.frame_sources.len(), 16);
+        assert_eq!(candidate.package.sprite_sheet.width, 128);
+        assert_eq!(candidate.package.sprite_sheet.height, 128);
+        assert!(!candidate.preparation.additional_ai_cost);
+        assert_eq!(candidate.status, "draft");
+        assert_eq!(candidate.publishing.status, "not_approved");
+        assert_eq!(candidate.publishing.authority, "user");
+    }
+
+    #[test]
+    fn export_preserves_receipts_package_and_publishing_gate() {
+        let root = test_root("export");
+        let session = create_session_at(
+            &root,
+            brief(),
+            "2026-07-28T01:00:00.000Z",
+            "export01",
+            "session",
+        )
+        .unwrap();
+        let down = validation_png(false, 32, 32);
+        let concept = create_concept_candidate_at(
+            &root,
+            &session.id,
+            &down,
+            provenance(CandidateSource::Imported),
+            "2026-07-28T01:01:00.000Z",
+            "selected",
+            "candidate",
+            None,
+        )
+        .unwrap();
+        let views = TurnaroundPngBytes {
+            down: down.clone(),
+            right: down.clone(),
+            up: down.clone(),
+            left: down.clone(),
+        };
+        let turnaround = create_turnaround_candidate_at(
+            &root,
+            &session.id,
+            &concept.id,
+            &views,
+            provenance(CandidateSource::Imported),
+            "2026-07-28T01:02:00.000Z",
+            "accepted",
+            "turnaround",
+            None,
+        )
+        .unwrap();
+        let frames = WalkCyclePngBytes {
+            down: vec![down.clone(), down.clone(), down.clone(), down.clone()],
+            right: vec![down.clone(), down.clone(), down.clone(), down.clone()],
+            up: vec![down.clone(), down.clone(), down.clone(), down.clone()],
+            left: vec![down.clone(), down.clone(), down.clone(), down],
+        };
+        let walk_cycle = create_walk_cycle_candidate_at(
+            &root,
+            &session.id,
+            &turnaround.id,
+            &frames,
+            provenance(CandidateSource::Imported),
+            "2026-07-28T01:03:00.000Z",
+            "accepted",
+            "walk-cycle",
+            None,
+        )
+        .unwrap();
+        let world_test = create_world_test_candidate_at(
+            &root,
+            &session.id,
+            &walk_cycle.id,
+            "2026-07-28T01:04:00.000Z",
+            "approved",
+            "world-test",
+            None,
+        )
+        .unwrap();
+
+        assert!(create_export_candidate_at(
+            &root,
+            &session.id,
+            "missing-world-test",
+            "2026-07-28T01:05:00.000Z",
+            "invalid1",
+            "missing",
+            None,
+        )
+        .is_err());
+
+        let export = create_export_candidate_at(
+            &root,
+            &session.id,
+            &world_test.id,
+            "2026-07-28T01:05:00.000Z",
+            "native01",
+            "export",
+            None,
+        )
+        .unwrap();
+        let payload = read_export_payload(&root, &session.id, &export.id).unwrap();
+        let report = validate_export_package(&root, &payload).unwrap();
+        let sheet = decode_png_rgba(&payload.sprite_sheet_png_bytes).unwrap();
+        assert_eq!(
+            payload.candidate.approved_world_test.world_test_id,
+            world_test.id
+        );
+        assert_eq!(payload.candidate.approved_world_test.approved_by, "user");
+        assert_eq!(
+            payload.candidate.source_walk_cycle.walk_cycle_id,
+            walk_cycle.id
+        );
+        assert_eq!(sheet.width, EXPORT_SHEET_WIDTH);
+        assert_eq!(sheet.height, EXPORT_SHEET_HEIGHT);
+        assert_eq!(payload.metadata.frames.len(), 16);
+        assert!(!payload.candidate.preparation.additional_ai_cost);
+        assert_eq!(payload.candidate.status, "draft");
+        assert_eq!(payload.candidate.publishing.status, "not_approved");
+        assert_eq!(report.summary.pass, 7);
+        assert_eq!(report.summary.fail, 0);
+        assert_eq!(report.summary.not_assessed, 0);
+        assert_eq!(
+            fs::read_dir(
+                root.join("sessions")
+                    .join(&session.id)
+                    .join("exports")
+                    .join(&export.id)
+            )
+            .unwrap()
+            .count(),
+            4
+        );
+
+        let collision = create_export_candidate_at(
+            &root,
+            &session.id,
+            &world_test.id,
+            "2026-07-28T01:06:00.000Z",
+            "same0001",
+            "first",
+            Some(2),
+        )
+        .unwrap();
+        assert!(create_export_candidate_at(
+            &root,
+            &session.id,
+            &world_test.id,
+            "2026-07-28T01:06:00.000Z",
+            "same0001",
+            "collision-cleanup",
+            Some(2),
+        )
+        .is_err());
+        read_export_payload(&root, &session.id, &collision.id).unwrap();
+        assert!(
+            fs::read_dir(root.join("sessions").join(&session.id).join("exports"))
+                .unwrap()
+                .all(|entry| !entry
+                    .unwrap()
+                    .file_name()
+                    .to_string_lossy()
+                    .starts_with('.'))
+        );
+
+        fs::write(
+            root.join("sessions")
+                .join(&session.id)
+                .join("exports")
+                .join(&collision.id)
+                .join(EXPORT_METADATA_FILE),
+            "{}\n",
+        )
+        .unwrap();
+        assert!(read_export_payload(&root, &session.id, &collision.id).is_err());
         fs::remove_dir_all(root).unwrap();
     }
 }

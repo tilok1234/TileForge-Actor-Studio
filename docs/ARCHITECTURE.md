@@ -20,22 +20,23 @@ frame, art, animation, and approval rules. The TypeScript representation in
 ### Shared studio core
 
 `src/lib/studio/` contains client-neutral types, session, Concept, Turnaround,
-Walk Cycle, pinned-reference, and World Test documents, intake rules,
+Walk Cycle, pinned-reference, World Test, and Export documents, intake rules,
 versioned validation-report schemas, deterministic PNG validators, and prompt
 compilation. Business rules belong here.
 
 ### MCP gateway
 
 `mcp/` exposes the shared core over standard MCP transports. It owns no art
-style rules and grants no final-approval capability. Its adapter reads and
-publishes the same session, Concept, Turnaround, Walk Cycle, and World Test
-documents as the desktop backend and exposes the shared read-only validators.
+style rules and grants no autonomous approval or publishing capability. Its
+adapter reads and publishes the same session, Concept, Turnaround, Walk Cycle,
+World Test, and draft Export documents as the desktop backend and exposes the
+shared read-only validators.
 
 ### Desktop shell
 
 `src/` renders the focused workflow. Tauri 2 in `src-tauri/` supplies the native
 Windows shell and the desktop adapter for durable session, Concept, Turnaround,
-Walk Cycle, and World Test commands. Rust independently enforces the same
+Walk Cycle, World Test, and Export commands. Rust independently enforces the same
 validator semantics at the native trust boundary. The UI shows structural
 evidence while remaining the eventual human approval surface.
 
@@ -77,8 +78,19 @@ world-tests/<world-test-id>/
   tidewater-forest.png ... tidewater-winter.png
 ```
 
+Draft Export directories preserve the user-approved World Test receipt, exact
+Walk Cycle source identities, and one engine-neutral package:
+
+```text
+exports/<export-id>/
+  export.json
+  sprite-sheet.png
+  metadata.json
+  provenance.json
+```
+
 Concept directories contain `candidate.json` and the original `source.png`.
-A complete session, Concept, Turnaround, Walk Cycle, or World Test is first
+A complete session, Concept, Turnaround, Walk Cycle, World Test, or Export is first
 written to a hidden same-parent temporary directory, then published with one
 rename so readers never observe a partial record. `TFAS_WORKSPACE` redirects
 the root for either adapter and for tests.
@@ -90,7 +102,9 @@ not separate stores. `tests/fixtures/session-v1.json`,
 `tests/fixtures/turnaround-candidate-v1.json`, and
 `tests/fixtures/walk-cycle-candidate-v1.json`, and
 `tests/fixtures/world-test-candidate-v1.json` are read by both test suites to
-detect storage drift. `tests/fixtures/validation-report-v1.json` guards the
+detect storage drift. `tests/fixtures/export-candidate-v1.json` guards the
+user-approved source receipt, draft status, sheet layout, and publishing
+boundary. `tests/fixtures/validation-report-v1.json` guards the
 recomputed cross-language report shape and semantics. `.studio/` is not
 source-controlled.
 
@@ -148,6 +162,25 @@ for all sixteen frames and compares it with each pinned ground sample: 256
 deterministic measurements using the contract's minimum distance of 15. This is
 structural evidence, not a visual verdict. Final-art judgment remains fixed to
 Not assessed with user authority.
+
+### Export approval receipt and package
+
+An Export document is the durable receipt for the user's final-art approval of
+one exact World Test. It records the World Test document SHA-256, all sixteen
+preview identities, `approvedBy: user`, the approval time, and all sixteen
+Walk Cycle source identities. It does not mutate the World Test or add an
+agent-writable approval field.
+
+The local deterministic sheet builder places the four canonical frames in
+columns and down/right/up/left in rows, producing one 128 x 128 RGBA PNG.
+`metadata.json` records the contract id, actor identity, 32 px cell layout,
+300 ms timing, foot anchor, and source-frame hashes. `provenance.json` repeats
+the exact approval/source receipts and no-cost preparation method. Validation
+rehashes every package file, reconstructs all sheet pixels from the immutable
+Walk Cycle, and compares both JSON documents semantically.
+
+Every Export remains `draft`; its publishing record is fixed to
+`not_approved` with user authority. No adapter exposes a publishing operation.
 
 ## Reference boundary
 

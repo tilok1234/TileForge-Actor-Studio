@@ -292,3 +292,44 @@ in Scale Lineup and Forest Clearing produces failures.
 Reason: resolving the deferred structural rule at the first stage with real
 ground context keeps earlier validators honest, surfaces camouflage risk, and
 does not let arithmetic replace user judgment.
+
+## 2026-07-27 - Export is the durable final-art approval receipt
+
+World Test documents remain immutable and retain final-art judgment as Not
+assessed. After the user explicitly approves one exact World Test, the next
+Export revision records its document SHA-256, all sixteen preview identities,
+`approvedBy: user`, and approval time, plus the exact sixteen Walk Cycle source
+identities.
+
+Reason: the final-art decision must be durable without adding an
+agent-writable approval field to an earlier artifact. Binding the transition to
+exact document and image identities prevents a different World Test or frame
+set from being exported under the user's decision.
+
+## 2026-07-27 - Version 1 Export is an immutable local draft package
+
+Each Export revision atomically preserves:
+
+```text
+exports/<export-id>/
+  export.json
+  sprite-sheet.png
+  metadata.json
+  provenance.json
+```
+
+The 128 x 128 RGBA sheet uses down/right/up/left rows and frame 0–3 columns.
+Metadata carries the contract id, actor identity, 32 px cell geometry, 300 ms
+timing, foot anchor, coordinates, and source hashes. Provenance repeats the
+user-approved World Test receipt, Walk Cycle receipt, local deterministic
+preparation method, and `additionalAiCost: false`.
+
+Desktop and MCP validation rehash all package files, reconstruct all sheet
+pixels from the immutable Walk Cycle, and compare metadata and provenance.
+Every package remains `draft`; publishing is fixed to `not_approved` with user
+authority, and no publishing operation exists.
+
+Reason: one small engine-neutral package completes the Brief-to-Export
+workflow without coupling Actor Studio to a game runtime, paid service, or
+publishing destination. Keeping publishing as a distinct absent capability
+preserves the user's second approval gate.
