@@ -91,8 +91,14 @@ Installed proof evidence:
 - r2 preserves the r1 foot motion and the accepted Turnaround PNG byte for byte
   as frames 0 and 2, while moving the upper body down one pixel on frames 1
   and 3
+- the user described r2 as nice but requested slight arm movement; r2 remains
+  immutable and was not accepted for World Test
+- immutable Walk Cycle r3:
+  walk-cycle-r0003-20260727234230-e8a9aac5
+- r3 preserves the r2 footwork and bob while adding a one-pixel opposing
+  forearm/hand shift on frames 1 and 3 in every direction
 - timing: 300 ms; neutral / step / neutral / opposite step
-- r2 Walk Cycle validation: 96 Pass / 0 Fail / 16 Not assessed
+- r3 Walk Cycle validation: 96 Pass / 0 Fail / 16 Not assessed
 - motion/readability remains Not assessed with user authority
 - no World Test is authorized
 
@@ -103,10 +109,10 @@ Installed proof evidence:
    Use or take control of my desktop unless I explicitly request UI-specific
    QA.
 3. Present
-   .studio\mosscap-r2-walk\walk-cycle-all-directions.gif and
-   .studio\mosscap-r2-walk\walk-cycle-review.png in canonical
+   .studio\mosscap-r3-walk\walk-cycle-all-directions.gif and
+   .studio\mosscap-r3-walk\walk-cycle-review.png in canonical
    down/right/up/left order.
-4. Stop for my explicit motion/readability decision: accept exact Walk Cycle r2
+4. Stop for my explicit motion/readability decision: accept exact Walk Cycle r3
    or reject it. Never infer acceptance from structural validation.
 5. If I accept it, create a new immutable World Test through the existing
    contract and wait again for my final-art approval.
@@ -127,7 +133,7 @@ The completed Orc Vanguard checkpoint must remain immutable:
 - publishing: not_approved
 
 The current blocker is intentionally my visual authority, so stop after
-presenting Walk Cycle r2 unless I have explicitly accepted or rejected its
+presenting Walk Cycle r3 unless I have explicitly accepted or rejected its
 motion/readability. After explicit acceptance, make reasonable implementation
 decisions within the unchanged workflow.
 

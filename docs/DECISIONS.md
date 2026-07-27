@@ -573,3 +573,23 @@ is authorized until the user explicitly accepts exact Walk Cycle r2.
 Reason: a targeted repair creates a new immutable candidate; it neither
 rewrites rejected evidence nor converts structural validity into human motion
 acceptance.
+
+## 2026-07-28 - Mosscap Scout Walk Cycle r3 adds arm counter-swing
+
+After describing Walk Cycle r2 as nice, the user requested that its arms also
+move slightly. R2 remains immutable as a superseded candidate and was not
+accepted for World Test.
+
+Immutable replacement `walk-cycle-r0003-20260727234230-e8a9aac5` preserves
+r2's foot poses, one-pixel body bob, 300 ms timing, and exact accepted
+Turnaround sources as frames 0 and 2. On frames 1 and 3, r3 adds a one-pixel
+opposing forearm/hand shift in every direction. The contract-sized candidate
+was prepared deterministically and stored headlessly through MCP without
+desktop control. MCP re-read all sixteen frames byte for byte; validation
+reports 96 Pass / 0 Fail / 16 Not assessed.
+
+Motion and readability remain Not assessed with user authority. No World Test
+is authorized until the user explicitly accepts exact Walk Cycle r3.
+
+Reason: a positive reaction followed by a requested change is repair feedback,
+not approval to cross the motion gate.

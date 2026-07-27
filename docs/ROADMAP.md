@@ -482,9 +482,14 @@ feet moved, so r1 remains immutable diagnostic evidence. Headless local repair
 plus MCP creation then published immutable Walk Cycle
 `walk-cycle-r0002-20260727233042-abdbb047`: r2 preserves the foot motion and
 accepted neutral sources while moving the upper body down one pixel on frames
-1 and 3. R2 also validates at 96 Pass / 0 Fail / 16 Not assessed. The next
-action is not autonomous: the user must accept or reject r2 motion/readability
-before World Test.
+1 and 3. R2 also validates at 96 Pass / 0 Fail / 16 Not assessed. After
+describing r2 as nice, the user requested slight arm movement. Headless local
+repair plus MCP creation published immutable Walk Cycle
+`walk-cycle-r0003-20260727234230-e8a9aac5`: r3 preserves r2's bob, footwork,
+timing, and neutral frames while adding a one-pixel opposing forearm/hand shift
+on frames 1 and 3 in every direction. R3 also validates at 96 Pass / 0 Fail /
+16 Not assessed. The next action is not autonomous: the user must accept or
+reject r3 motion/readability before World Test.
 
 ## Deferred beyond version 1
 

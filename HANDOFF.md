@@ -239,8 +239,20 @@ promote, or rewrite them during the next milestone.
   grounded on row 28, unclipped, and one connected silhouette
 - r2 validation reports 96 Pass / 0 Fail / 16 Not assessed; motion and
   readability are `not_assessed` with user authority
+- after describing r2 as nice, the user requested slight arm movement; r2
+  remains immutable as a superseded candidate and was not accepted for World
+  Test
+- immutable replacement Walk Cycle r3:
+  `walk-cycle-r0003-20260727234230-e8a9aac5`
+- r3 preserves r2's foot motion, one-pixel body bob, 300 ms timing, and exact
+  accepted Turnaround sources as frames 0 and 2; its step frames add a
+  one-pixel opposing forearm/hand shift in every direction
+- all sixteen r3 frames remain 32 x 32, hard-alpha, at or below 16 colors,
+  grounded on row 28, unclipped, and one connected silhouette
+- r3 validation reports 96 Pass / 0 Fail / 16 Not assessed; motion and
+  readability remain `not_assessed` with user authority
 - no World Test is authorized until the user explicitly accepts this exact
-  Walk Cycle r2
+  Walk Cycle r3
 
 ### Orc Vanguard - completed generality proof
 
@@ -307,6 +319,10 @@ byte.
   sheet, and animated GIFs for the rejected feet-only candidate
 - ignored repository-local `.studio\mosscap-r2-walk` preserves all sixteen
   bobbing repair inputs, structural preparation evidence, the MCP publication
+  receipt, a static review sheet, and the animated GIF for the superseded r2
+  candidate
+- ignored repository-local `.studio\mosscap-r3-walk` preserves all sixteen
+  arm-swing repair inputs, structural preparation evidence, the MCP publication
   receipt, a static review sheet, and the animated GIF for the current
   motion/readability gate
 
@@ -362,14 +378,16 @@ terminal before `npm run test:mcp:http`.
 ## Current human gate
 
 M08 remains complete. The user explicitly accepted Mosscap Scout Turnaround r1,
-rejected feet-only Walk Cycle r1, and requested a slight walking bob. Immutable
-Walk Cycle `walk-cycle-r0002-20260727233042-abdbb047` adds that one-pixel bob
-on frames 1 and 3 and now waits at the motion/readability gate.
+rejected feet-only Walk Cycle r1, requested a slight walking bob for r2, then
+requested slight arm movement as well. Immutable Walk Cycle
+`walk-cycle-r0003-20260727234230-e8a9aac5` preserves the r2 bob and footwork,
+adds a one-pixel opposing arm/hand shift on frames 1 and 3, and now waits at
+the motion/readability gate.
 
 Present the animated and static four-direction evidence from
-`.studio\mosscap-r2-walk` without controlling the user's desktop. Do not create
+`.studio\mosscap-r3-walk` without controlling the user's desktop. Do not create
 a World Test until the user explicitly accepts motion and readability for this
-exact Walk Cycle r2. If accepted, continue through the existing unchanged
+exact Walk Cycle r3. If accepted, continue through the existing unchanged
 workflow:
 
 ```text
