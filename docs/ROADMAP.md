@@ -254,7 +254,7 @@ Implemented:
 
 ## Post-M06 - Second-actor generality run
 
-Status: in progress at the user-owned Turnaround identity-consistency gate.
+Status: in progress at the user-owned Animate motion/readability gate.
 
 Goal: exercise the unchanged version 1 workflow with a visually and
 semantically different actor, exposing any remaining assumptions tied to the
@@ -273,12 +273,21 @@ Current evidence:
   exact user-selection receipt, preserves the selected down PNG byte for byte,
   and adds strict right/up/left sources;
 - Turnaround validation reports 24 Pass / 0 Fail / 4 Not assessed, while
-  identity consistency remains Not assessed with user authority;
+  identity consistency remained user-owned;
+- the user accepted exact Turnaround r1 for animation with "looks good";
+- immutable Walk Cycle `walk-cycle-r0001-20260727015657-df64eb2e` records that
+  exact accepted-Turnaround receipt and preserves frame 0 byte for byte in all
+  four directions;
+- the local deterministic 4 x 4 loop uses the contract timing and a compact
+  neutral/weight-shift/neutral/opposite-weight-shift rhythm suited to a heavy
+  armored actor;
+- Walk Cycle validation reports 96 Pass / 0 Fail / 16 Not assessed, while
+  motion and readability remain Not assessed with user authority;
 - generation used built-in subscription ImageGen outside the provider-neutral
   core; transparency preparation and validation were local and incurred no
   additional AI-service cost;
 - the next transition is blocked only on the user's acceptance or rejection of
-  the exact four-view identity; no Walk Cycle may be created before that
+  the exact sixteen-frame motion; no World Test may be created before that
   decision;
 - the larger attack-animation reference was translated only into original
   32 px character language; attacks, weapons, and equipment remain outside the

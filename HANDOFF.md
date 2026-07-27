@@ -155,7 +155,7 @@ The post-release generality run is active with a deliberately different mob:
 - session: `orc-vanguard-20260727012850-6bb50608`
 - brief: Orc Vanguard, a broad green-skinned front-liner with a horned helmet,
   asymmetrical armor, and crimson cloth, shown unarmed for the v1 walk scope
-- stage: Turnaround identity-consistency gate
+- stage: Animate motion/readability gate
 - immutable Concept candidates:
   - A: `concept-r0001-20260727013308-fd1e91fe`
   - B: `concept-r0002-20260727013308-e6d9ca44`
@@ -173,9 +173,21 @@ The post-release generality run is active with a deliberately different mob:
   right, up, and left are separate immutable sources
 - Turnaround structural evidence: 24 Pass / 0 Fail / 4 Not assessed, with one
   ground-luma result pending per direction
-- identity consistency: Not assessed with user authority; the next action is
-  the user's acceptance or rejection of these exact four views, and no Walk
-  Cycle may be created before that decision
+- identity consistency: explicitly accepted by the user in chat with "looks
+  good"; this unlocks animation only and is not final-art approval
+- immutable Walk Cycle:
+  `walk-cycle-r0001-20260727015657-df64eb2e`
+- source receipt: exact Turnaround r1 id and all four direction hashes,
+  `acceptedBy: user`
+- clip: `walk`, four frames per down/right/up/left direction, 300 ms
+- motion: deterministic neutral/weight-shift/neutral/opposite-weight-shift
+  rhythm for a heavy armored actor; frames 0 and 2 are intentional neutral
+  beats, and frame 0 in every direction is byte-identical to Turnaround r1
+- Walk Cycle structural evidence: 96 Pass / 0 Fail / 16 Not assessed, with one
+  ground-luma result pending per frame
+- motion and readability: Not assessed with user authority; the next action is
+  the user's acceptance or rejection of this exact sixteen-frame candidate,
+  and no World Test may be created before that decision
 - generation boundary: sources used OpenAI built-in ImageGen through the
   user's subscription; preparation and validation were local, with no API key,
   paid add-on, or usage-metered service
@@ -183,7 +195,12 @@ The post-release generality run is active with a deliberately different mob:
   `generated-source/orc-vanguard-20260727`; sixteen Turnaround identity
   references, prompts, sources, prepared views, comparison, and import files
   were copied byte-for-byte under
-  `generated-source/orc-vanguard-turnaround-20260727`
+  `generated-source/orc-vanguard-turnaround-20260727`; sixty-one Walk Cycle
+  source, preparation, rejected-working-preview, final-frame, review, and
+  import files were copied byte-for-byte under
+  `generated-source/orc-vanguard-walk-cycle-20260727`
+- animation preparation: local deterministic pixel motion,
+  `additionalAiCost: false`; no AI service was used
 - scope translation: the user's larger eight-frame axe-swing reference informed
   character language only; v1 keeps the actor at 32 px, empty-handed, and
   limited to the four-direction walk workflow
@@ -330,14 +347,14 @@ Re-run checks relevant to any new change. For the HTTP smoke test, start
 ## Recommended next milestone
 
 M06 release hardening is complete. The second-actor generality test is now at
-the Orc Vanguard Turnaround identity gate. The next action is the user's
+the Orc Vanguard Animate motion/readability gate. The next action is the user's
 acceptance or rejection of
-`turnaround-r0001-20260727014752-775090c7`. If accepted, create a four-frame
-walk cycle per canonical direction tied to that exact Turnaround. If rejected,
-create a new immutable Turnaround revision and preserve all unaffected
-direction bytes. Keep this one mob active and preserve every revision.
-Publishing remains a separate user-owned scope decision and is not implemented
-in version 1; do not add a destination or publish without explicit authority.
+`walk-cycle-r0001-20260727015657-df64eb2e`. If accepted, create a World Test
+tied to that exact sixteen-frame receipt and the pinned reference pack. If
+rejected, create a new immutable Walk Cycle revision and preserve the current
+candidate. Keep this one mob active and preserve every revision. Publishing
+remains a separate user-owned scope decision and is not implemented in version
+1; do not add a destination or publish without explicit authority.
 
 Any future AI integration must be included in the user's existing
 subscriptions. Do not enable pay-as-you-go APIs, purchased credits,
