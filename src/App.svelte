@@ -33,6 +33,18 @@
     parseWalkCycleValidationReport,
     type WalkCycleValidationReport,
   } from "./lib/studio/walk-cycle-validation";
+  import {
+    type WorldTestScene,
+    type WorldTestTheme,
+  } from "./lib/studio/reference-pack";
+  import {
+    parseWorldTestCandidate,
+    type WorldTestCandidate,
+  } from "./lib/studio/world-test";
+  import {
+    parseWorldTestValidationReport,
+    type WorldTestValidationReport,
+  } from "./lib/studio/world-test-validation";
   import type { ActorBrief, StudioSession } from "./lib/studio/types";
   import {
     parseValidationReport,
@@ -49,8 +61,20 @@
     { key: "export", label: "Export" },
   ] as const;
 
-  const scenes = ["Scale lineup", "Forest clearing", "Crownhold", "Tidewater"];
-  const themes = ["Forest", "Autumn", "Dusk", "Winter"];
+  const scenes = ["Scale lineup", "Forest clearing", "Crownhold", "Tidewater"] as const;
+  const themes = ["Forest", "Autumn", "Dusk", "Winter"] as const;
+  const sceneIds: Record<(typeof scenes)[number], WorldTestScene> = {
+    "Scale lineup": "scale-lineup",
+    "Forest clearing": "forest-clearing",
+    Crownhold: "crownhold",
+    Tidewater: "tidewater",
+  };
+  const themeIds: Record<(typeof themes)[number], WorldTestTheme> = {
+    Forest: "forest",
+    Autumn: "autumn",
+    Dusk: "dusk",
+    Winter: "winter",
+  };
   const validationLabels: Record<ValidationRuleResult["id"], string> = {
     canvas_dimensions: "Canvas",
     hard_alpha: "Hard alpha",
@@ -68,8 +92,8 @@
       "A small marsh pilgrim in a reed cloak, carrying a blue-green lantern. Quiet and strange rather than aggressive.",
   };
   let activeStage = 0;
-  let selectedScene = scenes[0];
-  let selectedTheme = themes[0];
+  let selectedScene: (typeof scenes)[number] = scenes[0];
+  let selectedTheme: (typeof themes)[number] = themes[0];
   let session: StudioSession | null = null;
   let showCompiledPrompt = false;
   let sessionMessage = "Checking for saved sessions…";
@@ -113,8 +137,33 @@
   let validatingWalkCycle = false;
   let animationFrameIndex = 0;
   let animationTimer: number | undefined;
+  let worldTests: WorldTestCandidate[] = [];
+  let selectedWorldTest: WorldTestCandidate | null = null;
+  let worldTestPreviewUrls: Record<string, string> = {};
+  let worldTestMessage = "No immutable World Test has been prepared yet.";
+  let worldTestError = "";
+  let worldTestValidation: WorldTestValidationReport | null = null;
+  let validatingWorldTest = false;
+  let creatingWorldTest = false;
 
   $: compiledPrompt = compileActorPrompt(brief);
+  $: selectedWorldPreviewKey = `${sceneIds[selectedScene]}/${themeIds[selectedTheme]}`;
+  $: selectedWorldPreviewUrl =
+    worldTestPreviewUrls[selectedWorldPreviewKey] ?? "";
+  $: selectedWorldGroundSummary =
+    worldTestValidation?.measurements
+      .filter(
+        (measurement) =>
+          measurement.scene === sceneIds[selectedScene] &&
+          measurement.theme === themeIds[selectedTheme],
+      )
+      .reduce(
+        (summary, measurement) => {
+          summary[measurement.status] += 1;
+          return summary;
+        },
+        { pass: 0, fail: 0 },
+      ) ?? { pass: 0, fail: 0 };
 
   onMount(() => {
     void restoreLatestSession();
@@ -128,6 +177,7 @@
     revokeCandidateUrl();
     revokeTurnaroundUrls();
     revokeWalkCycleUrls();
+    revokeWorldTestUrls();
     if (animationTimer !== undefined) {
       window.clearInterval(animationTimer);
     }
@@ -186,6 +236,22 @@
     walkCycleMessage = "No immutable Walk Cycle has been created yet.";
   }
 
+  function revokeWorldTestUrls() {
+    for (const url of Object.values(worldTestPreviewUrls)) {
+      URL.revokeObjectURL(url);
+    }
+    worldTestPreviewUrls = {};
+  }
+
+  function clearWorldTests() {
+    revokeWorldTestUrls();
+    worldTests = [];
+    selectedWorldTest = null;
+    worldTestValidation = null;
+    worldTestError = "";
+    worldTestMessage = "No immutable World Test has been prepared yet.";
+  }
+
   function showSession(saved: StudioSession) {
     session = saved;
     brief = { ...saved.brief };
@@ -213,6 +279,7 @@
         await refreshCandidates(restoredSession.id);
         await refreshTurnarounds(restoredSession.id);
         await refreshWalkCycles(restoredSession.id);
+        await refreshWorldTests(restoredSession.id);
         sessionMessage = "Reopened the latest durable session.";
       } else {
         sessionMessage = "No saved sessions yet.";
@@ -250,6 +317,7 @@
       clearCandidates();
       clearTurnarounds();
       clearWalkCycles();
+      clearWorldTests();
       workspaceRoot ||= ".studio";
       sessionMessage = "Saved locally. MCP clients can read this session.";
     } catch (error) {
@@ -589,6 +657,135 @@
         ) ?? { pass: 0, fail: 0, notAssessed: 0 }
     );
   }
+
+  async function refreshWorldTests(
+    sessionId: string,
+    preferredId?: string,
+  ) {
+    worldTestError = "";
+    try {
+      const result = await invoke<unknown[]>("list_world_test_candidates", {
+        sessionId,
+      });
+      worldTests = result.map(parseWorldTestCandidate);
+      const preferred =
+        worldTests.find((candidate) => candidate.id === preferredId) ??
+        worldTests[0] ??
+        null;
+      if (preferred) {
+        await loadWorldTest(preferred);
+        worldTestMessage = `${worldTests.length} immutable World Test revision${worldTests.length === 1 ? "" : "s"} saved.`;
+        activeStage = 4;
+      } else {
+        clearWorldTests();
+      }
+    } catch (error) {
+      worldTestError = actorBriefError(error);
+      worldTestMessage = "World Tests could not be loaded.";
+    }
+  }
+
+  async function loadWorldTest(candidate: WorldTestCandidate) {
+    if (!session || !isTauri()) {
+      return;
+    }
+    worldTestError = "";
+    worldTestValidation = null;
+    try {
+      const payload = await invoke<{
+        candidate: unknown;
+        previewPngBytes: Record<string, number[]>;
+      }>("get_world_test_candidate", {
+        sessionId: session.id,
+        worldTestId: candidate.id,
+      });
+      const loaded = parseWorldTestCandidate(payload.candidate);
+      const sourceWalkCycle = walkCycles.find(
+        (walkCycle) =>
+          walkCycle.id === loaded.sourceWalkCycle.walkCycleId,
+      );
+      if (sourceWalkCycle && selectedWalkCycle?.id !== sourceWalkCycle.id) {
+        await loadWalkCycle(sourceWalkCycle);
+      }
+      revokeWorldTestUrls();
+      worldTestPreviewUrls = Object.fromEntries(
+        loaded.previews.map((preview) => {
+          const key = `${preview.scene}/${preview.theme}`;
+          const bytes = payload.previewPngBytes[key];
+          if (!bytes) {
+            throw new Error(`World Test preview ${key} is missing.`);
+          }
+          return [
+            key,
+            URL.createObjectURL(
+              new Blob([new Uint8Array(bytes).buffer], {
+                type: "image/png",
+              }),
+            ),
+          ];
+        }),
+      );
+      selectedWorldTest = loaded;
+      await validateWorldTest(loaded);
+    } catch (error) {
+      worldTestError = actorBriefError(error);
+    }
+  }
+
+  async function validateWorldTest(candidate: WorldTestCandidate) {
+    if (!session || !isTauri()) {
+      return;
+    }
+    validatingWorldTest = true;
+    worldTestError = "";
+    try {
+      const report = parseWorldTestValidationReport(
+        await invoke("validate_world_test_candidate", {
+          sessionId: session.id,
+          worldTestId: candidate.id,
+        }),
+      );
+      if (report.worldTestId !== candidate.id) {
+        throw new Error(
+          "World Test validation identity does not match the candidate.",
+        );
+      }
+      worldTestValidation = report;
+    } catch (error) {
+      worldTestValidation = null;
+      worldTestError = actorBriefError(error);
+    } finally {
+      validatingWorldTest = false;
+    }
+  }
+
+  async function prepareWorldTest() {
+    if (!session || !selectedWalkCycle || !isTauri()) {
+      return;
+    }
+    creatingWorldTest = true;
+    worldTestError = "";
+    worldTestMessage =
+      "Preparing sixteen immutable previews from the pinned reference pack…";
+    try {
+      const saved = parseWorldTestCandidate(
+        await invoke("create_world_test_candidate", {
+          sessionId: session.id,
+          sourceWalkCycleId: selectedWalkCycle.id,
+        }),
+      );
+      await refreshWorldTests(session.id, saved.id);
+      activeStage = 4;
+      worldTestMessage =
+        "World Test prepared locally. Final-art approval remains yours alone.";
+    } catch (error) {
+      worldTestError = actorBriefError(error);
+      worldTestMessage =
+        "World Test preparation failed without creating a partial revision.";
+    } finally {
+      creatingWorldTest = false;
+    }
+  }
 </script>
 
 <svelte:head>
@@ -725,6 +922,34 @@
             <span>Accepted for animation by user authority. Final-art and publishing approval remain separate.</span>
           </section>
         {/if}
+
+        {#if activeStage >= 4 && selectedWalkCycle}
+          <section class="candidate-intake world-test-action" aria-label="World Test preparation">
+            <div>
+              <p class="eyebrow">Pinned world evidence</p>
+              <strong>TileForge reference pack v1</strong>
+            </div>
+            <button
+              class="secondary-action"
+              disabled={creatingWorldTest}
+              onclick={prepareWorldTest}
+            >
+              {creatingWorldTest ? "Preparing…" : "Prepare new World Test"}
+            </button>
+            <small>Uses only local deterministic compositing. It records your accepted Walk Cycle but never approves final art.</small>
+          </section>
+        {/if}
+
+        {#if selectedWorldTest}
+          <section class="turnaround-selection world-source" aria-label="Accepted Walk Cycle receipt">
+            <p class="eyebrow">User acceptance receipt</p>
+            <strong>Walk Cycle r{walkCycles.find((candidate) => candidate.id === selectedWorldTest?.sourceWalkCycle.walkCycleId)?.revision ?? "?"}</strong>
+            <small title={selectedWorldTest.sourceWalkCycle.walkCycleId}>
+              {selectedWorldTest.sourceWalkCycle.walkCycleId}
+            </small>
+            <span>Accepted for World Test by user authority. Final-art and publishing approval remain separate.</span>
+          </section>
+        {/if}
       {/if}
 
       <p class="session-message" class:error={Boolean(sessionError)} role={sessionError ? "alert" : "status"}>
@@ -770,9 +995,26 @@
       <div
         class:turnaround={activeStage === 2}
         class:animate={activeStage === 3}
+        class:world-test={activeStage === 4}
         class="preview-stage"
       >
-        {#if activeStage === 3 && selectedWalkCycle}
+        {#if activeStage === 4 && selectedWorldTest && selectedWorldPreviewUrl}
+          <figure class="world-test-canvas">
+            <img
+              alt={`${selectedScene} ${selectedTheme} World Test preview for revision ${selectedWorldTest.revision}`}
+              src={selectedWorldPreviewUrl}
+            />
+            <figcaption>
+              <span>{selectedScene} · {selectedTheme}</span>
+              <small>1× ground truth · actor at 1×</small>
+            </figcaption>
+          </figure>
+        {:else if activeStage === 4}
+          <div class="world-test-empty">
+            <strong>World Test is ready to prepare.</strong>
+            <span>Select “Prepare new World Test” to preserve all sixteen pinned scene/theme previews.</span>
+          </div>
+        {:else if activeStage === 3 && selectedWalkCycle}
           <div
             class="walk-cycle-grid"
             style={`--walk-cycle-size: ${32 * Math.min(previewZoom, 8)}px`}
@@ -838,7 +1080,9 @@
           </div>
         {/if}
         <p class="preview-note">
-          {activeStage === 3 && selectedWalkCycle
+          {activeStage === 4 && selectedWorldTest
+            ? `World Test r${selectedWorldTest.revision} · 16 immutable previews · final art not assessed`
+            : activeStage === 3 && selectedWalkCycle
             ? `Walk Cycle r${selectedWalkCycle.revision} · 4 × 4 immutable frames · ${selectedWalkCycle.frameDurationMs} ms · motion not assessed`
             : activeStage === 2 && selectedTurnaround
             ? `Turnaround r${selectedTurnaround.revision} · four immutable views · identity consistency not assessed`
@@ -848,7 +1092,23 @@
               ? "Concept slot ready. Import creates immutable, unreviewed candidates here."
               : "Begin a concept to create the first immutable candidate."}
         </p>
-        {#if activeStage === 3 && walkCycles.length > 0}
+        {#if activeStage === 4 && worldTests.length > 0}
+          <div class="candidate-strip" aria-label="Immutable World Test candidates">
+            {#each worldTests as candidate}
+              <button
+                class:selected={selectedWorldTest?.id === candidate.id}
+                onclick={() => loadWorldTest(candidate)}
+                title={candidate.id}
+              >
+                <strong>r{candidate.revision}</strong>
+                <span>local</span>
+              </button>
+            {/each}
+          </div>
+          <p class="turnaround-message" class:error={Boolean(worldTestError)} role={worldTestError ? "alert" : "status"}>
+            {worldTestError || worldTestMessage}
+          </p>
+        {:else if activeStage === 3 && walkCycles.length > 0}
           <div class="candidate-strip" aria-label="Immutable Walk Cycle candidates">
             {#each walkCycles as candidate}
               <button
@@ -911,15 +1171,25 @@
             </select>
           </label>
         </div>
-        <div class="world-swatch" class:dusk={selectedTheme === "Dusk"} class:winter={selectedTheme === "Winter"}>
-          <span class="terrain-grain one"></span>
-          <span class="terrain-grain two"></span>
-          <span class="terrain-grain three"></span>
-          <div class="world-actor">
-            <span></span>
+        {#if activeStage === 4 && selectedWorldPreviewUrl}
+          <div class="world-swatch pinned">
+            <img
+              alt={`${selectedScene} ${selectedTheme} pinned reference thumbnail`}
+              src={selectedWorldPreviewUrl}
+            />
+            <small>{selectedScene} · {selectedTheme}</small>
           </div>
-          <small>{selectedScene} · {selectedTheme}</small>
-        </div>
+        {:else}
+          <div class="world-swatch" class:dusk={selectedTheme === "Dusk"} class:winter={selectedTheme === "Winter"}>
+            <span class="terrain-grain one"></span>
+            <span class="terrain-grain two"></span>
+            <span class="terrain-grain three"></span>
+            <div class="world-actor">
+              <span></span>
+            </div>
+            <small>{selectedScene} · {selectedTheme}</small>
+          </div>
+        {/if}
       </div>
     </section>
 
@@ -957,7 +1227,15 @@
             <p class="eyebrow">Local evidence</p>
             <strong>Contract validation</strong>
           </div>
-          {#if activeStage === 3 && selectedWalkCycle}
+          {#if activeStage === 4 && selectedWorldTest}
+            <button
+              aria-label="Run World Test ground validation again"
+              disabled={validatingWorldTest}
+              onclick={() => selectedWorldTest && validateWorldTest(selectedWorldTest)}
+            >
+              {validatingWorldTest ? "Running…" : "Re-run"}
+            </button>
+          {:else if activeStage === 3 && selectedWalkCycle}
             <button
               aria-label="Run Walk Cycle structural validation again"
               disabled={validatingWalkCycle}
@@ -984,7 +1262,52 @@
           {/if}
         </div>
 
-        {#if activeStage === 3}
+        {#if activeStage === 4}
+          {#if !selectedWorldTest}
+            <p class="validation-empty">Prepare a World Test to measure all sixteen walk frames against sixteen pinned grounds.</p>
+          {:else if validatingWorldTest && !worldTestValidation}
+            <p class="validation-empty">Measuring 256 frame-to-ground luma comparisons locally…</p>
+          {:else if worldTestError}
+            <p class="validation-error" role="alert">{worldTestError}</p>
+          {:else if worldTestValidation}
+            <div class="validation-summary" aria-label="World Test validation totals">
+              <span class="pass">{worldTestValidation.summary.pass} pass</span>
+              <span class:quiet={worldTestValidation.summary.fail === 0} class="fail">
+                {worldTestValidation.summary.fail} fail
+              </span>
+              <span class="not-assessed">0 not assessed</span>
+            </div>
+            <div class="validation-results">
+              <div
+                class:pass={selectedWorldGroundSummary.fail === 0}
+                class:fail={selectedWorldGroundSummary.fail > 0}
+                class="validation-result"
+              >
+                <span class="validation-mark" aria-label={selectedWorldGroundSummary.fail === 0 ? "pass" : "fail"}>
+                  {selectedWorldGroundSummary.fail === 0 ? "✓" : "!"}
+                </span>
+                <div>
+                  <strong>{selectedScene} · {selectedTheme}</strong>
+                  <span>
+                    {selectedWorldGroundSummary.pass} pass ·
+                    {selectedWorldGroundSummary.fail} fail across 16 frames
+                  </span>
+                </div>
+              </div>
+              <div class="validation-result pass">
+                <span class="validation-mark" aria-label="pass">✓</span>
+                <div>
+                  <strong>Pinned references</strong>
+                  <span>4 scenes · 4 themes · SHA-256 verified</span>
+                </div>
+              </div>
+            </div>
+            <div class="visual-judgment">
+              <span>Final art</span>
+              <strong>Not assessed — user only</strong>
+            </div>
+          {/if}
+        {:else if activeStage === 3}
           {#if !selectedWalkCycle}
             <p class="validation-empty">Create an immutable Walk Cycle to measure all sixteen frames.</p>
           {:else if validatingWalkCycle && !walkCycleValidation}

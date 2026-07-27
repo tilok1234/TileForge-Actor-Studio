@@ -88,6 +88,10 @@ this project so every client observes the same gateway behavior.
 - `list_walk_cycle_candidates`
 - `get_walk_cycle_candidate`
 - `validate_walk_cycle_candidate`
+- `create_world_test_candidate`
+- `list_world_test_candidates`
+- `get_world_test_candidate`
+- `validate_world_test_candidate`
 
 The gateway also exposes:
 
@@ -103,7 +107,8 @@ evidence and `unreviewed` status; it never implies visual acceptance.
 
 `validate_concept_candidate` is read-only and local. It returns seven ordered
 contract results plus Pass/Fail/Not assessed totals tied to the candidate
-SHA-256. Ground luma is Not assessed until a pinned ground reference exists.
+SHA-256. Ground luma is Not assessed until World Test supplies a pinned ground
+and placement.
 The report's visual judgment is also Not assessed and user-owned; no MCP tool
 can change that state.
 
@@ -126,6 +131,16 @@ approve final art, or publish.
 and recomputes structural evidence per frame. Its aggregate report keeps motion
 and readability Not assessed with user authority.
 
+`create_world_test_candidate` is available only after the user explicitly
+accepts Walk Cycle motion/readability. It records the exact sixteen-frame
+receipt, verifies the copied reference pack, and atomically prepares four
+scenes across four themes with the local deterministic compositor. It uses no
+AI service and cannot approve final art.
+
+`validate_world_test_candidate` rehashes all sixteen immutable previews and
+recomputes 256 frame-to-ground luma comparisons against the pinned pack. Its
+final-art judgment remains Not assessed with user authority.
+
 ## Shared desktop state
 
 MCP session tools and the Tauri desktop use the same local workspace:
@@ -136,8 +151,9 @@ conversion or copy step. Concept candidate directories use the same rule and
 preserve the exact original `source.png`; Turnaround directories preserve
 `turnaround.json` plus `down.png`, `right.png`, `up.png`, and `left.png`.
 Walk Cycle directories preserve `walk-cycle.json` plus four numbered frame
-PNGs for every canonical direction. Either adapter can list and read an
-artifact created by the other.
+PNGs for every canonical direction. World Test directories preserve
+`world-test.json` plus sixteen scene/theme preview PNGs. Either adapter can
+list and read an artifact created by the other.
 
 Do not configure an AI provider that incurs incremental charges. Any future AI
 connection must be covered by the user's existing subscriptions.

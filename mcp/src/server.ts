@@ -26,6 +26,12 @@ import {
   listWalkCycleCandidates,
   validateWalkCycleCandidate,
 } from "./walk-cycles.js";
+import {
+  createWorldTestCandidate,
+  getWorldTestCandidatePayload,
+  listWorldTestCandidates,
+  validateWorldTestCandidate,
+} from "./world-tests.js";
 
 function textResult(value: unknown) {
   return {
@@ -540,6 +546,115 @@ export function createActorStudioServer(
         await validateWalkCycleCandidate(
           sessionId,
           walkCycleId,
+          storageRoot,
+        ),
+      ),
+  );
+
+  server.registerTool(
+    "create_world_test_candidate",
+    {
+      title: "Create World Test candidate",
+      description:
+        "After the user explicitly accepts Walk Cycle motion/readability, atomically prepare immutable previews against the pinned TileForge reference pack. This records that transition but cannot approve final art, export, or publishing.",
+      inputSchema: {
+        sessionId: z.string().min(3).max(96),
+        sourceWalkCycleId: z.string().min(3).max(96),
+      },
+      annotations: {
+        readOnlyHint: false,
+        destructiveHint: false,
+        idempotentHint: false,
+        openWorldHint: false,
+      },
+    },
+    async ({ sessionId, sourceWalkCycleId }) =>
+      textResult(
+        await createWorldTestCandidate(sessionId, sourceWalkCycleId, {
+          root: storageRoot,
+        }),
+      ),
+  );
+
+  server.registerTool(
+    "list_world_test_candidates",
+    {
+      title: "List World Test candidates",
+      description:
+        "List immutable, unreviewed World Test revisions for one studio session.",
+      inputSchema: {
+        sessionId: z.string().min(3).max(96),
+      },
+      annotations: {
+        readOnlyHint: true,
+        destructiveHint: false,
+        idempotentHint: true,
+        openWorldHint: false,
+      },
+    },
+    async ({ sessionId }) =>
+      textResult({
+        candidates: await listWorldTestCandidates(sessionId, storageRoot),
+      }),
+  );
+
+  server.registerTool(
+    "get_world_test_candidate",
+    {
+      title: "Get World Test candidate",
+      description:
+        "Read one immutable World Test document and its sixteen scene/theme previews. Final-art judgment remains user-owned.",
+      inputSchema: {
+        sessionId: z.string().min(3).max(96),
+        worldTestId: z.string().min(3).max(96),
+      },
+      annotations: {
+        readOnlyHint: true,
+        destructiveHint: false,
+        idempotentHint: true,
+        openWorldHint: false,
+      },
+    },
+    async ({ sessionId, worldTestId }) => {
+      const payload = await getWorldTestCandidatePayload(
+        sessionId,
+        worldTestId,
+        storageRoot,
+      );
+      return textResult({
+        candidate: payload.candidate,
+        previewPngBase64: Object.fromEntries(
+          Object.entries(payload.previewPngBytes).map(([key, bytes]) => [
+            key,
+            Buffer.from(bytes).toString("base64"),
+          ]),
+        ),
+      });
+    },
+  );
+
+  server.registerTool(
+    "validate_world_test_candidate",
+    {
+      title: "Validate World Test candidate",
+      description:
+        "Measure all sixteen immutable walk frames against sixteen pinned TileForge ground samples. This deterministic evidence cannot approve final art; only the user can do that.",
+      inputSchema: {
+        sessionId: z.string().min(3).max(96),
+        worldTestId: z.string().min(3).max(96),
+      },
+      annotations: {
+        readOnlyHint: true,
+        destructiveHint: false,
+        idempotentHint: true,
+        openWorldHint: false,
+      },
+    },
+    async ({ sessionId, worldTestId }) =>
+      textResult(
+        await validateWorldTestCandidate(
+          sessionId,
+          worldTestId,
           storageRoot,
         ),
       ),

@@ -36,14 +36,15 @@ Hard boundaries:
 - Never overwrite generated candidates; create immutable revisions.
 - Keep Codex, Claude, and Antigravity on the same client-neutral MCP contract.
 
-After orientation, verify the implemented M04 Turnaround and Walk Cycle
-behavior against the live code and checks. The user selected real Concept r4,
-rejected the Turnaround r1 right-facing outline, then explicitly accepted
-immutable Turnaround r2 for animation. Local Walk Cycle r1 contains four frames
-per direction at 300 ms and is awaiting the user-owned motion/readability gate.
-Do not begin World Test work until that gate is explicit. Keep every repair
-immutable, keep Pass/Fail/Not assessed separate from visual acceptance, and do
-not grant final-art approval or publishing authority.
+After orientation, verify the implemented M04 and M05 World Test behavior
+against the live code and checks. The user accepted immutable Turnaround r2 for
+animation and Walk Cycle r1 for World Test. Local World Test r1 preserves
+sixteen pinned previews and reports 240 Pass / 16 Fail / 0 Not assessed across
+256 ground checks; its failures are concentrated on dusk grass in Scale Lineup
+and Forest Clearing. The next gate is the user's final-art decision. Do not
+prepare Export until that gate is explicit. Keep every repair immutable, keep
+Pass/Fail/Not assessed separate from visual acceptance, and do not grant
+final-art approval or publishing authority.
 
 Do not use any AI service that adds cost beyond my existing subscriptions. No
 pay-as-you-go APIs, purchased credits, usage billing, or paid add-ons.
@@ -60,6 +61,7 @@ npm run test:mcp
 npm run test:mcp:stdio
 cargo fmt --manifest-path src-tauri/Cargo.toml --check
 cargo check --manifest-path src-tauri/Cargo.toml
+cargo test --manifest-path src-tauri/Cargo.toml
 npm audit --audit-level=moderate
 
 For the HTTP MCP smoke test, start npm run mcp:http separately and then run

@@ -1,0 +1,67 @@
+{
+  "schemaVersion": 1,
+  "id": "world-test-r0001-20260728000400-fixture1",
+  "revision": 1,
+  "sessionId": "mirelight-pilgrim-20260728000000-fixture1",
+  "stage": "world-test",
+  "contractId": "tileforge-actor-32-v1",
+  "sourceWalkCycle": {
+    "walkCycleId": "walk-cycle-r0001-20260728000300-fixture1",
+    "frameSources": [
+      { "direction": "down", "frameIndex": 0, "sha256": "1111111111111111111111111111111111111111111111111111111111111111", "byteLength": 100 },
+      { "direction": "down", "frameIndex": 1, "sha256": "1212121212121212121212121212121212121212121212121212121212121212", "byteLength": 101 },
+      { "direction": "down", "frameIndex": 2, "sha256": "1313131313131313131313131313131313131313131313131313131313131313", "byteLength": 102 },
+      { "direction": "down", "frameIndex": 3, "sha256": "1414141414141414141414141414141414141414141414141414141414141414", "byteLength": 103 },
+      { "direction": "right", "frameIndex": 0, "sha256": "2121212121212121212121212121212121212121212121212121212121212121", "byteLength": 104 },
+      { "direction": "right", "frameIndex": 1, "sha256": "2222222222222222222222222222222222222222222222222222222222222222", "byteLength": 105 },
+      { "direction": "right", "frameIndex": 2, "sha256": "2323232323232323232323232323232323232323232323232323232323232323", "byteLength": 106 },
+      { "direction": "right", "frameIndex": 3, "sha256": "2424242424242424242424242424242424242424242424242424242424242424", "byteLength": 107 },
+      { "direction": "up", "frameIndex": 0, "sha256": "3131313131313131313131313131313131313131313131313131313131313131", "byteLength": 108 },
+      { "direction": "up", "frameIndex": 1, "sha256": "3232323232323232323232323232323232323232323232323232323232323232", "byteLength": 109 },
+      { "direction": "up", "frameIndex": 2, "sha256": "3333333333333333333333333333333333333333333333333333333333333333", "byteLength": 110 },
+      { "direction": "up", "frameIndex": 3, "sha256": "3434343434343434343434343434343434343434343434343434343434343434", "byteLength": 111 },
+      { "direction": "left", "frameIndex": 0, "sha256": "4141414141414141414141414141414141414141414141414141414141414141", "byteLength": 112 },
+      { "direction": "left", "frameIndex": 1, "sha256": "4242424242424242424242424242424242424242424242424242424242424242", "byteLength": 113 },
+      { "direction": "left", "frameIndex": 2, "sha256": "4343434343434343434343434343434343434343434343434343434343434343", "byteLength": 114 },
+      { "direction": "left", "frameIndex": 3, "sha256": "4444444444444444444444444444444444444444444444444444444444444444", "byteLength": 115 }
+    ],
+    "acceptedBy": "user",
+    "acceptedAt": "2026-07-28T00:04:00.000Z"
+  },
+  "referencePack": {
+    "id": "tileforge-world-test-v1",
+    "version": 1,
+    "manifestSha256": "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa",
+    "checkoutCommit": "3eb01d0b5cc3a59a0327a26e3f8c416401fc3c4c",
+    "generatedEngineCommit": "199ed7d"
+  },
+  "previews": [
+    { "scene": "scale-lineup", "theme": "forest", "sourceFile": "scale-lineup-forest.png", "sha256": "5151515151515151515151515151515151515151515151515151515151515151", "byteLength": 1000, "width": 640, "height": 384, "referenceSourceSha256": "6161616161616161616161616161616161616161616161616161616161616161" },
+    { "scene": "scale-lineup", "theme": "autumn", "sourceFile": "scale-lineup-autumn.png", "sha256": "5252525252525252525252525252525252525252525252525252525252525252", "byteLength": 1001, "width": 640, "height": 384, "referenceSourceSha256": "6262626262626262626262626262626262626262626262626262626262626262" },
+    { "scene": "scale-lineup", "theme": "dusk", "sourceFile": "scale-lineup-dusk.png", "sha256": "5353535353535353535353535353535353535353535353535353535353535353", "byteLength": 1002, "width": 640, "height": 384, "referenceSourceSha256": "6363636363636363636363636363636363636363636363636363636363636363" },
+    { "scene": "scale-lineup", "theme": "winter", "sourceFile": "scale-lineup-winter.png", "sha256": "5454545454545454545454545454545454545454545454545454545454545454", "byteLength": 1003, "width": 640, "height": 384, "referenceSourceSha256": "6464646464646464646464646464646464646464646464646464646464646464" },
+    { "scene": "forest-clearing", "theme": "forest", "sourceFile": "forest-clearing-forest.png", "sha256": "5555555555555555555555555555555555555555555555555555555555555555", "byteLength": 1004, "width": 640, "height": 384, "referenceSourceSha256": "6565656565656565656565656565656565656565656565656565656565656565" },
+    { "scene": "forest-clearing", "theme": "autumn", "sourceFile": "forest-clearing-autumn.png", "sha256": "5656565656565656565656565656565656565656565656565656565656565656", "byteLength": 1005, "width": 640, "height": 384, "referenceSourceSha256": "6666666666666666666666666666666666666666666666666666666666666666" },
+    { "scene": "forest-clearing", "theme": "dusk", "sourceFile": "forest-clearing-dusk.png", "sha256": "5757575757575757575757575757575757575757575757575757575757575757", "byteLength": 1006, "width": 640, "height": 384, "referenceSourceSha256": "6767676767676767676767676767676767676767676767676767676767676767" },
+    { "scene": "forest-clearing", "theme": "winter", "sourceFile": "forest-clearing-winter.png", "sha256": "5858585858585858585858585858585858585858585858585858585858585858", "byteLength": 1007, "width": 640, "height": 384, "referenceSourceSha256": "6868686868686868686868686868686868686868686868686868686868686868" },
+    { "scene": "crownhold", "theme": "forest", "sourceFile": "crownhold-forest.png", "sha256": "5959595959595959595959595959595959595959595959595959595959595959", "byteLength": 1008, "width": 640, "height": 384, "referenceSourceSha256": "6969696969696969696969696969696969696969696969696969696969696969" },
+    { "scene": "crownhold", "theme": "autumn", "sourceFile": "crownhold-autumn.png", "sha256": "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa", "byteLength": 1009, "width": 640, "height": 384, "referenceSourceSha256": "abababababababababababababababababababababababababababababababab" },
+    { "scene": "crownhold", "theme": "dusk", "sourceFile": "crownhold-dusk.png", "sha256": "bbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbb", "byteLength": 1010, "width": 640, "height": 384, "referenceSourceSha256": "bcbcbcbcbcbcbcbcbcbcbcbcbcbcbcbcbcbcbcbcbcbcbcbcbcbcbcbcbcbcbcbc" },
+    { "scene": "crownhold", "theme": "winter", "sourceFile": "crownhold-winter.png", "sha256": "cccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccc", "byteLength": 1011, "width": 640, "height": 384, "referenceSourceSha256": "cdcdcdcdcdcdcdcdcdcdcdcdcdcdcdcdcdcdcdcdcdcdcdcdcdcdcdcdcdcdcdcd" },
+    { "scene": "tidewater", "theme": "forest", "sourceFile": "tidewater-forest.png", "sha256": "dddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddd", "byteLength": 1012, "width": 640, "height": 384, "referenceSourceSha256": "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa" },
+    { "scene": "tidewater", "theme": "autumn", "sourceFile": "tidewater-autumn.png", "sha256": "eeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeee", "byteLength": 1013, "width": 640, "height": 384, "referenceSourceSha256": "efefefefefefefefefefefefefefefefefefefefefefefefefefefefefefefef" },
+    { "scene": "tidewater", "theme": "dusk", "sourceFile": "tidewater-dusk.png", "sha256": "ffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffff", "byteLength": 1014, "width": 640, "height": 384, "referenceSourceSha256": "fafafafafafafafafafafafafafafafafafafafafafafafafafafafafafafafa" },
+    { "scene": "tidewater", "theme": "winter", "sourceFile": "tidewater-winter.png", "sha256": "6060606060606060606060606060606060606060606060606060606060606060", "byteLength": 1015, "width": 640, "height": 384, "referenceSourceSha256": "7070707070707070707070707070707070707070707070707070707070707070" }
+  ],
+  "createdAt": "2026-07-28T00:04:00.000Z",
+  "preparation": {
+    "method": "local-deterministic-compositor-v1",
+    "additionalAiCost": false
+  },
+  "reviewStatus": "unreviewed",
+  "finalArtJudgment": {
+    "status": "not_assessed",
+    "authority": "user",
+    "message": "Only the user can approve final art after reviewing World Test evidence."
+  }
+}

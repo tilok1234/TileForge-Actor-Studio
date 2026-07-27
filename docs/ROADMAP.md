@@ -111,9 +111,8 @@ Implemented:
 
 ## M04 - Turnaround and Walk Cycle
 
-Status: in progress. The user accepted Turnaround r2. Walk Cycle persistence,
-validation, and desktop playback are implemented; local r1 is awaiting the
-user's motion/readability decision.
+Status: complete. The user accepted Turnaround r2 and Walk Cycle r1 for their
+respective next-stage transitions. Neither decision is final-art approval.
 
 Goal: move an accepted concept through consistent four-direction views and a
 four-frame walk cycle per direction.
@@ -163,12 +162,10 @@ Walk Cycle implemented:
   frame-zero preservation, malformed frame sets, immutable reads, collisions,
   and partial-write cleanup.
 
-Pending after the human Walk Cycle gate:
-
-- explicit user acceptance of Walk Cycle r1 motion/readability;
-- M05 pinned-reference World Test work.
-
 ## M05 - World Test and Export
+
+Status: in progress. World Test is implemented; final-art review and Export
+remain pending.
 
 Goal: show the actor in pinned TileForge reference scenes and produce a
 reviewable export package.
@@ -178,6 +175,36 @@ reviewable export package.
 - PNG sheet, metadata, contract id, and provenance
 - explicit user approval before promotion
 - publishing remains a separate explicit action
+
+World Test implemented:
+
+- a tracked `tileforge-world-test-v1` pack copies four exact TileForge scenes
+  across forest, autumn, dusk, and winter with upstream checkout,
+  generated-engine, byte-length, dimension, and SHA-256 provenance;
+- one immutable World Test revision records the exact accepted Walk Cycle id
+  plus all sixteen source hashes and byte lengths with `acceptedBy: user`;
+- the local deterministic compositor creates sixteen 640 x 384 previews
+  without an AI service or additional cost, then atomically publishes them
+  with `world-test.json`;
+- desktop and MCP adapters create, list, read, rehash, and validate the same
+  World Test protocol; desktop restart restores World Test and exposes all
+  scene/theme combinations;
+- validation compares mean visible-actor luma for all sixteen frames with all
+  sixteen pinned ground samples, producing 256 measured Pass/Fail results and
+  zero Not assessed ground results;
+- the real Mirelight Pilgrim World Test r1 reports 240 Pass / 16 Fail / 0 Not
+  assessed; all failures are on dusk grass in Scale Lineup and Forest
+  Clearing, while final-art judgment remains Not assessed with user authority;
+- shared TypeScript and Rust compatibility/failure-path tests cover the
+  accepted-source receipt, pack identity, immutable previews, collisions,
+  partial-write cleanup, 256 measurements, and approval boundary.
+
+Pending:
+
+- explicit user approval or rejection of World Test r1 as final art;
+- export-package preparation only after that gate;
+- explicit publishing approval remains separate, and no publishing operation
+  exists.
 
 ## Deferred beyond version 1
 

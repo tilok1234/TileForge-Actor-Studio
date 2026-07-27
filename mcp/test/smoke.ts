@@ -8,19 +8,23 @@ const expectedTools = [
   "create_sprite_session",
   "create_turnaround_candidate",
   "create_walk_cycle_candidate",
+  "create_world_test_candidate",
   "get_concept_candidate",
   "get_sprite_session",
   "get_studio_contract",
   "get_turnaround_candidate",
   "get_walk_cycle_candidate",
+  "get_world_test_candidate",
   "import_concept_candidate",
   "list_concept_candidates",
   "list_sprite_sessions",
   "list_turnaround_candidates",
   "list_walk_cycle_candidates",
+  "list_world_test_candidates",
   "validate_concept_candidate",
   "validate_turnaround_candidate",
   "validate_walk_cycle_candidate",
+  "validate_world_test_candidate",
 ];
 
 const [clientTransport, serverTransport] = InMemoryTransport.createLinkedPair();

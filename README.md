@@ -3,12 +3,13 @@
 A narrow desktop workflow for creating **32 px TileForge mobs and NPCs with AI**.
 The artist supplies the identity; the studio supplies the boundaries.
 
-Current status: **M04 Turnaround and Walk Cycle persistence are implemented;
-Walk Cycle r1 is awaiting the user's motion/readability decision.** The user
-accepted Turnaround r2 for animation. The desktop and MCP gateway share durable
-local sessions, never-overwritten Concept, Turnaround, and Walk Cycle PNG
-revisions, user-owned transition receipts, and local deterministic validation
-reports. No image-generation provider adapter is integrated.
+Current status: **M04 is complete and the World Test slice of M05 is
+implemented; World Test r1 is awaiting the user's final-art decision.** The
+user accepted Turnaround r2 for animation and Walk Cycle r1 for World Test. The
+desktop and MCP gateway share durable local sessions, never-overwritten
+Concept, Turnaround, Walk Cycle, and World Test revisions, user-owned
+transition receipts, and local deterministic validation reports. No
+image-generation provider adapter is integrated.
 
 The initial workflow has six deliberate stages:
 
@@ -117,7 +118,11 @@ gate before Walk Cycle work. The Animate slice records the user's accepted
 Turnaround receipt, preserves sixteen original frame PNGs in canonical 4 × 4
 order at 300 ms, restores and plays them in the desktop, and exposes equivalent
 MCP operations. Motion and readability remain a user-only gate before World
-Test work.
+Test work. M05 copies a SHA-256-pinned TileForge reference subset into this
+repository, prepares sixteen immutable scene/theme previews from an accepted
+Walk Cycle, and measures all sixteen frames against all sixteen pinned ground
+samples. Final-art approval remains user-only, and export/publishing are still
+unimplemented.
 
 Future AI integrations may use only capabilities already covered by the user's
 subscriptions. Pay-as-you-go APIs, purchased credits, usage billing, and paid

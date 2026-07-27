@@ -2,7 +2,7 @@ use chrono::{SecondsFormat, Utc};
 use serde::{Deserialize, Serialize};
 use sha2::{Digest, Sha256};
 use std::{
-    collections::HashSet,
+    collections::{HashMap, HashSet},
     env, fs,
     io::Cursor,
     path::{Path, PathBuf},
@@ -18,6 +18,8 @@ const VALIDATION_REPORT_VERSION: u32 = 1;
 const STRUCTURAL_VALIDATOR_ID: &str = "tileforge-actor-32-structural-v1";
 const TURNAROUND_VALIDATOR_ID: &str = "tileforge-actor-32-turnaround-structural-v1";
 const WALK_CYCLE_VALIDATOR_ID: &str = "tileforge-actor-32-walk-cycle-structural-v1";
+const WORLD_TEST_VALIDATOR_ID: &str = "tileforge-actor-32-world-test-ground-luma-v1";
+const WORLD_TEST_REFERENCE_PACK_ID: &str = "tileforge-world-test-v1";
 const WALK_CYCLE_FRAMES_PER_DIRECTION: usize = 4;
 const WALK_CYCLE_FRAME_DURATION_MS: u32 = 300;
 const FRAME_WIDTH: u32 = 32;
@@ -28,6 +30,12 @@ const FOOT_ANCHOR_X: u32 = 16;
 const FOOT_ANCHOR_Y: u32 = 28;
 const PALETTE_MAX_COLORS: usize = 16;
 const MINIMUM_GROUND_LUMA_DISTANCE: u32 = 15;
+const WORLD_TEST_PREVIEW_WIDTH: u32 = 640;
+const WORLD_TEST_PREVIEW_HEIGHT: u32 = 384;
+const WORLD_TEST_SCENES: [&str; 4] = ["scale-lineup", "forest-clearing", "crownhold", "tidewater"];
+const WORLD_TEST_THEMES: [&str; 4] = ["forest", "autumn", "dusk", "winter"];
+const WORLD_TEST_REFERENCE_MANIFEST: &[u8] =
+    include_bytes!("../../reference-packs/tileforge-world-test-v1/manifest.json");
 
 #[derive(Debug, Clone, Serialize, Deserialize)]
 #[serde(rename_all = "lowercase")]
@@ -119,7 +127,7 @@ struct ConceptCandidatePayload {
     png_bytes: Vec<u8>,
 }
 
-#[derive(Debug, Clone, Copy, PartialEq, Eq, Serialize, Deserialize)]
+#[derive(Debug, Clone, Copy, PartialEq, Eq, Hash, Serialize, Deserialize)]
 #[serde(rename_all = "lowercase")]
 enum TurnaroundDirection {
     Down,
@@ -305,6 +313,150 @@ struct WalkCycleCandidatePayload {
     png_bytes: WalkCyclePngBytes,
 }
 
+#[derive(Debug, Clone, Serialize, Deserialize)]
+#[serde(rename_all = "camelCase", deny_unknown_fields)]
+struct WorldTestAcceptedFrameSource {
+    direction: TurnaroundDirection,
+    frame_index: usize,
+    sha256: String,
+    byte_length: usize,
+}
+
+#[derive(Debug, Clone, Serialize, Deserialize)]
+#[serde(rename_all = "camelCase", deny_unknown_fields)]
+struct WorldTestSourceWalkCycle {
+    walk_cycle_id: String,
+    frame_sources: Vec<WorldTestAcceptedFrameSource>,
+    accepted_by: String,
+    accepted_at: String,
+}
+
+#[derive(Debug, Clone, Serialize, Deserialize)]
+#[serde(rename_all = "camelCase", deny_unknown_fields)]
+struct WorldTestReferenceReceipt {
+    id: String,
+    version: u32,
+    manifest_sha256: String,
+    checkout_commit: String,
+    generated_engine_commit: String,
+}
+
+#[derive(Debug, Clone, Serialize, Deserialize)]
+#[serde(rename_all = "camelCase", deny_unknown_fields)]
+struct WorldTestPreviewSource {
+    scene: String,
+    theme: String,
+    source_file: String,
+    sha256: String,
+    byte_length: usize,
+    width: u32,
+    height: u32,
+    reference_source_sha256: String,
+}
+
+#[derive(Debug, Clone, Serialize, Deserialize)]
+#[serde(rename_all = "camelCase", deny_unknown_fields)]
+struct WorldTestPreparation {
+    method: String,
+    additional_ai_cost: bool,
+}
+
+#[derive(Debug, Clone, Serialize, Deserialize)]
+#[serde(rename_all = "camelCase", deny_unknown_fields)]
+struct WorldTestCandidate {
+    schema_version: u32,
+    id: String,
+    revision: u32,
+    session_id: String,
+    stage: String,
+    contract_id: String,
+    source_walk_cycle: WorldTestSourceWalkCycle,
+    reference_pack: WorldTestReferenceReceipt,
+    previews: Vec<WorldTestPreviewSource>,
+    created_at: String,
+    preparation: WorldTestPreparation,
+    review_status: String,
+    final_art_judgment: VisualJudgment,
+}
+
+#[derive(Debug, Serialize)]
+#[serde(rename_all = "camelCase")]
+struct WorldTestCandidatePayload {
+    candidate: WorldTestCandidate,
+    preview_png_bytes: HashMap<String, Vec<u8>>,
+}
+
+#[derive(Debug, Clone, Deserialize)]
+#[serde(rename_all = "camelCase", deny_unknown_fields)]
+struct ReferencePackSource {
+    repository: String,
+    checkout_commit: String,
+    generated_engine_commit: String,
+    generated: String,
+    render_path: String,
+    scale: String,
+}
+
+#[derive(Debug, Clone, Deserialize)]
+#[serde(rename_all = "camelCase", deny_unknown_fields)]
+struct ReferencePackPreview {
+    width: u32,
+    height: u32,
+    actor_direction: String,
+    actor_frame_index: usize,
+    compositor: String,
+}
+
+#[derive(Debug, Clone, Deserialize)]
+#[serde(rename_all = "camelCase", deny_unknown_fields)]
+struct ReferenceRectangle {
+    x: u32,
+    y: u32,
+    width: u32,
+    height: u32,
+}
+
+#[derive(Debug, Clone, Deserialize)]
+#[serde(rename_all = "camelCase", deny_unknown_fields)]
+struct ReferencePoint {
+    x: u32,
+    y: u32,
+}
+
+#[derive(Debug, Clone, Deserialize)]
+#[serde(rename_all = "camelCase", deny_unknown_fields)]
+struct ReferencePackEntry {
+    scene: String,
+    theme: String,
+    source_file: String,
+    source_sha256: String,
+    source_byte_length: usize,
+    source_width: u32,
+    source_height: u32,
+    viewport: ReferenceRectangle,
+    actor_placement: ReferencePoint,
+    ground_sample: ReferenceRectangle,
+}
+
+#[derive(Debug, Clone, Deserialize)]
+#[serde(rename_all = "camelCase", deny_unknown_fields)]
+struct WorldTestReferencePack {
+    schema_version: u32,
+    id: String,
+    version: u32,
+    contract_id: String,
+    source: ReferencePackSource,
+    preview: ReferencePackPreview,
+    entries: Vec<ReferencePackEntry>,
+}
+
+#[derive(Debug)]
+struct LoadedReferencePack {
+    manifest: WorldTestReferencePack,
+    manifest_sha256: String,
+    sources: Vec<Vec<u8>>,
+}
+
 #[derive(Debug, Clone, Copy, PartialEq, Eq, Serialize, Deserialize)]
 #[serde(rename_all = "snake_case")]
 enum ValidationStatus {
@@ -407,6 +559,32 @@ struct WalkCycleValidationReport {
     frames: Vec<WalkCycleFrameReport>,
     summary: ValidationSummary,
     motion_judgment: VisualJudgment,
+}
+
+#[derive(Debug, Clone, PartialEq, Eq, Serialize, Deserialize)]
+#[serde(rename_all = "camelCase", deny_unknown_fields)]
+struct WorldTestLumaMeasurement {
+    scene: String,
+    theme: String,
+    direction: TurnaroundDirection,
+    frame_index: usize,
+    actor_mean_luma: u32,
+    ground_mean_luma: u32,
+    distance: u32,
+    minimum: u32,
+    status: ValidationStatus,
+}
+
+#[derive(Debug, Clone, PartialEq, Eq, Serialize, Deserialize)]
+#[serde(rename_all = "camelCase", deny_unknown_fields)]
+struct WorldTestValidationReport {
+    schema_version: u32,
+    validator_id: String,
+    world_test_id: String,
+    contract_id: String,
+    measurements: Vec<WorldTestLumaMeasurement>,
+    summary: ValidationSummary,
+    final_art_judgment: VisualJudgment,
 }
 
 #[derive(Debug)]
@@ -1698,6 +1876,724 @@ fn validate_walk_cycle_pngs(
     })
 }
 
+fn reference_source_bytes(source_file: &str) -> Option<&'static [u8]> {
+    match source_file {
+        "images/scale-lineup-forest.png" => Some(include_bytes!(
+            "../../reference-packs/tileforge-world-test-v1/images/scale-lineup-forest.png"
+        )),
+        "images/scale-lineup-autumn.png" => Some(include_bytes!(
+            "../../reference-packs/tileforge-world-test-v1/images/scale-lineup-autumn.png"
+        )),
+        "images/scale-lineup-dusk.png" => Some(include_bytes!(
+            "../../reference-packs/tileforge-world-test-v1/images/scale-lineup-dusk.png"
+        )),
+        "images/scale-lineup-winter.png" => Some(include_bytes!(
+            "../../reference-packs/tileforge-world-test-v1/images/scale-lineup-winter.png"
+        )),
+        "images/forest-clearing-forest.png" => Some(include_bytes!(
+            "../../reference-packs/tileforge-world-test-v1/images/forest-clearing-forest.png"
+        )),
+        "images/forest-clearing-autumn.png" => Some(include_bytes!(
+            "../../reference-packs/tileforge-world-test-v1/images/forest-clearing-autumn.png"
+        )),
+        "images/forest-clearing-dusk.png" => Some(include_bytes!(
+            "../../reference-packs/tileforge-world-test-v1/images/forest-clearing-dusk.png"
+        )),
+        "images/forest-clearing-winter.png" => Some(include_bytes!(
+            "../../reference-packs/tileforge-world-test-v1/images/forest-clearing-winter.png"
+        )),
+        "images/crownhold-forest.png" => Some(include_bytes!(
+            "../../reference-packs/tileforge-world-test-v1/images/crownhold-forest.png"
+        )),
+        "images/crownhold-autumn.png" => Some(include_bytes!(
+            "../../reference-packs/tileforge-world-test-v1/images/crownhold-autumn.png"
+        )),
+        "images/crownhold-dusk.png" => Some(include_bytes!(
+            "../../reference-packs/tileforge-world-test-v1/images/crownhold-dusk.png"
+        )),
+        "images/crownhold-winter.png" => Some(include_bytes!(
+            "../../reference-packs/tileforge-world-test-v1/images/crownhold-winter.png"
+        )),
+        "images/tidewater-forest.png" => Some(include_bytes!(
+            "../../reference-packs/tileforge-world-test-v1/images/tidewater-forest.png"
+        )),
+        "images/tidewater-autumn.png" => Some(include_bytes!(
+            "../../reference-packs/tileforge-world-test-v1/images/tidewater-autumn.png"
+        )),
+        "images/tidewater-dusk.png" => Some(include_bytes!(
+            "../../reference-packs/tileforge-world-test-v1/images/tidewater-dusk.png"
+        )),
+        "images/tidewater-winter.png" => Some(include_bytes!(
+            "../../reference-packs/tileforge-world-test-v1/images/tidewater-winter.png"
+        )),
+        _ => None,
+    }
+}
+
+fn load_world_test_reference_pack() -> Result<LoadedReferencePack, String> {
+    let manifest: WorldTestReferencePack = serde_json::from_slice(WORLD_TEST_REFERENCE_MANIFEST)
+        .map_err(|error| format!("Invalid pinned reference manifest: {error}"))?;
+    if manifest.schema_version != 1
+        || manifest.id != WORLD_TEST_REFERENCE_PACK_ID
+        || manifest.version != 1
+        || manifest.contract_id != CONTRACT_ID
+        || manifest.source.repository.is_empty()
+        || manifest.source.checkout_commit.len() != 40
+        || !manifest
+            .source
+            .checkout_commit
+            .chars()
+            .all(|character| character.is_ascii_hexdigit())
+        || manifest.source.generated_engine_commit.len() < 7
+        || manifest.source.generated_engine_commit.len() > 40
+        || !manifest
+            .source
+            .generated_engine_commit
+            .chars()
+            .all(|character| character.is_ascii_hexdigit())
+        || manifest.source.generated.is_empty()
+        || manifest.source.render_path.is_empty()
+        || manifest.source.scale != "1x"
+        || manifest.preview.width != WORLD_TEST_PREVIEW_WIDTH
+        || manifest.preview.height != WORLD_TEST_PREVIEW_HEIGHT
+        || manifest.preview.actor_direction != "down"
+        || manifest.preview.actor_frame_index != 0
+        || manifest.preview.compositor != "nearest-neighbor-hard-alpha-v1"
+        || manifest.entries.len() != WORLD_TEST_SCENES.len() * WORLD_TEST_THEMES.len()
+    {
+        return Err("Pinned World Test reference manifest is incompatible.".to_owned());
+    }
+
+    let mut sources = Vec::new();
+    for (scene_index, scene) in WORLD_TEST_SCENES.iter().enumerate() {
+        for (theme_index, theme) in WORLD_TEST_THEMES.iter().enumerate() {
+            let index = scene_index * WORLD_TEST_THEMES.len() + theme_index;
+            let entry = &manifest.entries[index];
+            if entry.scene != *scene
+                || entry.theme != *theme
+                || !entry.source_file.starts_with("images/")
+                || !entry.source_file.ends_with(".png")
+                || !valid_sha256(&entry.source_sha256)
+                || entry.viewport.width != WORLD_TEST_PREVIEW_WIDTH
+                || entry.viewport.height != WORLD_TEST_PREVIEW_HEIGHT
+                || entry.viewport.x + entry.viewport.width > entry.source_width
+                || entry.viewport.y + entry.viewport.height > entry.source_height
+                || entry.actor_placement.x + FRAME_WIDTH > entry.viewport.width
+                || entry.actor_placement.y + FRAME_HEIGHT > entry.viewport.height
+                || entry.ground_sample.x + entry.ground_sample.width > entry.viewport.width
+                || entry.ground_sample.y + entry.ground_sample.height > entry.viewport.height
+            {
+                return Err("Pinned World Test reference entry is incompatible.".to_owned());
+            }
+            let bytes = reference_source_bytes(&entry.source_file)
+                .ok_or_else(|| "Pinned World Test reference source is unavailable.".to_owned())?;
+            let decoded = decode_png_rgba(bytes)?;
+            if bytes.len() != entry.source_byte_length
+                || format!("{:x}", Sha256::digest(bytes)) != entry.source_sha256
+                || decoded.width != entry.source_width
+                || decoded.height != entry.source_height
+            {
+                return Err(format!(
+                    "Pinned reference {}/{} no longer matches its manifest.",
+                    entry.scene, entry.theme
+                ));
+            }
+            sources.push(bytes.to_vec());
+        }
+    }
+
+    Ok(LoadedReferencePack {
+        manifest,
+        manifest_sha256: format!("{:x}", Sha256::digest(WORLD_TEST_REFERENCE_MANIFEST)),
+        sources,
+    })
+}
+
+fn encode_png_rgba(width: u32, height: u32, pixels: &[[u8; 4]]) -> Result<Vec<u8>, String> {
+    let mut bytes = Vec::new();
+    {
+        let mut encoder = png::Encoder::new(&mut bytes, width, height);
+        encoder.set_color(png::ColorType::Rgba);
+        encoder.set_depth(png::BitDepth::Eight);
+        let mut writer = encoder
+            .write_header()
+            .map_err(|error| format!("Could not encode World Test preview: {error}"))?;
+        let flat: Vec<u8> = pixels
+            .iter()
+            .flat_map(|pixel| pixel.iter().copied())
+            .collect();
+        writer
+            .write_image_data(&flat)
+            .map_err(|error| format!("Could not encode World Test preview: {error}"))?;
+    }
+    Ok(bytes)
+}
+
+fn render_world_test_preview(
+    entry: &ReferencePackEntry,
+    reference_bytes: &[u8],
+    actor_bytes: &[u8],
+) -> Result<Vec<u8>, String> {
+    let source = decode_png_rgba(reference_bytes)?;
+    let actor = decode_png_rgba(actor_bytes)?;
+    if actor.width != FRAME_WIDTH || actor.height != FRAME_HEIGHT {
+        return Err("World Test actor frame dimensions are incompatible.".to_owned());
+    }
+    let mut pixels = vec![[0_u8; 4]; (entry.viewport.width * entry.viewport.height) as usize];
+    for y in 0..entry.viewport.height {
+        for x in 0..entry.viewport.width {
+            let source_index =
+                ((entry.viewport.y + y) * source.width + entry.viewport.x + x) as usize;
+            let preview_index = (y * entry.viewport.width + x) as usize;
+            pixels[preview_index] = source.pixels[source_index];
+        }
+    }
+    for y in 0..actor.height {
+        for x in 0..actor.width {
+            let actor_pixel = actor.pixels[(y * actor.width + x) as usize];
+            if actor_pixel[3] == 0 {
+                continue;
+            }
+            let preview_index = ((entry.actor_placement.y + y) * entry.viewport.width
+                + entry.actor_placement.x
+                + x) as usize;
+            pixels[preview_index] = actor_pixel;
+        }
+    }
+    encode_png_rgba(entry.viewport.width, entry.viewport.height, &pixels)
+}
+
+fn preview_filename(entry: &ReferencePackEntry) -> String {
+    format!("{}-{}.png", entry.scene, entry.theme)
+}
+
+fn validate_world_test(candidate: WorldTestCandidate) -> Result<WorldTestCandidate, String> {
+    validate_candidate_id(&candidate.id)?;
+    validate_session_id(&candidate.session_id)?;
+    validate_candidate_id(&candidate.source_walk_cycle.walk_cycle_id)?;
+    if candidate.schema_version != 1
+        || candidate.revision == 0
+        || candidate.stage != "world-test"
+        || candidate.contract_id != CONTRACT_ID
+    {
+        return Err("World Test document is incompatible.".to_owned());
+    }
+    if candidate.source_walk_cycle.frame_sources.len()
+        != TURNAROUND_DIRECTIONS.len() * WALK_CYCLE_FRAMES_PER_DIRECTION
+        || candidate.source_walk_cycle.accepted_by != "user"
+        || candidate.source_walk_cycle.accepted_at.is_empty()
+    {
+        return Err("World Test accepted Walk Cycle receipt is invalid.".to_owned());
+    }
+    for (direction_index, direction) in TURNAROUND_DIRECTIONS.iter().enumerate() {
+        for frame_index in 0..WALK_CYCLE_FRAMES_PER_DIRECTION {
+            let index = direction_index * WALK_CYCLE_FRAMES_PER_DIRECTION + frame_index;
+            let source = &candidate.source_walk_cycle.frame_sources[index];
+            if source.direction != *direction
+                || source.frame_index != frame_index
+                || !valid_sha256(&source.sha256)
+                || source.byte_length == 0
+                || source.byte_length > CONCEPT_PNG_MAX_BYTES
+            {
+                return Err(
+                    "World Test Walk Cycle frames must use canonical immutable order.".to_owned(),
+                );
+            }
+        }
+    }
+    if candidate.reference_pack.id != WORLD_TEST_REFERENCE_PACK_ID
+        || candidate.reference_pack.version != 1
+        || !valid_sha256(&candidate.reference_pack.manifest_sha256)
+        || candidate.reference_pack.checkout_commit.len() != 40
+        || candidate.reference_pack.generated_engine_commit.len() < 7
+        || candidate.reference_pack.generated_engine_commit.len() > 40
+    {
+        return Err("World Test reference-pack receipt is invalid.".to_owned());
+    }
+    if candidate.previews.len() != WORLD_TEST_SCENES.len() * WORLD_TEST_THEMES.len() {
+        return Err("World Test must contain sixteen previews.".to_owned());
+    }
+    for (scene_index, scene) in WORLD_TEST_SCENES.iter().enumerate() {
+        for (theme_index, theme) in WORLD_TEST_THEMES.iter().enumerate() {
+            let index = scene_index * WORLD_TEST_THEMES.len() + theme_index;
+            let preview = &candidate.previews[index];
+            if preview.scene != *scene
+                || preview.theme != *theme
+                || preview.source_file != format!("{scene}-{theme}.png")
+                || !valid_sha256(&preview.sha256)
+                || !valid_sha256(&preview.reference_source_sha256)
+                || preview.byte_length == 0
+                || preview.width != WORLD_TEST_PREVIEW_WIDTH
+                || preview.height != WORLD_TEST_PREVIEW_HEIGHT
+            {
+                return Err(
+                    "World Test previews must use canonical scene and theme order.".to_owned(),
+                );
+            }
+        }
+    }
+    if candidate.created_at.is_empty()
+        || candidate.preparation.method != "local-deterministic-compositor-v1"
+        || candidate.preparation.additional_ai_cost
+        || candidate.review_status != "unreviewed"
+    {
+        return Err("World Test preparation or review status is invalid.".to_owned());
+    }
+    if candidate.final_art_judgment.status != VisualJudgmentStatus::NotAssessed
+        || candidate.final_art_judgment.authority != "user"
+        || candidate.final_art_judgment.message.is_empty()
+    {
+        return Err("World Test crossed the user-owned final-art gate.".to_owned());
+    }
+    Ok(candidate)
+}
+
+fn world_test_root(root: &Path, session_id: &str) -> Result<PathBuf, String> {
+    validate_session_id(session_id)?;
+    Ok(root.join("sessions").join(session_id).join("world-tests"))
+}
+
+fn world_test_directory(
+    root: &Path,
+    session_id: &str,
+    world_test_id: &str,
+) -> Result<PathBuf, String> {
+    validate_candidate_id(world_test_id)?;
+    Ok(world_test_root(root, session_id)?.join(world_test_id))
+}
+
+fn read_world_test(
+    root: &Path,
+    session_id: &str,
+    world_test_id: &str,
+) -> Result<WorldTestCandidate, String> {
+    let session = read_session(root, session_id)?;
+    let raw = fs::read_to_string(
+        world_test_directory(root, &session.id, world_test_id)?.join("world-test.json"),
+    )
+    .map_err(|error| format!("Could not read World Test: {error}"))?;
+    let candidate: WorldTestCandidate = serde_json::from_str(&raw)
+        .map_err(|error| format!("Invalid World Test document: {error}"))?;
+    let candidate = validate_world_test(candidate)?;
+    if candidate.session_id != session.id || candidate.id != world_test_id {
+        return Err("World Test identity does not match its storage path.".to_owned());
+    }
+    Ok(candidate)
+}
+
+fn list_world_tests_at(root: &Path, session_id: &str) -> Result<Vec<WorldTestCandidate>, String> {
+    let session = read_session(root, session_id)?;
+    let candidates_root = world_test_root(root, &session.id)?;
+    fs::create_dir_all(&candidates_root)
+        .map_err(|error| format!("Could not create World Test storage: {error}"))?;
+    let mut candidates = Vec::new();
+    for entry in fs::read_dir(&candidates_root)
+        .map_err(|error| format!("Could not list World Tests: {error}"))?
+    {
+        let Ok(entry) = entry else {
+            continue;
+        };
+        let file_name = entry.file_name();
+        let Some(world_test_id) = file_name.to_str() else {
+            continue;
+        };
+        if world_test_id.starts_with('.') || !entry.path().is_dir() {
+            continue;
+        }
+        if let Ok(candidate) = read_world_test(root, &session.id, world_test_id) {
+            candidates.push(candidate);
+        }
+    }
+    candidates.sort_by(|left, right| right.revision.cmp(&left.revision));
+    Ok(candidates)
+}
+
+#[allow(clippy::too_many_arguments)]
+fn create_world_test_candidate_at(
+    root: &Path,
+    session_id: &str,
+    source_walk_cycle_id: &str,
+    timestamp: &str,
+    id_suffix: &str,
+    temporary_suffix: &str,
+    forced_revision: Option<u32>,
+) -> Result<WorldTestCandidate, String> {
+    let session = read_session(root, session_id)?;
+    let source_walk_cycle = read_walk_cycle_payload(root, &session.id, source_walk_cycle_id)?;
+    let reference_pack = load_world_test_reference_pack()?;
+    let candidates = list_world_tests_at(root, &session.id)?;
+    let revision = forced_revision.unwrap_or_else(|| {
+        candidates
+            .iter()
+            .map(|candidate| candidate.revision)
+            .max()
+            .unwrap_or(0)
+            + 1
+    });
+    let timestamp_digits: String = timestamp
+        .chars()
+        .filter(char::is_ascii_digit)
+        .take(14)
+        .collect();
+    let down_frame_zero = source_walk_cycle
+        .png_bytes
+        .get(TurnaroundDirection::Down, 0)
+        .ok_or_else(|| "Accepted Walk Cycle down frame 0 is unavailable.".to_owned())?;
+    let mut preview_bytes = Vec::new();
+    for (entry, reference_bytes) in reference_pack
+        .manifest
+        .entries
+        .iter()
+        .zip(reference_pack.sources.iter())
+    {
+        preview_bytes.push(render_world_test_preview(
+            entry,
+            reference_bytes,
+            down_frame_zero,
+        )?);
+    }
+    let candidate = validate_world_test(WorldTestCandidate {
+        schema_version: 1,
+        id: format!(
+            "world-test-r{:04}-{}-{}",
+            revision, timestamp_digits, id_suffix
+        ),
+        revision,
+        session_id: session.id.clone(),
+        stage: "world-test".to_owned(),
+        contract_id: CONTRACT_ID.to_owned(),
+        source_walk_cycle: WorldTestSourceWalkCycle {
+            walk_cycle_id: source_walk_cycle.candidate.id.clone(),
+            frame_sources: source_walk_cycle
+                .candidate
+                .frames
+                .iter()
+                .map(|frame| WorldTestAcceptedFrameSource {
+                    direction: frame.direction,
+                    frame_index: frame.frame_index,
+                    sha256: frame.sha256.clone(),
+                    byte_length: frame.byte_length,
+                })
+                .collect(),
+            accepted_by: "user".to_owned(),
+            accepted_at: timestamp.to_owned(),
+        },
+        reference_pack: WorldTestReferenceReceipt {
+            id: reference_pack.manifest.id.clone(),
+            version: reference_pack.manifest.version,
+            manifest_sha256: reference_pack.manifest_sha256.clone(),
+            checkout_commit: reference_pack.manifest.source.checkout_commit.clone(),
+            generated_engine_commit: reference_pack
+                .manifest
+                .source
+                .generated_engine_commit
+                .clone(),
+        },
+        previews: reference_pack
+            .manifest
+            .entries
+            .iter()
+            .zip(preview_bytes.iter())
+            .map(|(entry, bytes)| WorldTestPreviewSource {
+                scene: entry.scene.clone(),
+                theme: entry.theme.clone(),
+                source_file: preview_filename(entry),
+                sha256: format!("{:x}", Sha256::digest(bytes)),
+                byte_length: bytes.len(),
+                width: WORLD_TEST_PREVIEW_WIDTH,
+                height: WORLD_TEST_PREVIEW_HEIGHT,
+                reference_source_sha256: entry.source_sha256.clone(),
+            })
+            .collect(),
+        created_at: timestamp.to_owned(),
+        preparation: WorldTestPreparation {
+            method: "local-deterministic-compositor-v1".to_owned(),
+            additional_ai_cost: false,
+        },
+        review_status: "unreviewed".to_owned(),
+        final_art_judgment: VisualJudgment {
+            status: VisualJudgmentStatus::NotAssessed,
+            authority: "user".to_owned(),
+            message: "Only the user can approve final art after reviewing World Test evidence."
+                .to_owned(),
+        },
+    })?;
+
+    let candidates_root = world_test_root(root, &session.id)?;
+    fs::create_dir_all(&candidates_root)
+        .map_err(|error| format!("Could not create World Test storage: {error}"))?;
+    let final_directory = world_test_directory(root, &session.id, &candidate.id)?;
+    let temporary_directory =
+        candidates_root.join(format!(".{}.{}.tmp", candidate.id, temporary_suffix));
+    fs::create_dir(&temporary_directory)
+        .map_err(|error| format!("Could not stage World Test: {error}"))?;
+    let publish_result = (|| -> Result<(), String> {
+        for (preview, bytes) in candidate.previews.iter().zip(preview_bytes.iter()) {
+            fs::write(temporary_directory.join(&preview.source_file), bytes).map_err(|error| {
+                format!(
+                    "Could not write {}/{} World Test preview: {error}",
+                    preview.scene, preview.theme
+                )
+            })?;
+        }
+        let document = format!(
+            "{}\n",
+            serde_json::to_string_pretty(&candidate)
+                .map_err(|error| format!("Could not serialize World Test: {error}"))?
+        );
+        fs::write(temporary_directory.join("world-test.json"), document)
+            .map_err(|error| format!("Could not write World Test document: {error}"))?;
+        fs::rename(&temporary_directory, &final_directory)
+            .map_err(|error| format!("Could not publish World Test: {error}"))
+    })();
+    if publish_result.is_err() {
+        let _ = fs::remove_dir_all(&temporary_directory);
+    }
+    publish_result?;
+    Ok(candidate)
+}
+
+fn read_world_test_payload(
+    root: &Path,
+    session_id: &str,
+    world_test_id: &str,
+) -> Result<WorldTestCandidatePayload, String> {
+    let candidate = read_world_test(root, session_id, world_test_id)?;
+    let directory = world_test_directory(root, session_id, world_test_id)?;
+    let mut preview_png_bytes = HashMap::new();
+    for preview in &candidate.previews {
+        let bytes = fs::read(directory.join(&preview.source_file)).map_err(|error| {
+            format!(
+                "Could not read {}/{} World Test preview: {error}",
+                preview.scene, preview.theme
+            )
+        })?;
+        let decoded = decode_png_rgba(&bytes)?;
+        if bytes.len() != preview.byte_length
+            || format!("{:x}", Sha256::digest(&bytes)) != preview.sha256
+            || decoded.width != preview.width
+            || decoded.height != preview.height
+        {
+            return Err(format!(
+                "{}/{} preview no longer matches immutable provenance.",
+                preview.scene, preview.theme
+            ));
+        }
+        preview_png_bytes.insert(format!("{}/{}", preview.scene, preview.theme), bytes);
+    }
+    Ok(WorldTestCandidatePayload {
+        candidate,
+        preview_png_bytes,
+    })
+}
+
+fn rounded_pixel_luma(pixel: [u8; 4]) -> u32 {
+    (299 * u32::from(pixel[0]) + 587 * u32::from(pixel[1]) + 114 * u32::from(pixel[2]) + 500) / 1000
+}
+
+fn actor_mean_luma(png_bytes: &[u8]) -> Result<u32, String> {
+    let decoded = decode_png_rgba(png_bytes)?;
+    let mut total = 0_u32;
+    let mut count = 0_u32;
+    for pixel in decoded.pixels {
+        if pixel[3] == 0 {
+            continue;
+        }
+        total += rounded_pixel_luma(pixel);
+        count += 1;
+    }
+    if count == 0 {
+        return Err("Walk Cycle frame has no visible actor pixels.".to_owned());
+    }
+    Ok((total + count / 2) / count)
+}
+
+fn ground_mean_luma(entry: &ReferencePackEntry, png_bytes: &[u8]) -> Result<u32, String> {
+    let decoded = decode_png_rgba(png_bytes)?;
+    let mut total = 0_u32;
+    let mut count = 0_u32;
+    for y in entry.ground_sample.y..entry.ground_sample.y + entry.ground_sample.height {
+        for x in entry.ground_sample.x..entry.ground_sample.x + entry.ground_sample.width {
+            let source_x = entry.viewport.x + x;
+            let source_y = entry.viewport.y + y;
+            total +=
+                rounded_pixel_luma(decoded.pixels[(source_y * decoded.width + source_x) as usize]);
+            count += 1;
+        }
+    }
+    Ok((total + count / 2) / count)
+}
+
+fn assert_world_test_source_walk_cycle(
+    candidate: &WorldTestCandidate,
+    source: &WalkCycleCandidatePayload,
+) -> Result<(), String> {
+    if candidate.source_walk_cycle.walk_cycle_id != source.candidate.id {
+        return Err("World Test source Walk Cycle identity changed.".to_owned());
+    }
+    for (receipt, frame) in candidate
+        .source_walk_cycle
+        .frame_sources
+        .iter()
+        .zip(source.candidate.frames.iter())
+    {
+        if receipt.direction != frame.direction
+            || receipt.frame_index != frame.frame_index
+            || receipt.sha256 != frame.sha256
+            || receipt.byte_length != frame.byte_length
+        {
+            return Err("World Test source Walk Cycle bytes changed.".to_owned());
+        }
+    }
+    Ok(())
+}
+
+fn validate_world_test_report(
+    report: WorldTestValidationReport,
+) -> Result<WorldTestValidationReport, String> {
+    validate_candidate_id(&report.world_test_id)?;
+    if report.schema_version != 1
+        || report.validator_id != WORLD_TEST_VALIDATOR_ID
+        || report.contract_id != CONTRACT_ID
+        || report.measurements.len()
+            != WORLD_TEST_SCENES.len()
+                * WORLD_TEST_THEMES.len()
+                * TURNAROUND_DIRECTIONS.len()
+                * WALK_CYCLE_FRAMES_PER_DIRECTION
+    {
+        return Err("Unsupported World Test validation report.".to_owned());
+    }
+    let mut index = 0;
+    let mut counted = ValidationSummary {
+        pass: 0,
+        fail: 0,
+        not_assessed: 0,
+    };
+    for scene in WORLD_TEST_SCENES {
+        for theme in WORLD_TEST_THEMES {
+            for direction in TURNAROUND_DIRECTIONS {
+                for frame_index in 0..WALK_CYCLE_FRAMES_PER_DIRECTION {
+                    let measurement = &report.measurements[index];
+                    if measurement.scene != scene
+                        || measurement.theme != theme
+                        || measurement.direction != direction
+                        || measurement.frame_index != frame_index
+                        || measurement.minimum != MINIMUM_GROUND_LUMA_DISTANCE
+                        || measurement.distance
+                            != measurement
+                                .actor_mean_luma
+                                .abs_diff(measurement.ground_mean_luma)
+                        || (measurement.status == ValidationStatus::Pass)
+                            != (measurement.distance >= measurement.minimum)
+                        || measurement.status == ValidationStatus::NotAssessed
+                    {
+                        return Err(
+                            "World Test luma measurement order or evidence is invalid.".to_owned()
+                        );
+                    }
+                    match measurement.status {
+                        ValidationStatus::Pass => counted.pass += 1,
+                        ValidationStatus::Fail => counted.fail += 1,
+                        ValidationStatus::NotAssessed => counted.not_assessed += 1,
+                    }
+                    index += 1;
+                }
+            }
+        }
+    }
+    if counted != report.summary || report.summary.not_assessed != 0 {
+        return Err("World Test validation summary does not match measurements.".to_owned());
+    }
+    if report.final_art_judgment.status != VisualJudgmentStatus::NotAssessed
+        || report.final_art_judgment.authority != "user"
+        || report.final_art_judgment.message.is_empty()
+    {
+        return Err("World Test validation crossed the user-owned final-art gate.".to_owned());
+    }
+    Ok(report)
+}
+
+fn validate_world_test_pngs(
+    root: &Path,
+    payload: &WorldTestCandidatePayload,
+) -> Result<WorldTestValidationReport, String> {
+    let source = read_walk_cycle_payload(
+        root,
+        &payload.candidate.session_id,
+        &payload.candidate.source_walk_cycle.walk_cycle_id,
+    )?;
+    assert_world_test_source_walk_cycle(&payload.candidate, &source)?;
+    let reference_pack = load_world_test_reference_pack()?;
+    if payload.candidate.reference_pack.manifest_sha256 != reference_pack.manifest_sha256
+        || payload.candidate.reference_pack.checkout_commit
+            != reference_pack.manifest.source.checkout_commit
+        || payload.candidate.reference_pack.generated_engine_commit
+            != reference_pack.manifest.source.generated_engine_commit
+    {
+        return Err("World Test reference-pack receipt no longer matches.".to_owned());
+    }
+    let mut actor_lumas = HashMap::new();
+    for frame in &source.candidate.frames {
+        let bytes = source
+            .png_bytes
+            .get(frame.direction, frame.frame_index)
+            .ok_or_else(|| "Walk Cycle frame bytes are incomplete.".to_owned())?;
+        actor_lumas.insert(
+            (frame.direction, frame.frame_index),
+            actor_mean_luma(bytes)?,
+        );
+    }
+    let mut measurements = Vec::new();
+    let mut summary = ValidationSummary {
+        pass: 0,
+        fail: 0,
+        not_assessed: 0,
+    };
+    for (entry, reference_bytes) in reference_pack
+        .manifest
+        .entries
+        .iter()
+        .zip(reference_pack.sources.iter())
+    {
+        let ground = ground_mean_luma(entry, reference_bytes)?;
+        for direction in TURNAROUND_DIRECTIONS {
+            for frame_index in 0..WALK_CYCLE_FRAMES_PER_DIRECTION {
+                let actor = *actor_lumas
+                    .get(&(direction, frame_index))
+                    .ok_or_else(|| "Walk Cycle luma evidence is incomplete.".to_owned())?;
+                let distance = actor.abs_diff(ground);
+                let status = if distance >= MINIMUM_GROUND_LUMA_DISTANCE {
+                    summary.pass += 1;
+                    ValidationStatus::Pass
+                } else {
+                    summary.fail += 1;
+                    ValidationStatus::Fail
+                };
+                measurements.push(WorldTestLumaMeasurement {
+                    scene: entry.scene.clone(),
+                    theme: entry.theme.clone(),
+                    direction,
+                    frame_index,
+                    actor_mean_luma: actor,
+                    ground_mean_luma: ground,
+                    distance,
+                    minimum: MINIMUM_GROUND_LUMA_DISTANCE,
+                    status,
+                });
+            }
+        }
+    }
+    validate_world_test_report(WorldTestValidationReport {
+        schema_version: 1,
+        validator_id: WORLD_TEST_VALIDATOR_ID.to_owned(),
+        world_test_id: payload.candidate.id.clone(),
+        contract_id: payload.candidate.contract_id.clone(),
+        measurements,
+        summary,
+        final_art_judgment: payload.candidate.final_art_judgment.clone(),
+    })
+}
+
 fn validation_rule(
     id: ValidationRuleId,
     status: ValidationStatus,
@@ -2220,6 +3116,48 @@ fn validate_walk_cycle_candidate(
     validate_walk_cycle_pngs(&payload)
 }
 
+#[tauri::command]
+fn create_world_test_candidate(
+    session_id: String,
+    source_walk_cycle_id: String,
+) -> Result<WorldTestCandidate, String> {
+    let timestamp = Utc::now().to_rfc3339_opts(SecondsFormat::Millis, true);
+    let id_suffix = Uuid::new_v4().simple().to_string()[..8].to_owned();
+    let temporary_suffix = Uuid::new_v4().simple().to_string();
+    create_world_test_candidate_at(
+        &workspace_root(),
+        &session_id,
+        &source_walk_cycle_id,
+        &timestamp,
+        &id_suffix,
+        &temporary_suffix,
+        None,
+    )
+}
+
+#[tauri::command]
+fn list_world_test_candidates(session_id: String) -> Result<Vec<WorldTestCandidate>, String> {
+    list_world_tests_at(&workspace_root(), &session_id)
+}
+
+#[tauri::command]
+fn get_world_test_candidate(
+    session_id: String,
+    world_test_id: String,
+) -> Result<WorldTestCandidatePayload, String> {
+    read_world_test_payload(&workspace_root(), &session_id, &world_test_id)
+}
+
+#[tauri::command]
+fn validate_world_test_candidate(
+    session_id: String,
+    world_test_id: String,
+) -> Result<WorldTestValidationReport, String> {
+    let root = workspace_root();
+    let payload = read_world_test_payload(&root, &session_id, &world_test_id)?;
+    validate_world_test_pngs(&root, &payload)
+}
+
 #[cfg_attr(mobile, tauri::mobile_entry_point)]
 pub fn run() {
     tauri::Builder::default()
@@ -2239,7 +3177,11 @@ pub fn run() {
             create_walk_cycle_candidate,
             list_walk_cycle_candidates,
             get_walk_cycle_candidate,
-            validate_walk_cycle_candidate
+            validate_walk_cycle_candidate,
+            create_world_test_candidate,
+            list_world_test_candidates,
+            get_world_test_candidate,
+            validate_world_test_candidate
         ])
         .run(tauri::generate_context!())
         .expect("error while running TileForge Actor Studio");
@@ -3072,6 +4014,172 @@ mod tests {
             .join(&session.id)
             .join("walk-cycles")
             .exists());
+        fs::remove_dir_all(root).unwrap();
+    }
+
+    #[test]
+    fn desktop_adapter_reads_shared_world_test_fixture() {
+        let fixture = include_str!("../../tests/fixtures/world-test-candidate-v1.json");
+        let candidate: WorldTestCandidate = serde_json::from_str(fixture).unwrap();
+        let candidate = validate_world_test(candidate).unwrap();
+
+        assert_eq!(candidate.contract_id, CONTRACT_ID);
+        assert_eq!(candidate.stage, "world-test");
+        assert_eq!(candidate.source_walk_cycle.accepted_by, "user");
+        assert_eq!(candidate.source_walk_cycle.frame_sources.len(), 16);
+        assert_eq!(candidate.previews.len(), 16);
+        assert!(!candidate.preparation.additional_ai_cost);
+        assert_eq!(
+            candidate.final_art_judgment.status,
+            VisualJudgmentStatus::NotAssessed
+        );
+    }
+
+    #[test]
+    fn world_test_preserves_receipts_previews_and_user_gate() {
+        let root = test_root("world-test");
+        let session = create_session_at(
+            &root,
+            brief(),
+            "2026-07-28T00:00:00.000Z",
+            "worldtes",
+            "session",
+        )
+        .unwrap();
+        let down = validation_png(false, 32, 32);
+        let concept = create_concept_candidate_at(
+            &root,
+            &session.id,
+            &down,
+            provenance(CandidateSource::Imported),
+            "2026-07-28T00:01:00.000Z",
+            "selected",
+            "candidate",
+            None,
+        )
+        .unwrap();
+        let views = TurnaroundPngBytes {
+            down: down.clone(),
+            right: down.clone(),
+            up: down.clone(),
+            left: down.clone(),
+        };
+        let turnaround = create_turnaround_candidate_at(
+            &root,
+            &session.id,
+            &concept.id,
+            &views,
+            provenance(CandidateSource::Imported),
+            "2026-07-28T00:02:00.000Z",
+            "accepted",
+            "turnaround",
+            None,
+        )
+        .unwrap();
+        let frames = WalkCyclePngBytes {
+            down: vec![down.clone(), down.clone(), down.clone(), down.clone()],
+            right: vec![down.clone(), down.clone(), down.clone(), down.clone()],
+            up: vec![down.clone(), down.clone(), down.clone(), down.clone()],
+            left: vec![down.clone(), down.clone(), down.clone(), down],
+        };
+        let walk_cycle = create_walk_cycle_candidate_at(
+            &root,
+            &session.id,
+            &turnaround.id,
+            &frames,
+            provenance(CandidateSource::Imported),
+            "2026-07-28T00:03:00.000Z",
+            "accepted",
+            "walk-cycle",
+            None,
+        )
+        .unwrap();
+
+        assert!(create_world_test_candidate_at(
+            &root,
+            &session.id,
+            "missing-walk-cycle",
+            "2026-07-28T00:04:00.000Z",
+            "invalid1",
+            "missing",
+            None,
+        )
+        .is_err());
+
+        let world_test = create_world_test_candidate_at(
+            &root,
+            &session.id,
+            &walk_cycle.id,
+            "2026-07-28T00:04:00.000Z",
+            "native01",
+            "world-test",
+            None,
+        )
+        .unwrap();
+        let payload = read_world_test_payload(&root, &session.id, &world_test.id).unwrap();
+        let report = validate_world_test_pngs(&root, &payload).unwrap();
+        assert_eq!(
+            payload.candidate.source_walk_cycle.walk_cycle_id,
+            walk_cycle.id
+        );
+        assert_eq!(payload.candidate.source_walk_cycle.accepted_by, "user");
+        assert_eq!(payload.preview_png_bytes.len(), 16);
+        assert!(!payload.candidate.preparation.additional_ai_cost);
+        assert_eq!(report.measurements.len(), 256);
+        assert_eq!(report.summary.pass + report.summary.fail, 256);
+        assert_eq!(report.summary.not_assessed, 0);
+        assert_eq!(
+            report.final_art_judgment.status,
+            VisualJudgmentStatus::NotAssessed
+        );
+        assert_eq!(
+            fs::read_dir(
+                root.join("sessions")
+                    .join(&session.id)
+                    .join("world-tests")
+                    .join(&world_test.id)
+            )
+            .unwrap()
+            .count(),
+            17
+        );
+
+        let collision = create_world_test_candidate_at(
+            &root,
+            &session.id,
+            &walk_cycle.id,
+            "2026-07-28T00:05:00.000Z",
+            "same0001",
+            "first",
+            Some(2),
+        )
+        .unwrap();
+        assert!(create_world_test_candidate_at(
+            &root,
+            &session.id,
+            &walk_cycle.id,
+            "2026-07-28T00:05:00.000Z",
+            "same0001",
+            "collision-cleanup",
+            Some(2),
+        )
+        .is_err());
+        assert_eq!(
+            read_world_test_payload(&root, &session.id, &collision.id)
+                .unwrap()
+                .preview_png_bytes
+                .len(),
+            16
+        );
+        assert!(
+            fs::read_dir(root.join("sessions").join(&session.id).join("world-tests"))
+                .unwrap()
+                .all(|entry| !entry
+                    .unwrap()
+                    .file_name()
+                    .to_string_lossy()
+                    .starts_with('.'))
+        );
         fs::remove_dir_all(root).unwrap();
     }
 }

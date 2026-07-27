@@ -71,8 +71,16 @@ revision and preserve the evidence trail.
     revisions.
 13. Ask the user to accept or reject motion and readability.
 14. Do not begin World Test work until that Walk Cycle gate is explicit.
+15. After the user explicitly accepts a Walk Cycle, call
+    `create_world_test_candidate` to record the exact sixteen-frame source
+    receipt and prepare all sixteen pinned scene/theme previews locally.
+16. Use `list_world_test_candidates`, `get_world_test_candidate`, and
+    `validate_world_test_candidate` to compare immutable previews and the 256
+    frame-to-ground luma measurements.
+17. Ask the user to approve or reject final art. Do not prepare an export until
+    that gate is explicit, and do not treat a structural result as approval.
 
-The MCP tools currently implement steps 1–12. M02 candidate intake proves PNG
+The MCP tools currently implement steps 1–16. M02 candidate intake proves PNG
 structure, exact dimensions, and the presence of transparency. M03 validation
 then measures the immutable decoded pixels. The Turnaround slice of M04 records
 the user-selected Concept and requires its exact bytes as the down view before
@@ -81,8 +89,10 @@ until a pinned ground reference exists; visual and identity acceptance remain
 user-only decisions. The Walk Cycle slice records the user's accepted
 Turnaround receipt, requires exact frame-zero bytes for all four directions,
 and atomically preserves sixteen frames at 300 ms. Motion and readability
-remain user-only. World Test and export tools will be added with their studio
-layers.
+remain user-only. The World Test slice binds the accepted Walk Cycle to a
+copied SHA-256-pinned TileForge pack, atomically preserves sixteen previews,
+and resolves ground luma for every frame/reference pairing. Final-art judgment
+stays Not assessed with user authority. Export tools remain unimplemented.
 
 ## Validation language
 
@@ -98,7 +108,7 @@ Use these distinct outcomes:
 
 Sessions live in `.studio/sessions` by default. Set `TFAS_WORKSPACE` to redirect
 local state. The desktop and MCP gateway read the same immutable session,
-Concept, Turnaround, and Walk Cycle documents; creation publishes complete
+Concept, Turnaround, Walk Cycle, and World Test documents; creation publishes complete
 directories atomically rather than exposing partial records. Original PNG
 bytes are rehash-verified on read and never overwritten. `.studio/` and
 generated exports are ignored by Git.

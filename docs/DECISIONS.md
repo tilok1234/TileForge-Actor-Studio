@@ -241,3 +241,54 @@ operation can accept the animation, approve final art, or publish it.
 Reason: a complete atomic 4 × 4 artifact prevents mixed animation revisions,
 keeps the accepted poses auditable, and gives the desktop and every agent
 client the same motion-review evidence.
+
+## 2026-07-27 - World Test uses a copied and SHA-256-pinned TileForge subset
+
+Actor Studio tracks `reference-packs/tileforge-world-test-v1` as its only
+TileForge input. The pack contains Scale Lineup, Forest Clearing, Crownhold,
+and Tidewater in forest, autumn, dusk, and winter at ground-truth 1x scale.
+Its manifest records the source checkout commit, the generated-engine commit,
+source dimensions, byte lengths, SHA-256 identities, fixed viewports, actor
+placements, and ground samples.
+
+The upstream copyright notice is preserved. Actor Studio imports no TileForge
+runtime code and never writes to the source repository.
+
+Reason: a copied versioned pack makes visual evidence reproducible and lets
+desktop and MCP clients verify exact inputs without coupling either product's
+runtime or mutable working tree.
+
+## 2026-07-27 - World Test is the durable accepted-Walk-Cycle receipt
+
+The first World Test revision records the exact Walk Cycle id plus all sixteen
+frame hashes and byte lengths with `acceptedBy: user`. It also records the
+reference-manifest hash and upstream commit identities. This transition
+captures the user's motion/readability acceptance but is not final-art
+approval.
+
+The local deterministic compositor places accepted down frame 0 into every
+pinned scene/theme and atomically preserves sixteen immutable 640 x 384 PNGs
+with `world-test.json`. The preparation record explicitly states that no
+additional AI cost was incurred.
+
+Reason: World Test must not silently swap animation frames or mutable
+backgrounds. One atomic receipt keeps the final visual review tied to exact
+actor and world evidence without adding a paid service.
+
+## 2026-07-27 - Ground contrast resolves as a World Test measurement
+
+Concept, Turnaround, and Walk Cycle structural reports continue to return
+ground luma as Not assessed because they have no pinned placement. World Test
+resolves the rule by comparing each frame's rounded mean visible-pixel luma
+with each manifest-defined ground-sample mean: sixteen frames times sixteen
+references, or 256 ordered measurements. A distance of at least the contract
+minimum 15 passes.
+
+Mean luma is a deterministic screening proxy, not a visual verdict. The report
+retains a separate final-art judgment fixed to Not assessed with user
+authority. Mirelight Pilgrim r1 reports 240 Pass and 16 Fail; only dusk grass
+in Scale Lineup and Forest Clearing produces failures.
+
+Reason: resolving the deferred structural rule at the first stage with real
+ground context keeps earlier validators honest, surfaces camouflage risk, and
+does not let arithmetic replace user judgment.
